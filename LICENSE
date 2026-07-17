@@ -1,0 +1,50 @@
+MIT License
+
+Copyright (c) 2026 MITRA Software Verification Framework
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Framework Usage Notice
+
+The Software Verification Framework (SVF) is designed for reuse across software
+verification engagements. When using this framework:
+
+1. **Attribution** — Please retain the copyright notice and license in all copies
+   or substantial portions of the framework.
+
+2. **Engagement Artifacts** — Documents produced using this framework (evidence,
+   findings, reports) are owned by the engagement organization, not the framework.
+
+3. **Modifications** — If you modify the framework for your organization's use,
+   please consider contributing improvements back to the community.
+
+4. **No Warranty** — The framework is provided as-is. Verification results depend
+   on proper application of the methodology by qualified personnel.
+
+---
+
+## Contact
+
+For licensing questions or commercial use inquiries, contact the SVF Architect.
+
+---
+
+**End of License**

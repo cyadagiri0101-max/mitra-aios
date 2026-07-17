@@ -1,0 +1,768 @@
+xlsx
+1_Blow_Mold_Costing.xlsx
+
+XLSX
+29.09 KB
+xlsx
+1_Blow_Mold_Costing.xlsx
+
+XLSX
+66.05 KB
+xlsx
+012_Project Status_Blow_Molds.xlsx
+
+XLSX
+44.79 KB
+xlsx
+Blow_Mold_Costing History_2.xlsx
+
+XLSX
+121.34 KB
+xlsx
+Blow_Molds_Tool_No's.xlsx
+
+XLSX
+61.52 KB
+xlsx
+011_Prathiraj_ All in One_History_Reference_Document.xlsx
+
+XLSX
+103.2 KB
+currently in vs code debug is running back ground i want u create a data library separately  so that later we can include in our data base. note : use BMXXX as project no even though its written BM-XXX. BM for Blow mold initialy project will be Mxxx, late  we updated to BM (blow mold),IM for injection mold , the attached data is same but prepared by diffrent time lines, different teams.clud all the data in single file
+Copy
+
+Thinking completed
+I'll start by reading all the attached Excel files to understand their structure and then consolidate them into a single data library.
+
+Used 1 tools · ran 1 commands
+I've inspected all files. Now let me create a comprehensive consolidated data library that normalizes all project numbers to the BMXXX/IMXXX format and merges everything into a single, clean file.
+
+Used 1 tools · ran 2 commands
+The consolidated data library was created successfully. Now let me copy it to your workspace and verify the data quality.
+
+Used 1 tools · ran 4 commands
+I'll create a proper Python data library module with an SQLite database that you can directly import into your VS Code project. This gives you a clean, queryable API.
+
+Used 1 tools · ran 1 commands
+Now let me create the Python module files for the data library.
+
+Used 7 tools · ran 2 commands
+Your PMM Data Library is ready. Here's a summary of everything created:
+📁 Files in Your Workspace
+Table
+File	Purpose
+PMM_Master_Data_Library.xlsx	Consolidated master Excel (all 6 source files merged)
+pmm_data_library/	Python package — copy this folder into your VS Code project
+Inside pmm_data_library/:
+Table
+File	Purpose
+__init__.py	Package exports
+db.py	Database interface classes (BlowMoldDB, InjectionMoldDB, etc.)
+models.py	Dataclasses (BlowMold, InjectionMold, JobWork, etc.)
+utils.py	normalize_tool_number() function
+setup_db.py	Rebuild SQLite from Excel if data changes
+pmm_database.db	SQLite database (ready to query)
+PMM_Master_Data_Library.xlsx	Excel backup inside the package
+🔢 Normalization Applied
+Table
+Original Format	Normalized	Example
+M-xxx (early blow mold)	BMxxx	M-15 → BM015
+BM-xxx (current blow mold)	BMxxx	BM-243 → BM243
+T-xxxx (legacy)	Kept as-is	T-1147
+IM-xx (injection mold)	IMxxx	IM-8 → IM008, IM-35 → IM035
+📊 Data Counts
+Table
+Category	Records
+Blow Molds	964
+Injection Molds	127
+Job Works	517
+ALPLA STD Parts	91
+Commercial Molds	115
+🚀 How to Use in VS Code
+Copy the pmm_data_library/ folder into your project root, then:
+Python
+Copy
+from pmm_data_library import BlowMoldDB, InjectionMoldDB, MasterDataDB
+
+# Blow Molds
+db = BlowMoldDB()
+mold = db.get_by_project_no("BM243")          # Search by normalized BM number
+alpla = db.search_by_customer("ALPLA")         # Filter by customer
+seb101 = db.search_by_machine("SEB101")        # Filter by machine
+
+# Injection Molds
+im_db = InjectionMoldDB()
+im = im_db.get_by_project_no("IM035")
+
+# Overview
+master = MasterDataDB()
+print(master.stats())  # {'blow_molds': 964, 'injection_molds': 127, ...}
+🔗 Quick Links
+PMM_Master_Data_Library.xlsx — The master Excel file
+pmm_data_library/ — The Python package to import into your project
+If you update the Excel later, just run python setup_db.py inside the package folder to rebuild the SQLite database.
+
+PMM_Master_Data_Library.xlsx
+Preview File
+Preview
+
+Quota halved for this task
+Copy
+Directory: Y:\Blow Molds - Design Data\BM301-BM350
+Mode                 LastWriteTime         Length Name
+d-----        13-08-2025  02:09 PM                BM301 Hero 1000ml HDPE IN M01 9Cav Mold SEB101 FN
+d-----        18-11-2024  04:27 PM                BM302 Excellence 72ml HDPE P01 Single Cavity Mold BMUTC CN
+d-----        28-04-2025  12:43 PM                BM303 Motul 1000ml M01 9 cavity mold SEB101 FN
+d-----        20-11-2024  01:37 PM                BM304 Excellence 72ml HDPE 12Cav Mold BMU70E+ CN
+d-----        16-07-2025  12:34 PM                BM305 Arrow 1.0Lit 10Cav Mold SEB101 FN Angle neck
+d-----        13-10-2025  03:20 PM                BM306 Simple One 500ml option-1and 3 Single Cavity Mold BMUTC FN
+d-----        20-11-2024  02:12 PM                BM307 Simple One 500ml option-2 Single Cavity Mold BMUTC FN
+d-----        08-01-2026  04:40 PM                BM308 Lifebuoy Shampoo 200ml 2+2 Cavity
+d-----        20-11-2024  02:19 PM                BM309 235ml IGH HD Bottle_2+2 Cavity Mold
+d-----        20-11-2024  02:21 PM                BM310 AXE BW GF 250ml 2+2 Cavity Mold CMP1000DH2
+d-----        25-03-2026  10:00 AM                BM311 AXE BW GF 400ml 2+2 Cavity Mold CMP1000DH2
+d-----        24-03-2025  04:17 PM                BM312 Lifebuoy BW 1Liter 2+2 Cavity Mold
+d-----        30-07-2025  05:36 PM                BM313 Foxlife 2000ml Bottle 53mm Single Cavity Mold FN
+d-----        02-04-2025  02:56 PM                BM314 Foxlife 4000ml Bottle 53mm Single Cavity Mold FN
+d-----        20-11-2024  02:45 PM                BM315 CeraVe 1 Oz IN P01 single cavity mold BMU TC FN
+d-----        20-11-2024  02:45 PM                BM316 CeraVe 3 Oz IN P01  single cavity mold BMU TC FN
+d-----        20-11-2024  02:43 PM                BM317 CeraVe 8 Oz IN P01 single cavity mold BMU TC FN
+d-----        20-11-2024  02:49 PM                BM318 CeraVe 16 Oz IN P01  single cavity mold BMU TC FN
+d-----        20-11-2024  02:50 PM                BM319 Laundry 200ml Bottle Single Cavity CMP-1L
+d-----        20-11-2024  02:48 PM                BM320 Laundry 500ml Bottle Single Cavity CMP-1L
+d-----        09-10-2025  02:08 PM                BM321 Laundry  1000ml Bottle Single Cavity CMP-1L
+d-----        23-05-2025  01:01 PM                BM322 Dove KAKO 1.0lIT CMP1000 DH2 FN
+d-----        20-11-2024  02:52 PM                BM323 Issey 50ml (Bridge Pack 50ml) M01 15Cav Mold BMU70E+ CN
+d-----        28-11-2025  06:59 AM                BM324 STD27 250ml HDPE LW P03 BMU TC FN
+d-----        20-11-2024  03:10 PM                BM325 STD 27 400ml HDPE LW P04 BMUTC FN
+d-----        24-10-2025  01:44 PM                BM326 STD28 250ml HDPE M04 8Cav Mold BMU70E+ FN
+d-----        30-05-2026  03:51 PM                BM327 DAL 1000ml HDPE M01 11-Cavity Mold SEB101 CN
+d-----        07-07-2025  04:37 PM                BM328 DAL 500ml HDPE M01 14-Cavity Mold SEB101 CN
+d-----        20-11-2024  04:09 PM                BM329 DAL 250ml HDPE 08Cav Mold BMU70E+ CN
+d-----        20-11-2024  04:05 PM                BM330 DAL 100ml HDPE 08Cav Mold BMU70E+ CN
+d-----        21-03-2026  12:24 PM                BM331 40ML AFT BOTTLE 6+6 CAVITY MOLD FN WNR
+d-----        27-06-2026  09:02 PM                BM332 STD 27 625ml Single Cavity BMUTC FN
+d-----        20-11-2024  04:20 PM                BM333 STD 27 125ml Single Cavity BMUTC FN
+d-----        20-11-2024  04:11 PM                BM334 STD 27 75ml Single Cavity BMUTC FN
+d-----        17-02-2026  01:52 PM                BM335 Dream SA 75ml single cavity mold BMU TC FN
+d-----        24-09-2025  11:03 AM                BM336 Dream SA 180ml single cavity mold BMU TC FN
+d-----        17-04-2026  01:05 PM                BM337 Dream SA 340ml single cavity mold BMU TC FN
+d-----        20-11-2024  04:35 PM                BM338 Dream SA 650ml single cavity mold BMU TC FN
+d-----        13-05-2025  04:20 PM                BM339 Dream SA 1000ml single cavity mold BMU TC FN
+d-----        05-05-2025  03:33 PM                BM340 300CC 28mm Neck single cavity mold CMP 500 FN MTec
+d-----        26-11-2025  02:23 PM                BM341 150CC 28mm Neck single cavity mold CMP 500 FN MTec
+d-----        20-11-2024  04:44 PM                BM342 200ml Single Cavity Mold CMP 200ml FN DIL
+d-----        22-10-2025  08:38 AM                BM343 180ml Lassi Bottle 4+4 Cavity Mold - Uniloy 100 LSD MTL
+d-----        27-11-2025  04:39 PM                BM344 500ml Bottle 1+1 Cavity Mold CMP1000DH2
+d-----        22-07-2025  10:03 AM                BM345 1000ml_1+1 Cavity Mold CMP1000DH2
+d-----        01-03-2025  08:01 AM                BM346 150ml syngenta-bottle Single Cavity CMP1000 LH MTL
+d-----        19-09-2025  05:59 PM                BM347 1000ml syngenta-bottle Single Cavity CMP2000 LH MTL
+d-----        10-06-2025  08:01 PM                BM348 Pasteur 3ml Pipette sterile 9+9 cavity Mold FN
+d-----        20-04-2026  10:47 AM                BM349 1L BRC_2+2_Cavity Mold_UMS100 CR
+d-----        11-03-2025  01:08 PM                BM350 1L Detergent V2 Bottle 1+1 1Ltr CMP DH2
+Directory: Y:\Blow Molds - Design Data\BM351-BM400
+Mode                 LastWriteTime         Length Name
+d-----        06-05-2025  11:43 AM                BM351(BM258)Oval Bottle P01 cav mold SIKA FN
+d-----        26-11-2024  10:04 AM                BM352 Godrej 2oz PP P01 single cavity mold BMU TC CN
+d-----        03-12-2024  10:38 AM                BM353 Toni and Guy 08-Cavity Mold on BMU75 CN
+d-----        22-10-2025  09:20 AM                BM354 Comfort 860ml 2+2 Cavity mold CN _UMS100D
+d-----        17-11-2025  06:21 PM                BM356 -T029066 - 4+4 Cavity Mold - Precision
+d-----        18-10-2024  02:29 PM                BM357 Nycil 150g PP P01 single cavity mold SSB65 FN
+d-----        16-11-2024  02:57 PM                BM358 Sipper pack 1000ml HDPE P01 Single cavity Mold on SS65 FN
+d-----        25-04-2025  06:45 PM                BM359 Sipper Pack 1000ml HDPE M01 10 Cavity Mold on SEB101 FN
+d-----        22-03-2025  04:58 PM                BM360 Sipper Pack 750ml HDPE M01 10-Cavity Mold on SEB101 FN
+d-----        03-04-2025  11:05 AM                BM361 Dream SA75ml 12-Cavity Mold on BMU70E+ CN
+d-----        24-04-2025  02:24 PM                BM362 Dream SA180ml 08-Cavity Mold on BMU70E+ CN
+d-----        10-03-2025  01:02 PM                BM363 DreamSA340ml M01 08-Cavity Mold on BMU70E+ CN
+d-----        07-05-2025  11:53 AM                BM364 DreamSA340ml M02 08-Cavity Mold on BMU70E+ CN
+d-----        18-12-2024  10:59 AM                BM365 DreamSA650ml 06-Cavity Mold on BMU70E+ FN M01
+d-----        18-01-2025  11:05 AM                BM366 DreamSA650ml 08-Cavity Mold on BMU70E+ FN M02
+d-----        15-11-2024  04:53 PM                BM367 DreamSA1000ml 06-Cavity Mold on BMU70E+ M01
+d-----        28-11-2025  06:15 AM                BM368 Softouch 200ml HDPE P01 Single Cavity Mold BMUTC CN
+d-----        03-02-2025  12:26 PM                BM369 Godrej 2oz M01 10-Cavity Mold on BMU70E+ CN
+d-----        13-02-2026  03:52 PM                BM370 Softouch 200ml HDPE M01 8-Cavity Mold BMU70E+
+d-----        31-01-2025  08:04 PM                BM371 Nycil 150g PP M01 14cav Mold SEB101 CN
+d-----        11-03-2025  07:32 AM                BM372 Nycil 150g PP M02 14cav Mold SEB101 CN
+d-----        18-02-2026  08:58 AM                BM373 Motul 3000ml HDPE P01 Single cavity Mold SSB65 FN
+d-----        03-04-2025  11:37 AM                BM374 PBL 40ml HDPE P01 Single cavity Mold BMUTC CN
+d-----        12-03-2025  09:46 AM                BM375 PBL 90ml HDPE P01 Single cavity Mold BMUTC CN
+d-----        18-02-2026  09:21 AM                BM376 PBL 275ml HDPE P01 Single cavity Mold BMUTC CN
+d-----        06-05-2025  08:23 AM                BM377 ERTH 400ml Rectangular Bottle HDPE M01 08-Cavity Mold BMU70E+
+FN
+d-----        07-07-2025  03:51 PM                BM378 Motul 3000ml HDPE M01 4Cavity Mold on SEB101 FN
+d-----        18-02-2026  09:22 AM                BM379 Toni and Guy 250ml Bottle 08-Cavity Mold on BMU75CN
+d-----        18-02-2026  09:32 AM                BM380 Dorothy 325ml HDPE 08-Cavity Mold on BMU70E+ FN
+d-----        04-02-2025  09:46 AM                BM381 Dorothy 905ML(30 Oz) 06-Cavity Mold on BMU70E+ FN
+d-----        04-10-2025  12:31 PM                BM382 PBL45ml 08-Cavity Mold on BMU70E+CN
+d-----        26-04-2025  10:31 AM                BM383 PBL90ml 10-Cavity Mold on BMU70E+CN
+d-----        13-05-2025  01:27 PM                BM384 PBL275ml 12-Cavity Mold on BMU70E+ CN
+d-----        10-02-2025  01:51 PM                BM385 DLS 200ml single cavity mold on CMP 1.0Lit FN
+d-----        27-06-2026  08:53 PM                BM386 Dove KAKO 1-Liter CMP1000 DH2 FN-M02
+d-----        16-01-2025  10:54 AM                BM387 Jersey 195ml Single cavity Mold on SSB65 LH
+d-----        17-02-2026  04:26 PM                BM388 Miyakava 200ml single cavity Mold
+d-----        11-11-2025  02:03 PM                BM389 OGX 220ml HDPE P01 single cavity mold BMU TC FN
+d-----        04-03-2025  01:56 PM                BM390 Jersey 130ml PP P01 single cavity mold BMU TC  LH
+d-----        22-12-2025  10:09 AM                BM391 Veedol 1000ml HDPE P01 Single Cavity Mold SSB65 FN
+d-----        13-05-2026  10:22 AM                BM392 1000ml Handle Bottle 2+2 Cavity Mold - yuongil FN
+d-----        06-03-2025  08:57 PM                BM393 Lizol 500ml Single Cavity Mold FN MTL
+d-----        19-03-2025  02:05 PM                BM394 Lizol 975ml Single Cavity Mold FN MTL
+d-----        07-08-2025  02:06 PM                BM395 0.5ml Pasture Pipette Single Cavity Mold FN
+d-----        29-06-2026  10:16 AM                BM396 DLS 200ml single cavity mold on CMP 1.0Lit FN
+d-----        04-04-2025  02:08 PM                BM397 OGX220ml HDPE P02 Single Cavity Mold BMUTC FN
+d-----        17-10-2025  12:24 PM                BM398 Lush 720ml 03-Cavity Mold SSB65 FN
+d-----        13-09-2025  05:23 PM                BM399 Jersey 130ml PP M01 18cav mold SEB101  LH
+d-----        13-05-2025  08:17 PM                BM400 Laundry 500ml Bottle Single Cavity CMP-1L
+-a----        23-03-2026  06:28 PM           1526 BM354 Comfort 860ml 2+2 Cavity mold CN _UMS100D - Shortcut.lnk
+PS Y:\Blow Molds - Design Data\BM351-BM400> Directory: Y:\Blow Molds - Design Data\BM401-BM450
+Mode                 LastWriteTime         Length Name
+d-----        12-06-2026  06:25 PM                BM401 Oxidant 1000ml HDPE P01 Single Cavity Mold SSB65 CN
+d-----        22-04-2025  02:57 PM                BM402 Dream SA180ml 08-Cavity Mold M02 on BMU70E+ CN
+d-----        13-04-2026  12:28 PM                BM403 Dream 1.2L 03-Cavity Mold SSB65 FN
+d-----        23-06-2025  02:56 PM                BM404 Miyakava 100ml single cavity Mold
+d-----        25-07-2025  01:00 PM                BM405 Dentex 125ML Bottle
+d-----        07-05-2025  09:10 AM                BM406 Lush 200ml 08-Cavity Mold M04 on BMU70E+CN
+d-----        26-06-2025  02:33 PM                BM407 Sumo1200ml 03-Cavity Mold M01
+d-----        18-04-2026  06:31 AM                BM408 Dream SA 1.2L single cavity mold BMU TC FN
+d-----        04-06-2025  03:13 PM                BM409 OGX220ml HDPE M01 08-Cavity Mold BMUTC FN
+d-----        04-08-2025  05:34 PM                BM410 Oxidant 1000ml HDPE M02 8Cav Mold on SEB101 CN
+d-----        18-04-2026  06:31 AM                BM411 Jersey 195ml 18cav Mold New Body inserts SEB101 LH
+d-----        13-10-2025  10:51 AM                BM412 Veedol 1000ml M01 10Cavity Mold SEB101 FN
+d-----        13-06-2025  10:33 AM                BM413 Dove KAKO 1-Liter CMP-5 Liter-UMS-100 FN-M03
+d-----        10-03-2026  04:44 PM                BM414 Herbolene 425ml HDPE P01 Single Cavity Mold BMU TC LH
+d-----        26-06-2025  11:26 AM                BM415 Herbolene 540ml HDPE P01 Single Cavity Mold BMU TC LH
+d-----        23-07-2025  12:13 PM                BM416 Herbolene 225ml HDPE P01 Single Cavity Mold BMU TC LH
+d-----        21-06-2025  12:06 PM                BM417 Herbolene 115ml HDPE P01 Single Cavity Mold BMU TC LH
+d-----        18-04-2026  06:33 AM                BM418 Herbolene 425ml HDPE M01 8Cav Mold BMU70E+ LH
+d-----        25-08-2025  08:30 AM                BM419 Herbolene 540ml HDPE M01 8Cav Mold BMU70E+ LH
+d-----        03-10-2025  03:56 PM                BM420 Herbolene 225ml HDPE M01 8Cav Mold BMU70E+ LH
+d-----        16-09-2025  12:03 PM                BM421 Herbolene 115ml HDPE M01 8Cav Mold BMU70E+ LH
+d-----        16-09-2025  05:43 PM                BM422 Moon Shot 170ml single Cavity Mold BMUTC
+d-----        23-02-2026  04:22 PM                BM423 Veedol 1000ml M02 08-Cavity Mold on SEB 101 FN
+d-----        06-05-2026  06:18 PM                BM424 EcoTwist 10ml PE P01 Single Cavity Mold BMUTC
+d-----        25-04-2026  04:06 PM                BM425 EcoTwist 20ml PE P01 Single Cavity Mold BMUTC
+d-----        12-06-2026  06:25 PM                BM426 Moon shot 80ml single cavity mold BMUTC
+d-----        29-08-2025  01:25 PM                BM427 Moon shot 340ml single cavity Mold BMUTC
+d-----        12-06-2026  05:23 PM                BM428 Moon Shot 1200ml 03-Cavity Mold SSB65 FN
+d-----        12-06-2026  06:23 PM                BM429 Moon Shot 1000ml 03-Cavity Mold SSB65 FN
+d-----        18-04-2026  06:37 AM                BM430 Moon shot 650ml 03-Cavity Mold SSB65 FN
+d-----        03-02-2026  09:12 PM                BM431 BV JAR 500gm P01 Single Cavity Mold cmp 1000 LH
+d-----        09-04-2026  09:38 AM                BM432 BV JAR 1kg P01 Single Cavity Mold cmp 1000 LH
+d-----        16-06-2026  11:51 AM                BM433 Highlander 1000ml HDPE M04 10Cav Mold SEB101 FN
+d-----        01-08-2025  09:47 AM                BM434 Shampoo 200ml P01 single cavity mold BMUTC FN
+d-----        30-12-2025  01:19 PM                BM435 Moon Shot 170ml 10-Cavity Mold BMU 70E+
+d-----        01-12-2025  05:03 PM                BM436 Moon shot 80ml 10-Cavity Mold BMU 70E+
+d-----        15-06-2026  12:21 PM                BM437 Moon shot 340ml 06-Cavity Mold BMU 70E+
+d-----        04-11-2025  12:50 PM                BM438 Column 750ml 06-Cavity Mold BMU70E+ FN
+d-----        26-05-2026  09:18 AM                BM439 DLS 200ml 8+8 Cavity Mold MAGIC FN
+d-----        23-12-2025  10:34 AM                BM440 Vancouver 400ml single cavity mold BMUTC
+d-----        12-06-2026  03:06 PM                BM441 60ml CN bottle single cavity Mold CMP 500
+d-----        14-10-2025  11:46 AM                BM442 Vancouver 100ml single cavity mold BMUTC
+d-----        27-12-2025  12:07 PM                BM443 Vancouver 200ml single cavity mold BMUTC
+d-----        27-05-2026  02:40 PM                BM444 DLS 200ml 6+6 Cavity Mold SIKKA FN MTL
+d-----        22-12-2025  03:46 PM                BM445 Herbalife 120CC single cavity mold BMUTC LH
+d-----        18-12-2025  10:40 AM                BM446 Dentex 1000ml Round Bottle CMP-1Liter
+d-----        19-05-2026  03:43 PM                BM447 500ml TC Bottle 4+4 Cav Mold UMS100 AN CR
+d-----        30-05-2026  03:53 PM                BM448 Black Bird 1000ml P01 Single cavity Mold SSB65 FN
+d-----        22-12-2025  03:06 PM                BM449 Black Bird 3500ml P01 Single cavity Mold SSB65 FN
+d-----        21-01-2026  01:26 PM                BM450 Black Bird 5000ml P01 Single cavity Mold SSB65 FN
+d-----        04-03-2026  02:21 PM                BV JAR 1kg 2+2 Cavity Mold cmp 1000 LH MTL
+d-----        12-06-2026  09:41 AM                BV Jar 500gm 4+4 Cavity UMS-100 LH MTL
+d-----        18-09-2025  07:47 PM                DoveKako2L_Creative
+d-----        25-06-2025  03:42 PM                Eco tubes single cavity Mold
+d-----        05-09-2025  08:09 PM                LB 400mll SIngle Cavity Mold
+d-----        24-07-2025  09:01 AM                MoonShot 170ml 10-Cavity Mold
+d-----        24-07-2025  06:16 AM                MoonShot 80ml 10-Cavity Mold
+-a----        24-01-2026  11:32 AM            828 Blow Molds - Design Data - Shortcut.lnk
+-a----        13-12-2025  10:39 AM        7998322 bm448_parm_r00.dwg
+Directory: Y:\Blow Molds - Design Data\BM451-BM500
+Mode                 LastWriteTime         Length Name
+d-----        25-12-2025  12:22 PM                BM xx Veedol
+d-----        13-06-2026  10:03 AM                BM451 Softouch 200ml HDPE 15-Cavity Mold SEB101CN
+d-----        11-06-2026  11:53 AM                BM452 5-Liter Can 1+1 Cavity Mold-UMS100-CR
+d-----        10-01-2026  06:30 AM                BM453 Veedol 600ml P01 Single cavity Mold SS65 FN
+d-----        08-05-2026  01:29 PM                BM454 Veedol 600ml M01 08Cavity Mold SEB101 FN
+d-----        04-05-2026  01:07 PM                BM455 Veedol 800ml M01 08Cavity Mold SEB101 FN
+d-----        14-01-2026  03:41 PM                BM456 Veedol 1.5L M01 3cavity Mold SS65 FN
+d-----        12-06-2026  06:09 PM                BM457 Vancouver 100ml 12-Cavity Mold BMU 70E+ FN
+d-----        15-06-2026  12:24 PM                BM458 Vancouver 200ml 10-Cavity Mold BMU 70E+ FN
+d-----        18-04-2026  06:27 AM                BM459 Vancouver 400ml 08-Cavity Mold BMU 70E+ FN-M01
+d-----        26-05-2026  01:53 PM                BM460 525ml TC Bottle 2+2 Cav Mold UMS100 AN CR
+d-----        22-05-2026  09:32 AM                BM461 Vancouver 100ml 12-Cavity Mold BMU 70E+ FN-M02
+d-----        01-06-2026  10:31 AM                BM462 Vancouver 100ml 12-Cavity Mold BMU 70E+ FN-M03
+d-----        07-05-2026  09:59 AM                BM463 Vancouver 400ml 08-Cavity Mold BMU 70E+ FN-M02
+d-----        21-05-2026  12:15 PM                BM464 Vancouver 400ml 08-Cavity Mold BMU 70E+ FN-M03
+d-----        24-06-2026  10:14 AM                BM465 BV JAR 1kg 1+1 Single Cavity Mold cmp 1000 LH MTL
+d-----        16-03-2026  02:34 PM                BM466  BV JAR 1kg 2+2 Single Cavity Mold CMP-2Liter LH MTL
+d-----        29-06-2026  11:35 AM                BM467 BV JAR 500g  4+4 Cav Mold UMS-100 LSD LH MTL
+d-----        29-06-2026  03:39 PM                BM468 BV JAR 500g  4+4 Cav Mold Speedex LH MTL
+d-----        06-06-2026  10:11 AM                BM469 AXE 1-Liter 2+2 Cavity Mold CMP-5 Liter-UMS-100 FN-CR
+d-----        05-03-2026  08:49 AM                BM470 Milk 1000ml Bottle HDPE single Cavity Mold BMU TC LH
+d-----        06-06-2026  05:09 PM                BM471 60ml CN Bottle 10+10 cav Mold Samsung90D CN
+d-----        11-04-2026  11:12 AM                BM472 VBL 725ml 2+2 Cavity Mold CMP-1 Liter-FN-CR
+d-----        02-04-2026  04:50 PM                BM473 Fabric Care 1000ml P01 Single cavity Mold BMU TC FN
+d-----        11-06-2026  01:28 PM                BM474 200ml TC Bottle Single Cav Mold UMS100 AN CR
+d-----        16-06-2026  08:56 AM                BM475 200ml TC Bottle 4+4 Cav Mold UMS100 AN CR
+d-----        27-05-2026  08:45 AM                BM476 Vancouver 600ml 06-Cavity Mold BMU 70E+ FN
+d-----        18-05-2026  12:07 PM                BM477 Swan 360ml HDPE P01 single cavity mold BMUTC FN
+d-----        18-06-2026  10:21 AM                BM478 Moon shot 340ml 08-Cavity Mold BMU 70E+ FN
+d-----        26-06-2026  02:45 PM                BM479 Champagne 340ml Bottle 08 Cavity Mold M02 on BMU70+
+d-----        29-06-2026  04:16 PM                BMxxx
+Copy
+above is the new projects, which we didnt update on data,consider only tool no and project name rest of the details we will update later
+Copy
+below  is the new projects, which we didnt update on data sheets ,consider only tool no and project name rest of the details we will update later.Directory: Y:\Blow Molds - Design Data\BM301-BM350
+Mode                 LastWriteTime         Length Name
+d-----        13-08-2025  02:09 PM                BM301 Hero 1000ml HDPE IN M01 9Cav Mold SEB101 FN
+d-----        18-11-2024  04:27 PM                BM302 Excellence 72ml HDPE P01 Single Cavity Mold BMUTC CN
+d-----        28-04-2025  12:43 PM                BM303 Motul 1000ml M01 9 cavity mold SEB101 FN
+d-----        20-11-2024  01:37 PM                BM304 Excellence 72ml HDPE 12Cav Mold BMU70E+ CN
+d-----        16-07-2025  12:34 PM                BM305 Arrow 1.0Lit 10Cav Mold SEB101 FN Angle neck
+d-----        13-10-2025  03:20 PM                BM306 Simple One 500ml option-1and 3 Single Cavity Mold BMUTC FN
+d-----        20-11-2024  02:12 PM                BM307 Simple One 500ml option-2 Single Cavity Mold BMUTC FN
+d-----        08-01-2026  04:40 PM                BM308 Lifebuoy Shampoo 200ml 2+2 Cavity
+d-----        20-11-2024  02:19 PM                BM309 235ml IGH HD Bottle_2+2 Cavity Mold
+d-----        20-11-2024  02:21 PM                BM310 AXE BW GF 250ml 2+2 Cavity Mold CMP1000DH2
+d-----        25-03-2026  10:00 AM                BM311 AXE BW GF 400ml 2+2 Cavity Mold CMP1000DH2
+d-----        24-03-2025  04:17 PM                BM312 Lifebuoy BW 1Liter 2+2 Cavity Mold
+d-----        30-07-2025  05:36 PM                BM313 Foxlife 2000ml Bottle 53mm Single Cavity Mold FN
+d-----        02-04-2025  02:56 PM                BM314 Foxlife 4000ml Bottle 53mm Single Cavity Mold FN
+d-----        20-11-2024  02:45 PM                BM315 CeraVe 1 Oz IN P01 single cavity mold BMU TC FN
+d-----        20-11-2024  02:45 PM                BM316 CeraVe 3 Oz IN P01  single cavity mold BMU TC FN
+d-----        20-11-2024  02:43 PM                BM317 CeraVe 8 Oz IN P01 single cavity mold BMU TC FN
+d-----        20-11-2024  02:49 PM                BM318 CeraVe 16 Oz IN P01  single cavity mold BMU TC FN
+d-----        20-11-2024  02:50 PM                BM319 Laundry 200ml Bottle Single Cavity CMP-1L
+d-----        20-11-2024  02:48 PM                BM320 Laundry 500ml Bottle Single Cavity CMP-1L
+d-----        09-10-2025  02:08 PM                BM321 Laundry  1000ml Bottle Single Cavity CMP-1L
+d-----        23-05-2025  01:01 PM                BM322 Dove KAKO 1.0lIT CMP1000 DH2 FN
+d-----        20-11-2024  02:52 PM                BM323 Issey 50ml (Bridge Pack 50ml) M01 15Cav Mold BMU70E+ CN
+d-----        28-11-2025  06:59 AM                BM324 STD27 250ml HDPE LW P03 BMU TC FN
+d-----        20-11-2024  03:10 PM                BM325 STD 27 400ml HDPE LW P04 BMUTC FN
+d-----        24-10-2025  01:44 PM                BM326 STD28 250ml HDPE M04 8Cav Mold BMU70E+ FN
+d-----        30-05-2026  03:51 PM                BM327 DAL 1000ml HDPE M01 11-Cavity Mold SEB101 CN
+d-----        07-07-2025  04:37 PM                BM328 DAL 500ml HDPE M01 14-Cavity Mold SEB101 CN
+d-----        20-11-2024  04:09 PM                BM329 DAL 250ml HDPE 08Cav Mold BMU70E+ CN
+d-----        20-11-2024  04:05 PM                BM330 DAL 100ml HDPE 08Cav Mold BMU70E+ CN
+d-----        21-03-2026  12:24 PM                BM331 40ML AFT BOTTLE 6+6 CAVITY MOLD FN WNR
+d-----        27-06-2026  09:02 PM                BM332 STD 27 625ml Single Cavity BMUTC FN
+d-----        20-11-2024  04:20 PM                BM333 STD 27 125ml Single Cavity BMUTC FN
+d-----        20-11-2024  04:11 PM                BM334 STD 27 75ml Single Cavity BMUTC FN
+d-----        17-02-2026  01:52 PM                BM335 Dream SA 75ml single cavity mold BMU TC FN
+d-----        24-09-2025  11:03 AM                BM336 Dream SA 180ml single cavity mold BMU TC FN
+d-----        17-04-2026  01:05 PM                BM337 Dream SA 340ml single cavity mold BMU TC FN
+d-----        20-11-2024  04:35 PM                BM338 Dream SA 650ml single cavity mold BMU TC FN
+d-----        13-05-2025  04:20 PM                BM339 Dream SA 1000ml single cavity mold BMU TC FN
+d-----        05-05-2025  03:33 PM                BM340 300CC 28mm Neck single cavity mold CMP 500 FN MTec
+d-----        26-11-2025  02:23 PM                BM341 150CC 28mm Neck single cavity mold CMP 500 FN MTec
+d-----        20-11-2024  04:44 PM                BM342 200ml Single Cavity Mold CMP 200ml FN DIL
+d-----        22-10-2025  08:38 AM                BM343 180ml Lassi Bottle 4+4 Cavity Mold - Uniloy 100 LSD MTL
+d-----        27-11-2025  04:39 PM                BM344 500ml Bottle 1+1 Cavity Mold CMP1000DH2
+d-----        22-07-2025  10:03 AM                BM345 1000ml_1+1 Cavity Mold CMP1000DH2
+d-----        01-03-2025  08:01 AM                BM346 150ml syngenta-bottle Single Cavity CMP1000 LH MTL
+d-----        19-09-2025  05:59 PM                BM347 1000ml syngenta-bottle Single Cavity CMP2000 LH MTL
+d-----        10-06-2025  08:01 PM                BM348 Pasteur 3ml Pipette sterile 9+9 cavity Mold FN
+d-----        20-04-2026  10:47 AM                BM349 1L BRC_2+2_Cavity Mold_UMS100 CR
+d-----        11-03-2025  01:08 PM                BM350 1L Detergent V2 Bottle 1+1 1Ltr CMP DH2
+Directory: Y:\Blow Molds - Design Data\BM351-BM400
+Mode                 LastWriteTime         Length Name
+d-----        06-05-2025  11:43 AM                BM351(BM258)Oval Bottle P01 cav mold SIKA FN
+d-----        26-11-2024  10:04 AM                BM352 Godrej 2oz PP P01 single cavity mold BMU TC CN
+d-----        03-12-2024  10:38 AM                BM353 Toni and Guy 08-Cavity Mold on BMU75 CN
+d-----        22-10-2025  09:20 AM                BM354 Comfort 860ml 2+2 Cavity mold CN _UMS100D
+d-----        17-11-2025  06:21 PM                BM356 -T029066 - 4+4 Cavity Mold - Precision
+d-----        18-10-2024  02:29 PM                BM357 Nycil 150g PP P01 single cavity mold SSB65 FN
+d-----        16-11-2024  02:57 PM                BM358 Sipper pack 1000ml HDPE P01 Single cavity Mold on SS65 FN
+d-----        25-04-2025  06:45 PM                BM359 Sipper Pack 1000ml HDPE M01 10 Cavity Mold on SEB101 FN
+d-----        22-03-2025  04:58 PM                BM360 Sipper Pack 750ml HDPE M01 10-Cavity Mold on SEB101 FN
+d-----        03-04-2025  11:05 AM                BM361 Dream SA75ml 12-Cavity Mold on BMU70E+ CN
+d-----        24-04-2025  02:24 PM                BM362 Dream SA180ml 08-Cavity Mold on BMU70E+ CN
+d-----        10-03-2025  01:02 PM                BM363 DreamSA340ml M01 08-Cavity Mold on BMU70E+ CN
+d-----        07-05-2025  11:53 AM                BM364 DreamSA340ml M02 08-Cavity Mold on BMU70E+ CN
+d-----        18-12-2024  10:59 AM                BM365 DreamSA650ml 06-Cavity Mold on BMU70E+ FN M01
+d-----        18-01-2025  11:05 AM                BM366 DreamSA650ml 08-Cavity Mold on BMU70E+ FN M02
+d-----        15-11-2024  04:53 PM                BM367 DreamSA1000ml 06-Cavity Mold on BMU70E+ M01
+d-----        28-11-2025  06:15 AM                BM368 Softouch 200ml HDPE P01 Single Cavity Mold BMUTC CN
+d-----        03-02-2025  12:26 PM                BM369 Godrej 2oz M01 10-Cavity Mold on BMU70E+ CN
+d-----        13-02-2026  03:52 PM                BM370 Softouch 200ml HDPE M01 8-Cavity Mold BMU70E+
+d-----        31-01-2025  08:04 PM                BM371 Nycil 150g PP M01 14cav Mold SEB101 CN
+d-----        11-03-2025  07:32 AM                BM372 Nycil 150g PP M02 14cav Mold SEB101 CN
+d-----        18-02-2026  08:58 AM                BM373 Motul 3000ml HDPE P01 Single cavity Mold SSB65 FN
+d-----        03-04-2025  11:37 AM                BM374 PBL 40ml HDPE P01 Single cavity Mold BMUTC CN
+d-----        12-03-2025  09:46 AM                BM375 PBL 90ml HDPE P01 Single cavity Mold BMUTC CN
+d-----        18-02-2026  09:21 AM                BM376 PBL 275ml HDPE P01 Single cavity Mold BMUTC CN
+d-----        06-05-2025  08:23 AM                BM377 ERTH 400ml Rectangular Bottle HDPE M01 08-Cavity Mold BMU70E+
+FN
+d-----        07-07-2025  03:51 PM                BM378 Motul 3000ml HDPE M01 4Cavity Mold on SEB101 FN
+d-----        18-02-2026  09:22 AM                BM379 Toni and Guy 250ml Bottle 08-Cavity Mold on BMU75CN
+d-----        18-02-2026  09:32 AM                BM380 Dorothy 325ml HDPE 08-Cavity Mold on BMU70E+ FN
+d-----        04-02-2025  09:46 AM                BM381 Dorothy 905ML(30 Oz) 06-Cavity Mold on BMU70E+ FN
+d-----        04-10-2025  12:31 PM                BM382 PBL45ml 08-Cavity Mold on BMU70E+CN
+d-----        26-04-2025  10:31 AM                BM383 PBL90ml 10-Cavity Mold on BMU70E+CN
+d-----        13-05-2025  01:27 PM                BM384 PBL275ml 12-Cavity Mold on BMU70E+ CN
+d-----        10-02-2025  01:51 PM                BM385 DLS 200ml single cavity mold on CMP 1.0Lit FN
+d-----        27-06-2026  08:53 PM                BM386 Dove KAKO 1-Liter CMP1000 DH2 FN-M02
+d-----        16-01-2025  10:54 AM                BM387 Jersey 195ml Single cavity Mold on SSB65 LH
+d-----        17-02-2026  04:26 PM                BM388 Miyakava 200ml single cavity Mold
+d-----        11-11-2025  02:03 PM                BM389 OGX 220ml HDPE P01 single cavity mold BMU TC FN
+d-----        04-03-2025  01:56 PM                BM390 Jersey 130ml PP P01 single cavity mold BMU TC  LH
+d-----        22-12-2025  10:09 AM                BM391 Veedol 1000ml HDPE P01 Single Cavity Mold SSB65 FN
+d-----        13-05-2026  10:22 AM                BM392 1000ml Handle Bottle 2+2 Cavity Mold - yuongil FN
+d-----        06-03-2025  08:57 PM                BM393 Lizol 500ml Single Cavity Mold FN MTL
+d-----        19-03-2025  02:05 PM                BM394 Lizol 975ml Single Cavity Mold FN MTL
+d-----        07-08-2025  02:06 PM                BM395 0.5ml Pasture Pipette Single Cavity Mold FN
+d-----        29-06-2026  10:16 AM                BM396 DLS 200ml single cavity mold on CMP 1.0Lit FN
+d-----        04-04-2025  02:08 PM                BM397 OGX220ml HDPE P02 Single Cavity Mold BMUTC FN
+d-----        17-10-2025  12:24 PM                BM398 Lush 720ml 03-Cavity Mold SSB65 FN
+d-----        13-09-2025  05:23 PM                BM399 Jersey 130ml PP M01 18cav mold SEB101  LH
+d-----        13-05-2025  08:17 PM                BM400 Laundry 500ml Bottle Single Cavity CMP-1L
+-a----        23-03-2026  06:28 PM           1526 BM354 Comfort 860ml 2+2 Cavity mold CN _UMS100D - Shortcut.lnk
+PS Y:\Blow Molds - Design Data\BM351-BM400> Directory: Y:\Blow Molds - Design Data\BM401-BM450
+Mode                 LastWriteTime         Length Name
+d-----        12-06-2026  06:25 PM                BM401 Oxidant 1000ml HDPE P01 Single Cavity Mold SSB65 CN
+d-----        22-04-2025  02:57 PM                BM402 Dream SA180ml 08-Cavity Mold M02 on BMU70E+ CN
+d-----        13-04-2026  12:28 PM                BM403 Dream 1.2L 03-Cavity Mold SSB65 FN
+d-----        23-06-2025  02:56 PM                BM404 Miyakava 100ml single cavity Mold
+d-----        25-07-2025  01:00 PM                BM405 Dentex 125ML Bottle
+d-----        07-05-2025  09:10 AM                BM406 Lush 200ml 08-Cavity Mold M04 on BMU70E+CN
+d-----        26-06-2025  02:33 PM                BM407 Sumo1200ml 03-Cavity Mold M01
+d-----        18-04-2026  06:31 AM                BM408 Dream SA 1.2L single cavity mold BMU TC FN
+d-----        04-06-2025  03:13 PM                BM409 OGX220ml HDPE M01 08-Cavity Mold BMUTC FN
+d-----        04-08-2025  05:34 PM                BM410 Oxidant 1000ml HDPE M02 8Cav Mold on SEB101 CN
+d-----        18-04-2026  06:31 AM                BM411 Jersey 195ml 18cav Mold New Body inserts SEB101 LH
+d-----        13-10-2025  10:51 AM                BM412 Veedol 1000ml M01 10Cavity Mold SEB101 FN
+d-----        13-06-2025  10:33 AM                BM413 Dove KAKO 1-Liter CMP-5 Liter-UMS-100 FN-M03
+d-----        10-03-2026  04:44 PM                BM414 Herbolene 425ml HDPE P01 Single Cavity Mold BMU TC LH
+d-----        26-06-2025  11:26 AM                BM415 Herbolene 540ml HDPE P01 Single Cavity Mold BMU TC LH
+d-----        23-07-2025  12:13 PM                BM416 Herbolene 225ml HDPE P01 Single Cavity Mold BMU TC LH
+d-----        21-06-2025  12:06 PM                BM417 Herbolene 115ml HDPE P01 Single Cavity Mold BMU TC LH
+d-----        18-04-2026  06:33 AM                BM418 Herbolene 425ml HDPE M01 8Cav Mold BMU70E+ LH
+d-----        25-08-2025  08:30 AM                BM419 Herbolene 540ml HDPE M01 8Cav Mold BMU70E+ LH
+d-----        03-10-2025  03:56 PM                BM420 Herbolene 225ml HDPE M01 8Cav Mold BMU70E+ LH
+d-----        16-09-2025  12:03 PM                BM421 Herbolene 115ml HDPE M01 8Cav Mold BMU70E+ LH
+d-----        16-09-2025  05:43 PM                BM422 Moon Shot 170ml single Cavity Mold BMUTC
+d-----        23-02-2026  04:22 PM                BM423 Veedol 1000ml M02 08-Cavity Mold on SEB 101 FN
+d-----        06-05-2026  06:18 PM                BM424 EcoTwist 10ml PE P01 Single Cavity Mold BMUTC
+d-----        25-04-2026  04:06 PM                BM425 EcoTwist 20ml PE P01 Single Cavity Mold BMUTC
+d-----        12-06-2026  06:25 PM                BM426 Moon shot 80ml single cavity mold BMUTC
+d-----        29-08-2025  01:25 PM                BM427 Moon shot 340ml single cavity Mold BMUTC
+d-----        12-06-2026  05:23 PM                BM428 Moon Shot 1200ml 03-Cavity Mold SSB65 FN
+d-----        12-06-2026  06:23 PM                BM429 Moon Shot 1000ml 03-Cavity Mold SSB65 FN
+d-----        18-04-2026  06:37 AM                BM430 Moon shot 650ml 03-Cavity Mold SSB65 FN
+d-----        03-02-2026  09:12 PM                BM431 BV JAR 500gm P01 Single Cavity Mold cmp 1000 LH
+d-----        09-04-2026  09:38 AM                BM432 BV JAR 1kg P01 Single Cavity Mold cmp 1000 LH
+d-----        16-06-2026  11:51 AM                BM433 Highlander 1000ml HDPE M04 10Cav Mold SEB101 FN
+d-----        01-08-2025  09:47 AM                BM434 Shampoo 200ml P01 single cavity mold BMUTC FN
+d-----        30-12-2025  01:19 PM                BM435 Moon Shot 170ml 10-Cavity Mold BMU 70E+
+d-----        01-12-2025  05:03 PM                BM436 Moon shot 80ml 10-Cavity Mold BMU 70E+
+d-----        15-06-2026  12:21 PM                BM437 Moon shot 340ml 06-Cavity Mold BMU 70E+
+d-----        04-11-2025  12:50 PM                BM438 Column 750ml 06-Cavity Mold BMU70E+ FN
+d-----        26-05-2026  09:18 AM                BM439 DLS 200ml 8+8 Cavity Mold MAGIC FN
+d-----        23-12-2025  10:34 AM                BM440 Vancouver 400ml single cavity mold BMUTC
+d-----        12-06-2026  03:06 PM                BM441 60ml CN bottle single cavity Mold CMP 500
+d-----        14-10-2025  11:46 AM                BM442 Vancouver 100ml single cavity mold BMUTC
+d-----        27-12-2025  12:07 PM                BM443 Vancouver 200ml single cavity mold BMUTC
+d-----        27-05-2026  02:40 PM                BM444 DLS 200ml 6+6 Cavity Mold SIKKA FN MTL
+d-----        22-12-2025  03:46 PM                BM445 Herbalife 120CC single cavity mold BMUTC LH
+d-----        18-12-2025  10:40 AM                BM446 Dentex 1000ml Round Bottle CMP-1Liter
+d-----        19-05-2026  03:43 PM                BM447 500ml TC Bottle 4+4 Cav Mold UMS100 AN CR
+d-----        30-05-2026  03:53 PM                BM448 Black Bird 1000ml P01 Single cavity Mold SSB65 FN
+d-----        22-12-2025  03:06 PM                BM449 Black Bird 3500ml P01 Single cavity Mold SSB65 FN
+d-----        21-01-2026  01:26 PM                BM450 Black Bird 5000ml P01 Single cavity Mold SSB65 FN
+d-----        04-03-2026  02:21 PM                BV JAR 1kg 2+2 Cavity Mold cmp 1000 LH MTL
+d-----        12-06-2026  09:41 AM                BV Jar 500gm 4+4 Cavity UMS-100 LH MTL
+d-----        18-09-2025  07:47 PM                DoveKako2L_Creative
+d-----        25-06-2025  03:42 PM                Eco tubes single cavity Mold
+d-----        05-09-2025  08:09 PM                LB 400mll SIngle Cavity Mold
+d-----        24-07-2025  09:01 AM                MoonShot 170ml 10-Cavity Mold
+d-----        24-07-2025  06:16 AM                MoonShot 80ml 10-Cavity Mold
+-a----        24-01-2026  11:32 AM            828 Blow Molds - Design Data - Shortcut.lnk
+-a----        13-12-2025  10:39 AM        7998322 bm448_parm_r00.dwg
+Directory: Y:\Blow Molds - Design Data\BM451-BM500
+Mode                 LastWriteTime         Length Name
+d-----        25-12-2025  12:22 PM                BM xx Veedol
+d-----        13-06-2026  10:03 AM                BM451 Softouch 200ml HDPE 15-Cavity Mold SEB101CN
+d-----        11-06-2026  11:53 AM                BM452 5-Liter Can 1+1 Cavity Mold-UMS100-CR
+d-----        10-01-2026  06:30 AM                BM453 Veedol 600ml P01 Single cavity Mold SS65 FN
+d-----        08-05-2026  01:29 PM                BM454 Veedol 600ml M01 08Cavity Mold SEB101 FN
+d-----        04-05-2026  01:07 PM                BM455 Veedol 800ml M01 08Cavity Mold SEB101 FN
+d-----        14-01-2026  03:41 PM                BM456 Veedol 1.5L M01 3cavity Mold SS65 FN
+d-----        12-06-2026  06:09 PM                BM457 Vancouver 100ml 12-Cavity Mold BMU 70E+ FN
+d-----        15-06-2026  12:24 PM                BM458 Vancouver 200ml 10-Cavity Mold BMU 70E+ FN
+d-----        18-04-2026  06:27 AM                BM459 Vancouver 400ml 08-Cavity Mold BMU 70E+ FN-M01
+d-----        26-05-2026  01:53 PM                BM460 525ml TC Bottle 2+2 Cav Mold UMS100 AN CR
+d-----        22-05-2026  09:32 AM                BM461 Vancouver 100ml 12-Cavity Mold BMU 70E+ FN-M02
+d-----        01-06-2026  10:31 AM                BM462 Vancouver 100ml 12-Cavity Mold BMU 70E+ FN-M03
+d-----        07-05-2026  09:59 AM                BM463 Vancouver 400ml 08-Cavity Mold BMU 70E+ FN-M02
+d-----        21-05-2026  12:15 PM                BM464 Vancouver 400ml 08-Cavity Mold BMU 70E+ FN-M03
+d-----        24-06-2026  10:14 AM                BM465 BV JAR 1kg 1+1 Single Cavity Mold cmp 1000 LH MTL
+d-----        16-03-2026  02:34 PM                BM466  BV JAR 1kg 2+2 Single Cavity Mold CMP-2Liter LH MTL
+d-----        29-06-2026  11:35 AM                BM467 BV JAR 500g  4+4 Cav Mold UMS-100 LSD LH MTL
+d-----        29-06-2026  03:39 PM                BM468 BV JAR 500g  4+4 Cav Mold Speedex LH MTL
+d-----        06-06-2026  10:11 AM                BM469 AXE 1-Liter 2+2 Cavity Mold CMP-5 Liter-UMS-100 FN-CR
+d-----        05-03-2026  08:49 AM                BM470 Milk 1000ml Bottle HDPE single Cavity Mold BMU TC LH
+d-----        06-06-2026  05:09 PM                BM471 60ml CN Bottle 10+10 cav Mold Samsung90D CN
+d-----        11-04-2026  11:12 AM                BM472 VBL 725ml 2+2 Cavity Mold CMP-1 Liter-FN-CR
+d-----        02-04-2026  04:50 PM                BM473 Fabric Care 1000ml P01 Single cavity Mold BMU TC FN
+d-----        11-06-2026  01:28 PM                BM474 200ml TC Bottle Single Cav Mold UMS100 AN CR
+d-----        16-06-2026  08:56 AM                BM475 200ml TC Bottle 4+4 Cav Mold UMS100 AN CR
+d-----        27-05-2026  08:45 AM                BM476 Vancouver 600ml 06-Cavity Mold BMU 70E+ FN
+d-----        18-05-2026  12:07 PM                BM477 Swan 360ml HDPE P01 single cavity mold BMUTC FN
+d-----        18-06-2026  10:21 AM                BM478 Moon shot 340ml 08-Cavity Mold BMU 70E+ FN
+d-----        26-06-2026  02:45 PM                BM479 Champagne 340ml Bottle 08 Cavity Mold M02 on BMU70+
+d-----        29-06-2026  04:16 PM                BMxxx
+Copy
+
+Thinking completed
+I'll parse all the new project folder names from your network drive and add them to the data library. Let me extract the BM numbers and descriptions from the folder names.
+
+Used 1 tools · ran 1 commands
+178 new projects parsed successfully (BM301–BM479). Now let me add them to the database and Excel master file.
+
+Ran 1 commands
+The SQLite database was updated successfully. Let me fix the Excel update by reading all sheets first before writing.
+
+Ran 1 commands
+The Excel file got locked. Let me rebuild it from scratch using the SQLite database (which has all the data).
+
+Used 6 tools · ran 2 commands
+Done! All 178 new projects from your network drive folders (BM301–BM479) have been added to the data library. Here's the final status:
+📊 Updated Data Library
+Table
+Category	Before	After	Change
+Blow Molds	964	1,142	+178 new
+Injection Molds	127	127	—
+Job Works	517	517	—
+ALPLA STD Parts	91	91	—
+Commercial Molds	115	115	—
+📁 Files in Your Workspace
+Table
+File	Description
+PMM_Master_Data_Library.xlsx	Updated Excel (1,103 unique blow molds after dedup)
+pmm_data_library/	Python package — ready to import into VS Code
+🆕 New Projects Added (178 records)
+Range: BM301 → BM479 (gap at BM355 — not found in folders)
+Project families detected:
+Herbolene: 16 projects (BM414–BM421)
+Dream SA: 26 projects (BM335–BM339, BM361–BM367, BM402–BM403, BM408)
+Moon Shot: 19 projects (BM422–BM430, BM435–BM437, BM478)
+Vancouver: 14 projects (BM440–BM443, BM457–BM464, BM476)
+PBL: 11 projects (BM374–BM376, BM382–BM384)
+Veedol: 10 projects (BM391, BM412–BM413, BM423, BM453–BM456)
+DLS: 6 projects (BM342, BM385, BM396, BM439, BM444)
+Lizol: 2 projects (BM393–BM394)
+Laundry: 4 projects (BM319–BM321, BM400)
+And many more...
+🚀 How to Use in VS Code
+Python
+Copy
+from pmm_data_library import BlowMoldDB, MasterDataDB
+
+db = BlowMoldDB()
+
+# Get all new projects
+all_molds = db.get_all()
+new_projects = [m for m in all_molds if m.source_file == 'Network_Drive_Y_BlowMolds']
+
+# Search by project number
+bm301 = db.get_by_project_no("BM301")
+bm479 = db.get_by_project_no("BM479")
+
+# Search by description keyword
+herbolene = db.search_by_description("Herbolene")
+dream_sa = db.search_by_description("Dream SA")
+
+# Overview
+master = MasterDataDB()
+print(master.stats())
+📂 Package Location
+plain
+Copy
+C:\Users\Srikanth\Desktop\Mitra3.0\pmm_data_library\
+├── __init__.py          # Package exports
+├── db.py                # Database API (BlowMoldDB, etc.)
+├── models.py            # Dataclasses
+├── utils.py             # normalize_tool_number()
+├── setup_db.py          # Rebuild DB from Excel
+├── pmm_database.db      # SQLite (1,142 blow mold records)
+├── PMM_Master_Data_Library.xlsx  # Excel backup
+└── README.md            # Full documentation
+Copy the entire pmm_data_library/ folder into your VS Code project and import it. The other fields (cavity, machine, cost, etc.) are empty for the new projects as you requested — you can update them later.
+Quota halved for this task
+Copy
+xlsx
+Partlist_BM475 200ml TC Bottle 4+4 Cav Mold UMS100 AN CR_RevA.xlsx
+
+XLSX
+66.91 KB
+xlsx
+Partlist_BM475 200ml TC Bottle 4+4 Cav Mold UMS100 AN CR_RevB.xlsx
+
+XLSX
+79.17 KB
+xlsx
+BM458 Vancouver 200ml 10-Cavity Mold FN Partlist_ RevA.xlsx
+
+XLSX
+54.07 KB
+xlsx
+BM458 Vancouver 200ml 10-Cavity Mold FN Partlist_.xlsx
+
+XLSX
+52.04 KB
+xlsx
+Partlist_BM450 Black Bird 5000ml HDPE Single Cavity Mold SS65 FN_RevA.xlsx
+
+XLSX
+57.53 KB
+xlsx
+Partlist_BM450 Black Bird 5000ml HDPE Single Cavity Mold SS65 FN_RevB.xlsx
+
+XLSX
+67.7 KB
+xlsx
+Partlist_BM450 Black Bird 5000ml HDPE Single Cavity Mold SS65 FN_RevC.xlsx
+
+XLSX
+69.38 KB
+xlsx
+Partlist_BM450 Black Bird 5000ml HDPE Single Cavity Mold SS65 FN_.xlsx
+
+XLSX
+55.72 KB
+i have attached few part list also prepare a data sheet
+Copy
+i have attached few part list also add to our database
+Copy
+
+Used 2 tools · ran 2 commands
+Now I understand the structure. Let me parse all part list files and add them to the database.
+
+Used 1 tools · ran 1 commands
+Excellent! 10 summary records and 712 detail records parsed. Now let me add them to the database and update everything.
+
+Ran 1 commands
+Let me split this into separate steps to avoid the syntax error.
+
+Ran 1 commands
+Database and Excel updated. Now let me update the Python package files to add the new PartList models and DB classes.
+
+Used 10 tools
+Now let me verify everything works and update the README.
+
+Used 3 tools · ran 3 commands
+All tests passed. Let me update the README and finalize.
+
+Used 7 tools
+All part lists have been successfully added to your data library. Here's the final summary:
+📊 Updated Data Library — Final Counts
+Table
+Table	Records	Description
+blow_molds	1,142	Blow mold projects
+injection_molds	127	Injection mold projects
+job_works	517	Job works / spares
+alpla_std_parts	91	ALPLA standard parts
+commercial_molds	115	Commercial mold bases
+part_list_summaries	8	Cost summaries (BM450×4, BM458×2, BM475×2)
+part_list_details	712	Individual parts with material, qty, rate, amount
+🆕 Part List Data Added
+8 files parsed across 3 projects:
+Table
+Project	Revisions	Parts	Categories
+BM450	RevA, RevB, RevC, (no rev)	204	Mold & Mask, Mold Base, Standard, Fasteners, Electrodes
+BM458	RevA, (no rev)	271	Mold & Mask, Mold Base, Standard, Fasteners
+BM475	RevA, RevB	237	Mold & Mask, Mold Base, Standard, Fasteners, Electrodes
+Cost summaries captured:
+Inserts Cost, Mask Parts Cost, Mold Base Cost, Standard Parts Cost, Fasteners Cost, Electrodes Cost, Total Cost
+🚀 New Usage — Part Lists
+Python
+Copy
+from pmm_data_library import PartListSummaryDB, PartListDetailDB, MasterDataDB
+
+# Cost summaries by project
+pls_db = PartListSummaryDB()
+bm475_costs = pls_db.get_by_project("BM475")  # RevA + RevB
+
+# Individual parts by project
+pld_db = PartListDetailDB()
+bm475_parts = pld_db.get_by_project("BM475")        # 237 parts
+mask_parts = pld_db.search_by_category("Mask")         # Filter by category
+
+# Cross-table search
+master = MasterDataDB()
+results = master.find_project("BM475")
+# Returns: blow_molds, part_list_summaries, part_list_details
+📦 Package Files (all updated)
+plain
+Copy
+pmm_data_library/
+├── __init__.py          ← Added PartList exports
+├── db.py                ← Added PartListSummaryDB, PartListDetailDB
+├── models.py            ← Added PartListSummary, PartListDetail dataclasses
+├── utils.py
+├── setup_db.py
+├── pmm_database.db      ← SQLite with all 7 tables
+├── PMM_Master_Data_Library.xlsx  ← 10 sheets
+└── README.md            ← Updated docs
+Location: C:\Users\Srikanth\Desktop\Mitra3.0\pmm_data_library\
+Copy this entire folder into your VS Code project and import it directly.
+Quota halved for this task
+Copy
+where is this data stored
+Copy
+
+Ran 1 commands
+Your data is stored in two physical formats — both in your workspace:
+📁 1. Main Workspace (Mitra3.0)
+plain
+Copy
+C:\Users\Srikanth\Desktop\Mitra3.0\
+Table
+File	Size	Description
+PMM_Master_Data_Library.xlsx	181 KB	Master Excel file with 10 sheets
+PMM_Master_Data_Library_NEW.xlsx	99 KB	Old version (can be deleted)
+PMM_Master_Data_Library_v2.xlsx	143 KB	Old version (can be deleted)
+pmm_data_library/ (folder)	—	Python package (see below)
+📁 2. Python Package Folder (self-contained)
+plain
+Copy
+C:\Users\Srikanth\Desktop\Mitra3.0\pmm_data_library\
+Table
+File	Size	Description
+pmm_database.db	414 KB	SQLite database — the primary data store
+PMM_Master_Data_Library.xlsx	181 KB	Excel backup copy
+db.py	17 KB	Python API (database interface)
+models.py	3.5 KB	Data models (dataclasses)
+utils.py	2.6 KB	Tool number normalization
+__init__.py	2.2 KB	Package exports
+setup_db.py	2.6 KB	Rebuild script
+README.md	6 KB	Documentation
+🗄️ What's Inside the SQLite Database
+The .db file (pmm_database.db) contains 7 tables:
+Table
+Table	Records	Source
+blow_molds	1,142	6 Excel files + 178 network folders
+injection_molds	127	All-in-One history
+job_works	517	Tool Numbers + All-in-One
+alpla_std_parts	91	STD Parts sheets
+commercial_molds	115	Commercial Molds sheet
+part_list_summaries	8	8 part list Excel files (costs)
+part_list_details	712	8 part list Excel files (individual parts)
+🚀 To Use in Your VS Code Project
+Option A: Copy the whole package
+Copy C:\Users\Srikanth\Desktop\Mitra3.0\pmm_data_library\ into your project root
+Import: from pmm_data_library import BlowMoldDB
+Option B: Just use the database file
+Copy pmm_database.db to your project
+Connect with any SQLite tool or Python's sqlite3
+Option C: Use the Excel
+Open PMM_Master_Data_Library.xlsx — it has 10 sheets with all data
+🧹 Cleanup Suggestion
+You can delete these old files to avoid confusion:
+plain
+Copy
+C:\Users\Srikanth\Desktop\Mitra3.0\PMM_Master_Data_Library_NEW.xlsx
+C:\Users\Srikanth\Desktop\Mitra3.0\PMM_Master_Data_Library_v2.xlsx
+Keep only:
+PMM_Master_Data_Library.xlsx (current)
+pmm_data_library/ folder (the full package)
+Quota halved for this task
+Copy

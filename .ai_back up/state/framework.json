@@ -1,0 +1,24 @@
+{
+  "version": "1.1.0",
+  "status": "active",
+  "updated": "2026-07-09T15:48:58.865199",
+  "framework": {
+    "name": "SVF",
+    "version": "1.1.0"
+  },
+  "components": {
+    "compliance": 1,
+    "dashboard": 1,
+    "evidence": 1,
+    "governance": 7,
+    "levels": 1,
+    "methodology": 10,
+    "metrics": 1,
+    "release": 1,
+    "risk": 1,
+    "standards": 10,
+    "taxonomies": 0,
+    "templates": 1
+  },
+  "totalDocuments": 42
+}

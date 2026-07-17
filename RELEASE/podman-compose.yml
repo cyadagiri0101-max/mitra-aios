@@ -1,0 +1,219 @@
+version: '3.9'
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  MITRA v3.2 — Podman Compose (Rootless-Friendly)
+#
+#  ⚠️  IMPORTANT: Run this from the PROJECT ROOT (where .env is located).
+#     cd /path/to/MITRA-v3.2
+#     podman compose -f podman-compose.yml up -d
+#
+#  ⚠️  condition: service_healthy requires the Podman Compose plugin v2+.
+#     If you see "depends_on with condition is not supported", upgrade:
+#       podman compose version  # should show v2.x
+#     Use "podman compose" (native Go plugin) NOT "podman-compose".
+#     The Python "podman-compose" tool has known YAML parsing bugs.
+#
+#  Differences from docker-compose.yml:
+#    - No hardcoded container_name (Podman auto-names to avoid conflicts)
+#    - Frontend uses port 8080 instead of 80 (rootless can't bind ports <1024)
+#    - Uses named volumes (no bind-mount permission issues)
+#
+#  Prerequisites for rootless Podman:
+#    ./scripts/podman-setup.sh  (run once to set volume ownership)
+#
+#  Quick start:
+#    cp .env.example .env
+#    ./scripts/podman-setup.sh
+#    podman compose -f podman-compose.yml up -d
+#    podman compose -f podman-compose.yml exec backend npm run migration:run
+#    podman compose -f podman-compose.yml exec backend npm run seed
+# ─────────────────────────────────────────────────────────────────────────────
+
+x-restart: &restart
+  restart: unless-stopped
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+networks:
+  mitra-internal:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
+  ollama-data:
+
+services:
+  # ── PostgreSQL 16 + pgvector ───────────────────────────────────────────────
+  postgres:
+    image: pgvector/pgvector:pg16
+    # NOTE: No container_name — let Podman auto-name (avoids conflicts)
+    <<: [*restart, *logging]
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-mitra_v2}
+      POSTGRES_USER:     ${DB_USERNAME:-mitra_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA:            /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - mitra-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-mitra_admin} -d ${DB_NAME:-mitra_v2}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    command: >
+      postgres
+        -c max_connections=200
+        -c shared_buffers=256MB
+        -c work_mem=4MB
+        -c maintenance_work_mem=64MB
+        -c effective_cache_size=1GB
+        -c log_min_duration_statement=500
+        -c log_connections=off
+
+  # ── Redis 7 ───────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    <<: [*restart, *logging]
+    command: >
+      redis-server
+        --requirepass ${REDIS_PASSWORD:-}
+        --maxmemory 256mb
+        --maxmemory-policy allkeys-lru
+        --save 900 1
+        --save 300 10
+    volumes:
+      - redis-data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - mitra-internal
+    healthcheck:
+      test: ["CMD-SHELL", "if [ -z \"$$REDIS_PASSWORD\" ]; then redis-cli ping; else redis-cli -a \"$$REDIS_PASSWORD\" ping; fi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── MinIO object storage ───────────────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    <<: [*restart, *logging]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER:     ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    volumes:
+      - minio-data:/data
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "9001:9001"
+    networks:
+      - mitra-internal
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── NestJS Backend ─────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./mitra-backend
+      dockerfile: Dockerfile
+      target: runner
+    <<: [*restart, *logging]
+    # env_file loads ALL variables from .env into the container.
+    # The environment: block below overrides specific ones for the compose network.
+    env_file: .env
+    environment:
+      NODE_ENV:    production
+      DB_HOST:     postgres
+      DB_PORT:     5432
+      REDIS_HOST:  redis
+      MINIO_ENDPOINT: minio
+    ports:
+      - "3001:3001"
+    networks:
+      - mitra-internal
+    # Security hardening for production containers
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # ── React Frontend (nginx) ─────────────────────────────────────────────────
+  # NOTE: Port 8080 instead of 80 — rootless Podman cannot bind ports <1024
+  frontend:
+    build:
+      context: ./mitra-frontend
+      dockerfile: Dockerfile
+      target: runner
+    <<: [*restart, *logging]
+    ports:
+      - "8080:80"
+    networks:
+      - mitra-internal
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── Ollama (Phi-3 local LLM) ─────────────────────────────────────────────
+  # NOTE: Optional service. Backend does NOT depend on it (AI_ENABLED=false by default).
+  ollama:
+    image: ollama/ollama:latest
+    <<: [*restart, *logging]
+    volumes:
+      - ollama-data:/root/.ollama
+      - ./scripts/ollama-init.sh:/ollama-init.sh:ro
+    ports:
+      - "11434:11434"
+    networks:
+      - mitra-internal
+    environment:
+      OLLAMA_KEEP_ALIVE: "24h"
+      OLLAMA_HOST: "0.0.0.0"
+    entrypoint: ["/bin/sh", "/ollama-init.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s

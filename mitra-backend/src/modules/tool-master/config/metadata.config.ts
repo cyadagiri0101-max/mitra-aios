@@ -1,0 +1,38 @@
+export const TOOL_MASTER_METADATA_CONFIG = {
+  projectPrefixes: {
+    BM: 'Blow Mold',
+    IM: 'Injection Mold',
+    IBM: 'Injection Blow Mold',
+    PD: 'Product Design',
+    E: 'ALPLA Engineering Request',
+    O: 'Other Customer Enquiry',
+    CMB: 'Mold Base',
+    F: 'Fixture',
+    S: 'Job Work',
+  },
+  machines: {
+    BMUTC: 'ALPLA',
+    BMU70: 'ALPLA',
+    BMU70E: 'ALPLA',
+    'BMU70E+': 'ALPLA',
+    BMU70PLUS: 'ALPLA',
+    BMU75: 'ALPLA',
+    SSB65: 'ALPLA',
+    SEB101: 'ALPLA',
+  },
+  customerSuffixes: {
+    CR: 'Creative',
+    MTL: 'Alterniq',
+    WN: 'Weener',
+    WR: 'Weener',
+  },
+  neckTypes: ['CN', 'FN', 'LH', 'AN', 'TN'],
+  materials: ['HDPE', 'PET', 'PP'],
+  moldTypes: ['Single Cavity', 'Multi Cavity', 'Family Mold', 'Stack Mold', 'Hot Runner', 'Cold Runner'],
+  cavityPatterns: {
+    SINGLE: 'Single Cavity',
+    DOUBLE: 'Multi Cavity',
+    TRIPLE: 'Multi Cavity',
+    MULTI: 'Multi Cavity',
+  },
+};

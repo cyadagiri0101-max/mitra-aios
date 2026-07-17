@@ -1,0 +1,239 @@
+{
+  "decisionId": "DEC-20260717221045728756",
+  "timestamp": "2026-07-17T22:10:45.728763",
+  "chosenPath": "scan",
+  "confidence": 0.8,
+  "riskLevel": "low",
+  "strategy": "balanced",
+  "alternatives": [
+    {
+      "path": "scan",
+      "mode": "implementation",
+      "description": "Full repository scan",
+      "ruleResults": [
+        {
+          "rule": "mode_match",
+          "passed": true
+        },
+        {
+          "rule": "prerequisites_met",
+          "passed": true
+        },
+        {
+          "rule": "not_recently_executed",
+          "passed": true
+        },
+        {
+          "rule": "budget_sufficient",
+          "passed": true
+        }
+      ],
+      "passedCount": 4,
+      "confidence": 0.8,
+      "confidenceLabel": "high",
+      "riskFactors": [
+        {
+          "factor": "destructive",
+          "detected": false
+        },
+        {
+          "factor": "scope_large",
+          "detected": false
+        },
+        {
+          "factor": "dependency_chain",
+          "detected": false
+        }
+      ],
+      "riskScore": 0.0,
+      "riskLevel": "low"
+    },
+    {
+      "path": "index",
+      "mode": "implementation",
+      "description": "Build search indexes",
+      "ruleResults": [
+        {
+          "rule": "mode_match",
+          "passed": true
+        },
+        {
+          "rule": "prerequisites_met",
+          "passed": true
+        },
+        {
+          "rule": "not_recently_executed",
+          "passed": true
+        },
+        {
+          "rule": "budget_sufficient",
+          "passed": true
+        }
+      ],
+      "passedCount": 4,
+      "confidence": 0.8,
+      "confidenceLabel": "high",
+      "riskFactors": [
+        {
+          "factor": "destructive",
+          "detected": false
+        },
+        {
+          "factor": "scope_large",
+          "detected": false
+        },
+        {
+          "factor": "dependency_chain",
+          "detected": false
+        }
+      ],
+      "riskScore": 0.0,
+      "riskLevel": "low"
+    },
+    {
+      "path": "state_sync",
+      "mode": "implementation",
+      "description": "Synchronize state",
+      "ruleResults": [
+        {
+          "rule": "mode_match",
+          "passed": true
+        },
+        {
+          "rule": "prerequisites_met",
+          "passed": true
+        },
+        {
+          "rule": "not_recently_executed",
+          "passed": true
+        },
+        {
+          "rule": "budget_sufficient",
+          "passed": true
+        }
+      ],
+      "passedCount": 4,
+      "confidence": 0.8,
+      "confidenceLabel": "high",
+      "riskFactors": [
+        {
+          "factor": "destructive",
+          "detected": false
+        },
+        {
+          "factor": "scope_large",
+          "detected": false
+        },
+        {
+          "factor": "dependency_chain",
+          "detected": false
+        }
+      ],
+      "riskScore": 0.0,
+      "riskLevel": "low"
+    },
+    {
+      "path": "context_load",
+      "mode": "implementation",
+      "description": "Load context profile",
+      "ruleResults": [
+        {
+          "rule": "mode_match",
+          "passed": true
+        },
+        {
+          "rule": "prerequisites_met",
+          "passed": true
+        },
+        {
+          "rule": "not_recently_executed",
+          "passed": true
+        },
+        {
+          "rule": "budget_sufficient",
+          "passed": true
+        }
+      ],
+      "passedCount": 4,
+      "confidence": 0.8,
+      "confidenceLabel": "high",
+      "riskFactors": [
+        {
+          "factor": "destructive",
+          "detected": false
+        },
+        {
+          "factor": "scope_large",
+          "detected": false
+        },
+        {
+          "factor": "dependency_chain",
+          "detected": false
+        }
+      ],
+      "riskScore": 0.0,
+      "riskLevel": "low"
+    },
+    {
+      "path": "execute_plan",
+      "mode": "implementation",
+      "description": "Execute generated plan",
+      "ruleResults": [
+        {
+          "rule": "mode_match",
+          "passed": true
+        },
+        {
+          "rule": "prerequisites_met",
+          "passed": true
+        },
+        {
+          "rule": "not_recently_executed",
+          "passed": true
+        },
+        {
+          "rule": "budget_sufficient",
+          "passed": true
+        }
+      ],
+      "passedCount": 4,
+      "confidence": 0.8,
+      "confidenceLabel": "high",
+      "riskFactors": [
+        {
+          "factor": "destructive",
+          "detected": false
+        },
+        {
+          "factor": "scope_large",
+          "detected": false
+        },
+        {
+          "factor": "dependency_chain",
+          "detected": false
+        }
+      ],
+      "riskScore": 0.0,
+      "riskLevel": "low"
+    }
+  ],
+  "rationale": [
+    "Strategy: balanced",
+    "Chosen path: scan (confidence=0.8, risk=low)",
+    "Runner-up: index (confidence=0.8, risk=low)",
+    "Rules passed: mode_match, prerequisites_met, not_recently_executed, budget_sufficient"
+  ],
+  "rulesApplied": [
+    "budget_sufficient",
+    "mode_match",
+    "not_recently_executed",
+    "prerequisites_met"
+  ],
+  "metrics": {
+    "candidates": 5,
+    "evaluated": 5,
+    "scored": 5,
+    "risk_analyzed": 5,
+    "selection": "scan"
+  }
+}

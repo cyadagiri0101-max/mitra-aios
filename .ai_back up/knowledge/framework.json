@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "0.1.0",
+  "status": "scaffolding",
+  "updated": "2026-07-08",
+  "owner": "Platform Engineering",
+  "description": "Framework Knowledge Base",
+  "data": {
+    "frameworks": [],
+    "components": [],
+    "capabilities": [],
+    "bestPractices": [],
+    "integrationPoints": [],
+    "configurations": [],
+    "metadata": {}
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "mode": "implementation",
+  "description": "Execution mode \u2014 building solutions",
+  "maxTokens": 16000,
+  "profile": {},
+  "metrics": {
+    "filesLoaded": 0,
+    "totalBytes": 0,
+    "totalTokens": 0,
+    "maxTokens": 16000,
+    "utilizationPercent": 0,
+    "availableTokens": 16000
+  }
+}

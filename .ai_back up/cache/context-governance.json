@@ -1,0 +1,386 @@
+{
+  "mode": "governance",
+  "description": "Compliance mode - audit and governance",
+  "maxTokens": 9000,
+  "profile": {
+    "consolidated-index": {
+      "schemaVersion": "1.0.0",
+      "type": "consolidated-index",
+      "description": "Unified AIOS index - minimal context version",
+      "generated": true,
+      "summary": {
+        "totalDocuments": 50,
+        "totalFrameworks": 1,
+        "totalPrompts": 0,
+        "totalEngagements": 0
+      },
+      "registry": {
+        "documents": {
+          "DOC-00001": {
+            "title": "MITRA Advanced AI Robot Assistant - Implementation Guide",
+            "location": "ADVANCED_ROBOT_SYSTEM.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00002": {
+            "title": "MITRA v3.2 Implementation Spec",
+            "location": "AGENT_SPEC.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00003": {
+            "title": null,
+            "location": "AI_RUNTIME_VALIDATION.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00004": {
+            "title": "AI Workspace \u2194 Backend API Mapping",
+            "location": "AI_WORKSPACE_BACKEND_MAPPING.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00005": {
+            "title": "AI Workspace Backend Integration - Executive Summary",
+            "location": "AI_WORKSPACE_EXECUTIVE_SUMMARY.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00006": {
+            "title": "AI Workspace \u2194 Backend Integration - Implementation Report",
+            "location": "AI_WORKSPACE_IMPLEMENTATION_REPORT.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00007": {
+            "title": "MITRA AI Robot Assistant - Backend API Specification",
+            "location": "BACKEND_API_SPECIFICATION.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00008": {
+            "title": "BACKUP AND RECOVERY - MITRA v3.2",
+            "location": "BACKUP_AND_RECOVERY.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00009": {
+            "title": "CAPA VALIDATION REPORT",
+            "location": "CAPA_VALIDATION.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00010": {
+            "title": "Changelog",
+            "location": "CHANGELOG.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00011": {
+            "title": "MITRA v3.2 \u2014 Production Readiness & Implementation Blueprint",
+            "location": "CHANGELOG_v3.2.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00012": {
+            "title": "Repository Completion Report",
+            "location": "CompletionReport.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00013": {
+            "title": "\ud83c\udf89 MITRA Advanced Robot Assistant - COMPLETED",
+            "location": "COMPLETION_REPORT.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00014": {
+            "title": "MITRA v2.1 \u2014 Production Corrections Summary",
+            "location": "CORRECTIONS_SUMMARY.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00015": {
+            "title": "CRITICAL ISSUE RESOLUTION",
+            "location": "CRITICAL_ISSUE_RESOLUTION.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00016": {
+            "title": "DATABASE VALIDATION REPORT",
+            "location": "DATABASE_VALIDATION.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00017": {
+            "title": "MITRA v3.2 \u2014 Complete Deployment Guide",
+            "location": "DEPLOYMENT.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00018": {
+            "title": "DEPLOYMENT CHECKLIST - MITRA v3.2",
+            "location": "DEPLOYMENT_CHECKLIST.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00019": {
+            "title": "End-to-End Validation Plan",
+            "location": "E2E_VALIDATION_PLAN.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00020": {
+            "title": "FINAL ACCEPTANCE REPORT \u2014 MITRA v3.2",
+            "location": "FINAL_ACCEPTANCE_REPORT.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00021": {
+            "title": "FINAL DELIVERY REPORT - MITRA v3.2",
+            "location": "FINAL_DELIVERY_REPORT.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00022": {
+            "title": "FINAL PROJECT STATUS",
+            "location": "FINAL_PROJECT_STATUS.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00023": {
+            "title": "Gap Analysis Report",
+            "location": "GapAnalysis.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00024": {
+            "title": "Software Verification Framework Governance",
+            "location": "GOVERNANCE.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00025": {
+            "title": "Engineering File Indexer Handoff",
+            "location": "HANDOFF.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00026": {
+            "title": "Implementation Roadmap",
+            "location": "ImplementationRoadmap.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00027": {
+            "title": "MITRA Advanced Robot Assistant - Implementation Summary",
+            "location": "IMPLEMENTATION_SUMMARY.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00028": {
+            "title": "KNOWLEDGE LAYER VALIDATION REPORT",
+            "location": "KNOWLEDGE_LAYER_VALIDATION.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00029": {
+            "title": "LOGIN ROOT CAUSE ANALYSIS",
+            "location": "LOGIN_ROOT_CAUSE.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00030": {
+            "title": "MASTER DATA VALIDATION REPORT",
+            "location": "MASTER_DATA_VALIDATION.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00031": {
+            "title": "MITRA Backend \u2014 Database & Entity Audit Report",
+            "location": "MITRA-BACKEND-AUDIT-REPORT.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00032": {
+            "title": "MITRA v3.2 \u2014 Comprehensive Security & Architecture Audit Report",
+            "location": "MITRA-COMPLETE-AUDIT-MASTER.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00033": {
+            "title": "MITRA v2.1 \u2014 Complete System Audit Report",
+            "location": "MITRA-COMPLETE-AUDIT-REPORT.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00034": {
+            "title": "MITRA v3.2 \u2014 Complete Feature Description",
+            "location": "MITRA-FEATURE-DESCRIPTION.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00035": {
+            "title": "MITRA v2.1 Frontend \u2014 Production Security Audit Report",
+            "location": "MITRA-FRONTEND-AUDIT-REPORT.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00036": {
+            "title": "MITRA v3.2 Infrastructure, Dependencies & Deployment Security Audit Report",
+            "location": "MITRA-INFRASTRUCTURE-SECURITY-AUDIT-v3.2.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00037": {
+            "title": "MITRA v3.2 \u2014 Complete Bug Fix & Deployment Guide",
+            "location": "MITRA-v3.2-FIX-SUMMARY.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00038": {
+            "title": "MITRA v3.1 Design Specification & Implementation Roadmap",
+            "location": "mitra.agent.final.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00039": {
+            "title": "MITRA v3.1 Design Specification \u2014 Unified Outline",
+            "location": "mitra.agent.outline.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00040": {
+            "title": "MITRA v3.1 \u2014 Design Specification",
+            "location": "mitra_sec01.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00041": {
+            "title": "MITRA v3.1 \u2014 Design Specification",
+            "location": "mitra_sec02.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00042": {
+            "title": "Section 3: Implementation Roadmap",
+            "location": "mitra_sec03.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00043": {
+            "title": "Section 4: UI Copy & Microcopy",
+            "location": "mitra_sec04.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00044": {
+            "title": "Section 5: Dashboard Wireframe Concept",
+            "location": "mitra_sec05.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00045": {
+            "title": "OLLAMA_INSTANCE_DIAGNOSTIC",
+            "location": "OLLAMA_INSTANCE_DIAGNOSTIC.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00046": {
+            "title": "OPERATIONS RUNBOOK - MITRA v3.2",
+            "location": "OPERATIONS_RUNBOOK.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00047": {
+            "title": "Phase 1 Completion Audit",
+            "location": "PHASE1_COMPLETION_AUDIT.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00048": {
+            "title": "PHASE 1 GAP ANALYSIS",
+            "location": "PHASE1_GAP_ANALYSIS.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00049": {
+            "title": "PHASE 1 SIGNOFF",
+            "location": "PHASE1_SIGNOFF.md",
+            "type": "markdown",
+            "status": null
+          },
+          "DOC-00050": {
+            "title": "PHASE 2 READINESS ASSESSMENT",
+            "location": "PHASE2_READINESS.md",
+            "type": "markdown",
+            "status": null
+          }
+        },
+        "frameworks": {
+          "FRAMEWORK-001": {
+            "name": "AIOS Framework Layer",
+            "location": "framework/",
+            "type": "framework"
+          }
+        },
+        "prompts": {},
+        "engagements": {}
+      },
+      "references": {
+        "repository": {
+          "totalFiles": 1464,
+          "totalDirectories": 437,
+          "totalSize": 22920874,
+          "fileTypes": {
+            "no_extension": 8,
+            ".example": 4,
+            ".json": 18,
+            ".py": 34,
+            ".md": 220,
+            ".log": 6,
+            ".txt": 14,
+            ".png": 5,
+            ".sh": 11,
+            ".js": 339,
+            ".yml": 5,
+            ".docx": 2,
+            ".xlsx": 18,
+            ".ts": 692,
+            ".tsbuildinfo": 1,
+            ".development": 1,
+            ".production": 1,
+            ".html": 2,
+            ".conf": 1,
+            ".glb": 2,
+            ".css": 2,
+            ".tsx": 69,
+            ".db": 1,
+            ".pyc": 7,
+            ".ps1": 1
+          },
+          "criticalIssues": {
+            "emptyDirectories": 25,
+            "duplicateFiles": 34,
+            "brokenReferences": 8879
+          }
+        },
+        "knowledge": {}
+      }
+    }
+  },
+  "metrics": {
+    "filesLoaded": 1,
+    "totalSize": 11024,
+    "totalTokens": 2665,
+    "maxTokens": 9000,
+    "utilizationPercent": 29,
+    "availableTokens": 6335,
+    "costEstimates": {
+      "claude-haiku": "$0.0007",
+      "claude-sonnet": "$0.0080",
+      "gpt-4-turbo": "$0.0267"
+    },
+    "warnings": []
+  }
+}

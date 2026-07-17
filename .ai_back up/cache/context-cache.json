@@ -1,0 +1,9 @@
+{
+  "mode": "discovery",
+  "tokenBudget": 12000,
+  "generatedAt": "2026-07-09T09:33:47.828546",
+  "summary": {
+    "nodes": 0,
+    "estimatedTokens": 0
+  }
+}

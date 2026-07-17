@@ -1,0 +1,324 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS Y:\Blow Mold Enquires\0_BM other Clients> dir
+
+
+    Directory: Y:\Blow Mold Enquires\0_BM other Clients
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        24-09-2024  02:24 PM                05_Highlander 800ml 4+4_UMS 140 CD150 WEENER
+d-----        24-09-2024  02:24 PM                06_KLD bottels
+d-----        24-09-2024  02:24 PM                07_LB SSK 40ml Bottle
+d-----        24-09-2024  02:24 PM                08_94x56x227 bottle 4+4 SIKA FN
+d-----        24-09-2024  02:24 PM                09_80ml Supreame bottle 4+4 CMP 2000-DH-2 CD 70 mm LH MANJUSHREE
+d-----        24-09-2024  02:24 PM                100_Loreal_Shaker_Jar_Weener
+d-----        24-09-2024  02:24 PM                101_HUL_Amritha_lifebouy_1L
+d-----        24-09-2024  02:24 PM                102_Weener_HUL_Molds
+d-----        06-05-2025  05:11 PM                103_Weener_Loreal
+d-----        24-09-2024  02:24 PM                104_HUL_MOLDS_Creative
+d-----        06-12-2024  10:28 AM                105_50_Lit_FLS
+d-----        24-09-2024  02:24 PM                106_Hose_saddle_-val-400
+d-----        24-09-2024  02:24 PM                107_new customer_name not_known_10Lit_Tank_Engineering_component
+d-----        24-09-2024  02:24 PM                108_WMC_Bottle_RB_UMS100
+d-----        24-09-2024  02:24 PM                109_200gm_Masque_Jar_Weener
+d-----        24-09-2024  02:24 PM                10_Highlander 1.5Ltr  HDPE CMP 1+1 CD 200mm FN MANJUSHREE
+d-----        24-09-2024  02:24 PM                11_Highlander 1.5Ltr Meper 2+2 CD 200mm MANJUSHREE
+d-----        24-09-2024  02:24 PM                120_currier_160z_bottle_4+4 and 6+6
+d-----        24-09-2024  02:24 PM                121_Colgate_Enquiry_from ATC
+d-----        24-09-2024  02:24 PM                122_500gm_Biolage_UMS140D_SIKA_Weener
+d-----        24-09-2024  02:24 PM                123_200ml_400ml_2+2_CMP_3L
+d-----        24-09-2024  02:24 PM                124_Dabur_Amritha
+d-----        24-09-2024  02:25 PM                125_1Ltr Harpic-6+6 Sika-125CD  and 1Ltr BRC for 4+4 Sika -150CD
+d-----        24-09-2024  02:25 PM                126_DCP_500gm_Dabur_4+0 and 2+2 Cavity
+d-----        24-09-2024  02:25 PM                127_1.2Ltr Harpic-2+2  Cavity Mold_RB
+d-----        24-09-2024  02:25 PM                128_unilever_BW_Amritha
+d-----        24-09-2024  02:25 PM                129_Angle_Neck_500ml_2+2Cav_160CD
+d-----        24-09-2024  02:25 PM                12_Absorb 120gm bottle 6+0 Speedex FN Amrith
+d-----        24-09-2024  02:25 PM                130_200ml_400ml_Himalaya_4+4_UMS100D_Manjushree
+d-----        24-09-2024  02:25 PM                131_50ml_Bottle09_CavityMold_IBM
+d-----        24-09-2024  02:25 PM                132_Doorthy_800ml_220ml_HUL_Amritha
+d-----        24-09-2024  02:25 PM                132_Doorthy_800ml_220ml_HUL_Amritha - Copy
+d-----        23-09-2025  11:57 AM                133_60ml_CN_Bottle_Weener_
+d-----        24-09-2024  02:25 PM                134_Dorothy_220ml_800ml_Manjushree
+d-----        24-09-2024  02:25 PM                135_3ML_PASTEUR_PIPETTE_9cac 1+1 mold FN
+d-----        24-09-2024  02:25 PM                136_20_50_150_gm_6+6_Cavity_Weener
+d-----        24-09-2024  02:25 PM                137_JagMohan_200ml_4+4_120_Pitch
+d-----        24-09-2024  02:26 PM                138_MoldTek_150cc_300cc_cmp500ml
+d-----        24-09-2024  02:26 PM                139_2_0Lit_can_3.8LCan_3+3_CMP10L
+d-----        24-09-2024  02:26 PM                13_Falcon OZ CREEVE HDPE bottles 500ML  4+4 SIKA CD 100 FN
+d-----        24-09-2024  02:26 PM                140_DFC_Bottles_975ml_500ml_200ml_RB
+d-----        24-09-2024  02:26 PM                141 Arrow 1000ml 750ml 500ml 200ml Mold
+d-----        24-09-2024  02:26 PM                142 Dentex-Kenya 500ml & 1000ml
+d-----        24-09-2024  02:26 PM                143_takemoto_1+1_cavity
+d-----        24-09-2024  02:26 PM                144_34mm_PP_Bottle_4+4_Cavity_Mold
+d-----        05-10-2024  01:23 PM                145_Olive_Deep_Pore_Bottle_2+2_Cavity_Weener
+d-----        24-09-2024  02:26 PM                146_VBL_600ml_4+4_3+3_Weener
+d-----        24-09-2024  02:26 PM                147_WiproSafewash_1000ml_500ml_4+4_3+3
+d-----        24-09-2024  02:26 PM                148_1Lit_BRC_2+2_Cavity_Mold
+d-----        20-04-2026  11:29 AM                149_1Lit_Sanifresh_2+2_Cavity_Mold
+d-----        24-09-2024  02:27 PM                14_GALVANISE_MOLDS
+d-----        29-05-2026  05:28 PM                150_5Ltr BRILLON JEERY CAN CMP5L
+d-----        31-01-2025  03:53 PM                151_150ml_1l_syngenta_Single_Cavity_Manjushree
+d-----        24-09-2024  02:27 PM                152_Comfort_800ml_2+2_5+5_Creative
+d-----        24-09-2024  02:27 PM                153_Creative_300ml_Bottle_4+4_2+2_Cavity
+d-----        24-09-2024  02:27 PM                154_Syngenta_500ml_1000ml_1+1_Cavity_Mold
+d-----        24-09-2024  02:27 PM                155_5.0Lit_single_Cavity_Mold
+d-----        24-09-2024  02:27 PM                156_Dorothy_225ml_800ml_Emox
+d-----        24-09-2024  02:27 PM                157_1.0Lit_Handle_Bottle_1+1_Weener
+d-----        24-09-2024  02:27 PM                158_Surfexcel_Pebble 1L bottle_Referbushment
+d-----        10-06-2025  03:09 PM                159_200gm and 500gn BV Jar -CMP 2+2 -110CD Manjushree
+d-----        24-09-2024  02:27 PM                15_94x56x227-725ml Bottle 2+2cav
+d-----        24-09-2024  02:27 PM                160_400ml_Angle_Bottle_Shree_Naina_2+2
+d-----        24-09-2024  02:27 PM                161_T029066
+d-----        05-03-2025  09:06 PM                162_Heinz Bottle_2+2_Cav_160CD_Mnajushree_Mereper
+d-----        26-09-2024  01:03 PM                163_Marico_Bottles_300ml_500ml_4+4_Cav_Creative
+d-----        02-10-2024  04:56 PM                164_Dentex_Components
+d-----        05-10-2024  02:18 PM                165_Weener_Himalaya 400ml and 200ml bottles
+d-----        16-07-2025  12:59 PM                166_comfort _200ml_Creative_8+8_Cavity
+d-----        08-10-2024  07:50 PM                167_vbl_725ml_2+2_Cavity_Mold
+d-----        17-10-2024  03:31 PM                168_HUL_Enquiry_Comfort and PBL
+d-----        18-10-2024  09:01 AM                169_760ml_Jar_Weener
+d-----        24-09-2024  02:27 PM                16_VMW 5LIT HDPE SINGLE CAVITY
+d-----        24-10-2024  06:06 PM                170_creative_Rodin_500ml_parts
+d-----        29-05-2026  05:27 PM                171_Emox_Mr.Muscle
+d-----        21-01-2025  06:13 PM                172_Manjushree_Milk_Bottle
+d-----        27-11-2024  01:11 PM                173_Manjushree_Lizol500ml_Bottle_6+6_Cav
+d-----        29-11-2024  09:35 AM                174_Dentex Vetcare
+d-----        28-01-2025  04:48 PM                175_Weener_1250CC _3+3_Cav_150CD
+d-----        21-01-2025  06:12 PM                176_10lit_20_lit_single cavity mold
+d-----        17-01-2025  09:00 AM                177_Curd_Bottle_1+1_Cavity Mold
+d-----        29-05-2026  05:27 PM                178_Moldtek150cc pp 2+2 cavity
+d-----        29-05-2026  05:27 PM                179_Weener_88&236ml_3+3_Cavity Molds
+d-----        29-05-2026  05:35 PM                17_75ml -125ml -8+8 Kautex 130CD & Uniloy 4+4 -95CD
+d-----        31-01-2025  07:13 PM                180_Agri_Molds_2+2_3+3_4+4
+d-----        13-03-2026  10:09 AM                181_JerryCan_5.0Lit_Single Cavity Mold
+d-----        13-02-2025  10:40 AM                182_Lavant_Weener
+d-----        27-02-2025  04:59 PM                183_Manjushree_5_0_Lit_Prosumer_Can
+d-----        29-05-2026  05:27 PM                184_8ml_Packet_Bottle_4+4_Cavity_Mold_Manjushree
+d-----        05-03-2025  09:06 PM                185_450gm_Heinz Bottle 2+2 Cavity Mold
+d-----        04-04-2025  02:53 PM                186_890ml Falcon PE Oxydant Bottle 4+4 Cavity Mold
+d-----        22-07-2025  10:46 AM                187_Bournvita_250_500_1000_weener
+d-----        29-05-2026  05:27 PM                188_2.0Lit_IAE_PP_Handgrip_Jar 2+2_Cavity
+d-----        28-03-2025  06:54 PM                189_Motul_800ml
+d-----        24-09-2024  02:27 PM                18_Dia90 Round Bottle 3+3 cav UMS 140D AMRITHA
+d-----        04-04-2025  09:11 PM                190_Bournvita 200,500,1000gm_Creative
+d-----        29-05-2026  05:25 PM                191_FC-TC-KC-LSP 3+3 Cavity_Emox
+d-----        26-06-2025  10:51 AM                192_60ml_250ml_alovera_bottle
+d-----        29-05-2026  05:27 PM                193_ 185ml_ 450ml_ 500ml & 1Kg Monolayer Bottles_Manjushree
+d-----        16-04-2025  05:37 PM                194_Foxlife_HDPE_Rectangular_Bottle_2L
+d-----        29-05-2026  05:27 PM                195 Creative 5.0 Lit
+d-----        24-04-2025  05:31 PM                196_Harpic_500ml_8+8_Magic
+d-----        08-05-2025  08:39 AM                197_Dentex_100ml_Bottle_2+2
+d-----        24-04-2025  06:01 PM                198_uniloy_4+4_Cavity_90mm_Bottle
+d-----        29-04-2025  05:35 PM                199_4+4_Cav
+d-----        24-09-2024  02:27 PM                19_500ml Round Bottle
+d-----        29-05-2026  05:27 PM                200_Loreal_60mlCN_Bottle_10+10 Cavity Mold
+d-----        29-05-2026  05:27 PM                201_Tresseme_300mljar_1+1_Weener
+d-----        09-05-2025  12:16 PM                202_RB_enquiry_tubs_3_Components
+d-----        29-05-2026  05:27 PM                203_New Customer_Tottle_bottles
+d-----        29-05-2026  05:27 PM                204 _DLS200ml_6+6_Cavity_Mold_Manjushree
+d-----        11-09-2025  03:57 PM                205_DLS200ml_8+8_Cavity_Mold_Creatvie
+d-----        26-05-2025  02:23 PM                206_Weener_HULMolds
+d-----        29-05-2026  05:27 PM                207_Blow_Kings_HULMolds
+d-----        29-05-2026  05:27 PM                208_Chemco_200ml_Bottle_4+4_UMS100
+d-----        02-06-2025  03:23 PM                209_Manjushree_IML_3+3_Cavity Mold
+d-----        24-09-2024  02:27 PM                20_250 ml Curved Bottle
+d-----        05-06-2025  09:01 AM                210_weener_chemist_play_bottle
+d-----        06-06-2025  07:39 PM                211 Vasantha bottle
+d-----        29-05-2026  05:26 PM                212_BV_500gm
+d-----        26-06-2025  10:35 AM                213_jerry can _Manjushree
+d-----        29-05-2026  05:26 PM                214_4+4_TVS Motors Oil Bottle 1L
+d-----        29-05-2026  05:26 PM                215_6+6_BP oil bottle 1L
+d-----        11-12-2025  10:40 AM                216_Creative_1+1_Cavity
+d-----        29-05-2026  05:26 PM                217_Comfort_220ml_860ml_2+2
+d-----        29-05-2026  05:26 PM                218_Comfort_220ml_430ml_860ml
+d-----        20-08-2025  03:48 PM                219_blow ups 2+2 Cavity Mold
+d-----        24-09-2024  02:27 PM                21_1L Angular Bottle 3+3 UMS100-D CD125 FN_Manjushree
+d-----        01-09-2025  01:12 PM                220_enquiry from ATC_single cavity molds
+d-----        02-09-2025  08:49 AM                221_Harpic 1_2Lit_8+8Cavity&4+4 cavity
+d-----        29-05-2026  05:26 PM                222_blow kings_unilever
+d-----        05-09-2025  03:33 PM                223_lb_400ml
+d-----        12-09-2025  08:45 AM                224_315ml_multilayer_2+2_manjushree
+d-----        29-05-2026  05:26 PM                225_weener_serendipity_imax_shampoo_conditioner
+d-----        29-05-2026  05:26 PM                226_blow kings_unilever
+d-----        20-09-2025  05:44 PM                227_Dove_Kako_2L_Creative
+d-----        05-01-2026  05:33 PM                228_60ml_CN_Bottle_Weener_ 10+10
+d-----        25-09-2025  01:31 PM                229_IBM_Costing_RB_Rollon
+d-----        24-09-2024  02:28 PM                22_Main Bottle PP V-3 single CAV CMP 1000-DH-2 CD110 FN Manjushree
+d-----        29-05-2026  05:26 PM                230_vancouver 200ml_blow kings
+d-----        29-05-2026  05:26 PM                231_Herbalife_1900CC_jar_Weener
+d-----        29-05-2026  05:26 PM                232_1200mlbottle_1+1_weener
+d-----        03-11-2025  03:16 PM                233_1200ml_bottle_blow_kings_3+3
+d-----        09-10-2025  05:31 PM                234_IBM_COSTING
+d-----        29-05-2026  05:26 PM                235_Hemas_Srilanka_single_cavity
+d-----        29-05-2026  05:26 PM                236_500ml_1000ml_bottles_creative_angle_neck
+d-----        29-05-2026  05:26 PM                237_400ml_PP_Bottle
+d-----        29-05-2026  05:26 PM                238_pidilite_enquiry
+d-----        12-12-2025  09:54 AM                239_manjushree_talc_bottle_4+4
+d-----        24-09-2024  02:28 PM                23_Dabur Gulabari Lotion Bottle 200ml & 400ml CMP 500 AMRITHA
+d-----        28-04-2026  07:06 PM                240_creative_molds_4 bottles_enquiry
+d-----        11-02-2026  04:25 PM                241_Sunscreen_bottle_4+4 - Copy
+d-----        23-01-2026  10:16 AM                242_150cc_300cc_moldtek
+d-----        25-01-2026  03:34 PM                243_Creative_Molds_4 bottles Enquiry
+d-----        29-05-2026  05:25 PM                244_marico
+d-----        13-02-2026  10:34 AM                245_Hitech_Muscle_Blaze_Jar
+d-----        29-05-2026  05:25 PM                246_Manjushree_5.0Lit
+d-----        16-02-2026  02:38 PM                247_National_Plastic_Oman
+d-----        29-05-2026  05:26 PM                248_bottle_dropper_4+4_cav
+d-----        29-06-2026  02:07 PM                249_Balmer_5.0Lit and 10 Lit
+d-----        24-09-2024  02:28 PM                24_UMS140-Dia 90 bottle 4+4 3+3
+d-----        26-02-2026  01:20 PM                250_Marico_Nihar_400ml_4+4
+d-----        29-05-2026  05:26 PM                251_Jerrycan_10lit_30lit
+d-----        10-03-2026  05:51 PM                252_Neptune_Yashryn_02_Cav
+d-----        29-05-2026  05:25 PM                253_Marico_1Lit_4+4_Cavity Mold
+d-----        17-03-2026  08:42 AM                254_weener_swan_HS_4+4_Cav
+d-----        25-03-2026  09:50 AM                255_Pediasure_400gm_02+02Cav
+d-----        25-03-2026  02:00 PM                256_Boost_HLX_Mnajushree
+d-----        26-03-2026  09:40 PM                257_vatika_1000ml_TPAC
+d-----        26-03-2026  06:22 PM                258_IOCL
+d-----        06-06-2026  02:23 PM                259_HLX_1620ml_4+4
+d-----        24-09-2024  02:28 PM                25_Kerasatge Pot 500ml Jar 4+4 Mold SIKA CD 125 LH WEENER
+d-----        31-03-2026  02:53 PM                260_HLX820ML+6+6_Cavity_manjushree
+d-----        29-05-2026  05:26 PM                261_herbalife_jars_4 _sizes_weener
+d-----        11-04-2026  05:44 PM                262_Jergens_3sizes_TPAC
+d-----        29-05-2026  05:25 PM                263_weener_cattle_bottles_single_cavity
+d-----        29-05-2026  05:25 PM                264_Herbalife165cc_weener
+d-----        08-05-2026  10:52 AM                265_200ml TC 4+4
+d-----        29-06-2026  02:11 PM                266_5.0lit_Bottle_1+1_Cavity_Mold
+d-----        14-05-2026  03:14 PM                267_moxie_bottle_4+4_cavity_mold_weener
+d-----        29-05-2026  05:26 PM                268_Vatika_4+4_cavity_weener
+d-----        18-05-2026  01:23 PM                269_3+3_cavity_180_CD_
+d-----        24-09-2024  02:28 PM                26_Cherry 100ml_Angle_neck 4+4 Sika CD-125 FN AMRITHA
+d-----        04-11-2025  04:50 PM                26_DFC 200,500,1000ml 4+4,8 cavitycmp 1l LH MANJUSHREE
+d-----        29-05-2026  05:25 PM                270_1+1_2+2_cavity_5.0lit_Hitech
+d-----        29-05-2026  05:25 PM                271_Comfort_860ml_430ml_Alternicq
+d-----        28-05-2026  12:32 PM                272_herbalife_1250ml_4+4_cavity_repeat_mold_costing
+d-----        28-05-2026  05:58 PM                273_herbalife_1250ml_8+8_cavity
+d-----        01-06-2026  02:05 PM                274_bellow_mold
+d-----        02-06-2026  02:44 PM                275_softouch_800ml_4+4_cavity_mold
+d-----        24-09-2024  02:28 PM                27_Hitech (Glenmark) 60gm & 100gm 8+8,6+6
+d-----        24-09-2024  02:28 PM                28_STD BDF 75,125ml HDPE KAUTEX&UNILOY
+d-----        24-09-2024  02:28 PM                29_HL 1250ml 4+4 LH - Manjushree
+d-----        24-09-2024  02:28 PM                30_Herbalife Jar 1850cc 4+4 UMS 140 machine -Meper WEENER
+d-----        29-05-2026  05:34 PM                31_4L Detergent Bottle Sika 2+2 300CD FN_Manjushree
+d-----        24-09-2024  02:28 PM                32_Herbalife Jar 1950cc Meper 3+3 CD 150mm MANJUSHREE
+d-----        24-09-2024  02:28 PM                33_4L Detergent Bottle 5Ltr CMP 1+1 FN_Manjushree
+d-----        24-09-2024  02:28 PM                34_Rome FTC 200ml and 375m Bottle M01 2+0 FN Amritha
+d-----        24-09-2024  02:28 PM                35_Agro Chemicals HDPE bottles molds
+d-----        05-06-2026  09:31 AM                36_5LIT MTL CAN HDPE 1+1 Meper M80 MANJUSHREE
+d-----        24-09-2024  02:28 PM                37_DLS 900ml 6+6 CD150 FN
+d-----        24-09-2024  02:28 PM                38_ignite_60ml_clincplus
+d-----        24-09-2024  02:28 PM                39_Project Pebble (Surf XL) 1ltr 6+6cav FN Unilever
+d-----        24-09-2024  02:28 PM                40_975ml Floor cleaner bottle Kautex,Sika MANJUSHREE
+d-----        24-09-2024  02:28 PM                41_4lit,5lit Magic ME T14 600D CD230 TPAC Packaging
+d-----        24-09-2024  02:28 PM                42_5lit HDPE  single cavity SSB65 FN-ALPLA
+d-----        24-09-2024  02:28 PM                43_Lizol
+d-----        24-09-2024  02:28 PM                44_1000ml and 500ml 2+2molds
+d-----        24-09-2024  02:28 PM                45_Dabur Vatika Hair Mask_Hamamzaith 250g & 500g CMP 1000 & Magic
+                                                  MG-L5D FN AMRITHA
+d-----        24-09-2024  02:29 PM                46_Godrej Genteel bottle 1 KG 1+1,2+2 cav mold FN Meeper M80
+                                                  MANJUSHREE
+d-----        24-09-2024  02:29 PM                47_Highlander 800ml CMP 1+1 MANJUSREE
+d-----        24-09-2024  02:29 PM                48_Highlander 800ml 8+8 Kautex CD 130mm  MANJUSHREE
+d-----        24-09-2024  02:29 PM                49_5lit Ketchup
+d-----        24-09-2024  02:29 PM                50_Surfexcel liquid bottle 1lit Single cav CMP amirtha
+d-----        24-09-2024  02:29 PM                51_2Ltr Liquid detergent Bottle CMP 1+1 FN_Manjushree
+d-----        24-09-2024  02:29 PM                52_Dr Fixit 1 & 5 ltr new design containers Meper M80
+d-----        24-09-2024  02:29 PM                53_CN OAP Bottle
+d-----        24-09-2024  02:29 PM                54_Ariel 1Ltr 4+4 Sika 150CD Manjushree
+d-----        24-09-2024  02:29 PM                55_Dropper_Weener
+d-----        24-09-2024  02:29 PM                56_Himalaya_Baby Care
+d-----        24-09-2024  02:29 PM                57 Harpic 1 Lt 58g 2+2 mold Meper
+d-----        24-09-2024  02:29 PM                58 100ml Neptune 6+6 mould Samsung CD100 WEENER
+d-----        24-09-2024  02:29 PM                59 Sanifresh_Toilet_cleaner 1000ml 750ml CMP 1+1 200ml 500ml 4cav
+                                                  Meper70 Majushree
+d-----        29-05-2026  05:35 PM                60  GCPL Nigeria 2_0 Oz Bottle 4+4 6+6 cav Mold Amritha
+d-----        24-09-2024  02:30 PM                61 Talcum powder Bottles 30g 50g 100g 200g Bottles 4+4 6+6 Arun
+                                                  Plasto Moulders
+d-----        24-09-2024  02:30 PM                62 Reckitt-Nigeria(Harpic,Dettol,Jik)
+d-----        24-09-2024  02:30 PM                63_Manjushree_Iris_Head_and_Shoulders_8 Molds
+d-----        24-09-2024  02:32 PM                64_Harpic_1Lit_speedex_3+3_CD200mm Majushree
+d-----        24-09-2024  02:32 PM                65_Dallas_Dettol_Laundry_200ml_4+4_Cav_UMS100_CD_95
+d-----        24-09-2024  02:32 PM                66_1_5_L_Milk_Bottle_CMP_1+1_Single_Cavity MANJUSHREE
+d-----        24-09-2024  02:32 PM                67_20L_Jerry Can Single Cavity Mold
+d-----        24-09-2024  02:32 PM                68_2kg Square Tub CMP 1+1 MANJUSHREE
+d-----        24-09-2024  02:32 PM                69_180ml _PP_Creame Bottle_4+4 Cavity Mold_Manjushree_UMS110D
+d-----        24-09-2024  02:32 PM                70_Falcon Bottles_Weener_CeraVe
+d-----        24-09-2024  02:32 PM                71_Unilever_Vaseline_Shampoo
+d-----        24-09-2024  02:32 PM                72_KM_Bottles_Vasantha
+d-----        24-09-2024  02:32 PM                72_Unlilever_Vaseline_Shampoo_Creative
+d-----        24-09-2024  02:32 PM                73_PP Bottles_Manjushree
+d-----        24-09-2024  02:32 PM                74_380ml Wall Mount Bottle for mold offer CMP 1+1 Majushree
+d-----        24-09-2024  02:32 PM                75_Dr.Fixit manjhusree
+d-----        24-09-2024  02:32 PM                76_Dr.Fixit_Amritha
+d-----        29-05-2026  05:25 PM                77_250_500_1kg_DCP_Jars_Manjushree
+d-----        24-09-2024  02:32 PM                78_Ezee 500ml single cavity CMP 2000
+d-----        24-09-2024  02:32 PM                79_Weener_OAP_CST_Bottle
+d-----        24-09-2024  02:32 PM                80_1.0 Lit agri bottle_Guntur
+d-----        24-09-2024  02:32 PM                81_30ml_Bottle_6+6 Cavity Mold
+d-----        24-09-2024  02:32 PM                82_yogurt_100ml_Bottle_Manjushree
+d-----        24-09-2024  02:32 PM                83_3Ltr Highlander bottle CMP 5L 1+1 Majushree FN
+d-----        14-05-2026  03:14 PM                84_5Ltr HDPE Jar single cavity Mold_Reliance_Inida_Limited
+d-----        24-09-2024  02:33 PM                85_Sanifresh 200 & 500ml bottle mould 4+4 Cavity Mold UMS 100LS CD110
+d-----        24-09-2024  02:33 PM                86_Godrej Enquiry from Amritha
+d-----        24-09-2024  02:33 PM                87_NRCT 100gm bottle,Neutralizer-125ml,200ML Zeta,O.A.P. SHAMPOOING
+                                                  Samsung 6+6 cav Weener
+d-----        24-09-2024  02:33 PM                88_Laundry 200ml 4+4 Cavity Mold
+d-----        24-09-2024  02:33 PM                89_Laundary 1000ml & 500ml 2+2 cavity mold UMS100 CD175 FN
+d-----        24-09-2024  02:33 PM                90_4.Lit and 5.Lit jerry can Mold Jagmohan JM 80FS
+d-----        24-09-2024  02:33 PM                91_Foxlife PP and Pet Bottle Jagmohan 5lit
+d-----        24-09-2024  02:33 PM                92_weener samples for deflashing issue
+d-----        24-09-2024  02:33 PM                93_Kerasatge Pot 500ml Jar 2+2 Mold CMP1L CD 115 LH WEENER
+d-----        24-09-2024  02:33 PM                94_Kerasatge Pot 500ml Jar 4+4 Mold SIKA CD 125 LH WEENER
+d-----        24-09-2024  02:33 PM                95_Chempack_ 510CC bottle
+d-----        24-09-2024  02:33 PM                96_Domex_750ml_bottle CMP 1+1
+d-----        24-09-2024  02:33 PM                97_HUL_Molds_Amritha
+d-----        24-09-2024  02:33 PM                98_40ml_OAP_Shampoo_Flacon_125ml_Netralizer _WEENER
+d-----        24-09-2024  02:33 PM                99_25L_jerry_can_Amritha
+d-----        24-09-2024  02:33 PM                Blow_Pin
+d-----        24-09-2024  02:33 PM                BRC
+d-----        24-09-2024  02:33 PM                CMP
+d-----        24-09-2024  02:33 PM                Manjushre BM machines
+d-----        12-06-2026  04:41 PM                O-276_mobil_800ml_3+3_cavity_mold_alternicq
+d-----        08-06-2026  04:57 PM                O-277_Flexid_technopack_3 sizes_125ml_200ml_400ml_1+1_2+2_cavity
+                                                  molds
+d-----        12-06-2026  02:32 PM                O-278_export_mold _2+2_80CD
+d-----        12-06-2026  04:54 PM                O-279_250ml_400ml_wenner_enquiry
+d-----        12-06-2026  04:56 PM                O-280_BTi-150 TUBE 3+3 cav
+d-----        17-06-2026  09:52 AM                O-281_hero1000ml_3+3_cavity_mold
+d-----        16-06-2026  11:47 AM                O-282_mccaffine_300ml_bottle_manjushree_4+4_cavity
+d-----        16-06-2026  02:22 PM                O-283_mccaffine_300ml_bottle_4+4_cavity_manjushree
+d-----        16-06-2026  05:25 PM                O-284_lizol 975ml 5+5 cavity Mold_creative
+d-----        17-06-2026  05:18 PM                O-285_Tpac_180ml_340ml_2+2_4+4_
+d-----        19-06-2026  04:19 PM                O-286_nestle_
+d-----        29-06-2026  02:32 PM                O-289_Balmer_laurie_blvl_india
+d-----        24-06-2026  05:18 PM                O-290_Marico_parachute_3 sizes
+d-----        26-06-2026  12:25 PM                O-291_takemoto_kerafine_250ml
+d-----        01-07-2026  05:08 PM                O-292_wenner_300ml_bottle_3+3
+d-----        02-07-2026  03:14 PM                O-293_blow kings_ponds
+d-----        24-09-2024  02:23 PM                O01_23-07-2020_Bottles_4r_Quotation
+d-----        24-09-2024  02:23 PM                O02_Absorb 120gm bottle 6+0 Samsung FN amritha
+d-----        24-09-2024  02:24 PM                Q03_Falcon OZ CREAVE_bottles 100,200ML 6+6 Samsung CD 100 FN AMRITHA
+d-----        24-09-2024  02:24 PM                Q04_gulf
+d-----        24-09-2024  02:33 PM                SMP
+-a----        04-04-2022  02:46 PM        2098592 1.pptx
+-a----        06-06-2024  09:08 PM           1971 122_500gm_Biolage_UMS140D_SIKA_Weener - Shortcut.lnk
+-a----        29-06-2024  09:17 AM        3047424 2Ltr can dimension_docx.msg
+-a----        08-06-2022  09:09 AM         271360 FW_ RFQ_PM_2021-0006- HAC bottle.msg
+-a----        01-08-2024  04:22 PM          10617 Lip angle Details.xlsx
+-a----        15-02-2023  02:33 PM              0 New Microsoft Word Document.docx
+-a----        23-07-2024  04:02 PM              0 New Text Document.txt
+-a----        26-07-2024  05:44 PM          94252 New2024_BM other Clients.xlsx
+-a----        11-09-2021  05:37 PM          48814 Partlist_500ml & 1000ml Bottle M01 2+2 Cav Mold FN.xlsx
+-a----        30-05-2023  09:12 AM        3734016 RE 2kg -Square Tang Tub-Mold offer required for CMP 1+1 (3.59 MB).msg
+-a----        16-09-2022  09:03 PM           9797 x_B.xlsx
+-a----        10-02-2023  02:07 PM          18598 x_BM other Clients.xlsx
+-a----        16-09-2022  09:58 PM          14327 x_Copy of BM other Clients.xlsx
+
+
+PS Y:\Blow Mold Enquires\0_BM other Clients>

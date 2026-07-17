@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "0.1.0",
+  "status": "scaffolding",
+  "updated": "2026-07-08",
+  "owner": "Platform Engineering",
+  "description": "Engagement Registry",
+  "data": {
+    "engagements": [],
+    "customers": [],
+    "projects": [],
+    "phases": [],
+    "teams": [],
+    "schedules": [],
+    "metadata": {}
+  }
+}

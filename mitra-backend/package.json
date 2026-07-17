@@ -1,0 +1,121 @@
+{
+  "name": "mitra-v2-backend",
+  "version": "3.2.0",
+  "description": "MITRA v3.2 Mold Development Lifecycle Management Platform - Backend",
+  "scripts": {
+    "build": "nest build",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "lint": "eslint 'src/**/*.ts' --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli",
+    "migration:generate": "npm run typeorm -- migration:generate -d src/database/data-source.ts",
+    "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/database/data-source.ts",
+    "seed": "node dist/database/seed.js",
+    "migration:show": "npm run typeorm -- migration:show -d src/database/data-source.ts",
+    "schema:validate": "ts-node -r tsconfig-paths/register src/database/scripts/validate-schema.ts",
+    "pretest:e2e": "bash test/setup-test-db.sh",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "prepare": "husky || true"
+  },
+  "dependencies": {
+    "@nestjs/axios": "^4.0.1",
+    "@nestjs/common": "^11.1.26",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.26",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/platform-express": "^11.1.26",
+    "@nestjs/swagger": "^11.4.4",
+    "@nestjs/terminus": "^11.1.1",
+    "@nestjs/throttler": "^6.5.0",
+    "@nestjs/typeorm": "^11.0.1",
+    "axios": "^1.7.2",
+    "bcryptjs": "^2.4.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "compression": "^1.7.4",
+    "dotenv": "^16.4.5",
+    "form-data": "^4.0.6",
+    "helmet": "^8.0.0",
+    "minio": "^8.0.2",
+    "multer": "^2.2.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "pg": "^8.11.3",
+    "prom-client": "^15.1.3",
+    "redis": "^4.6.13",
+    "reflect-metadata": "^0.2.1",
+    "rxjs": "^7.8.1",
+    "swagger-ui-express": "^5.0.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.3.3",
+    "typeorm": "^0.3.19",
+    "typeorm-extension": "^3.5.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.23",
+    "@nestjs/schematics": "^11.1.0",
+    "@nestjs/testing": "^11.1.26",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.7.5",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/minio": "^7.1.0",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^20.10.6",
+    "@types/passport-jwt": "^4.0.0",
+    "@types/redis": "^4.0.11",
+    "@types/supertest": "^6.0.2",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
+    "eslint": "^8.56.0",
+    "husky": "^9.0.0",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.4",
+    "ts-jest": "^29.1.2"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s",
+      "!**/node_modules/**",
+      "!**/*.spec.ts"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "coverageThreshold": {
+      "global": {
+        "branches": 50,
+        "functions": 50,
+        "lines": 50,
+        "statements": 50
+      }
+    },
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1",
+      "^@common/(.*)$": "<rootDir>/common/$1",
+      "^@modules/(.*)$": "<rootDir>/modules/$1",
+      "^@database/(.*)$": "<rootDir>/database/$1",
+      "^@app$": "<rootDir>/app.module"
+    }
+  },
+  "overrides": {
+    "multer": "^2.2.0"
+  }
+}

@@ -1,0 +1,271 @@
+{
+  "schemaVersion": "0.1.0",
+  "status": "generated",
+  "updated": "2026-07-08T17:25:54.299406",
+  "owner": "Platform Engineering",
+  "description": "Framework Registry",
+  "data": {
+    "frameworks": [
+      {
+        "id": "FRAMEWORK-001",
+        "name": "AIOS Framework Layer",
+        "location": "framework/",
+        "type": "framework",
+        "status": "scaffolding",
+        "description": "Reusable frameworks and components",
+        "components": [],
+        "capabilities": [],
+        "extensionPoints": []
+      }
+    ],
+    "components": [
+      {
+        "id": "COMP-001",
+        "name": "Meta",
+        "location": "framework/META.md",
+        "type": "component",
+        "status": "scaffolding"
+      }
+    ],
+    "standards": [
+      {
+        "id": "STD-001",
+        "name": "Governance",
+        "location": "GOVERNANCE.md",
+        "type": "standard",
+        "status": "active"
+      },
+      {
+        "id": "STD-002",
+        "name": "Governance",
+        "location": ".ai/modes/GOVERNANCE.md",
+        "type": "standard",
+        "status": "active"
+      },
+      {
+        "id": "STD-003",
+        "name": "Aios-008-Governance",
+        "location": "architecture/AIOS-008-Governance.md",
+        "type": "standard",
+        "status": "active"
+      },
+      {
+        "id": "STD-004",
+        "name": "Svp-007-Governance-Architecture",
+        "location": "architecture/SVP-007-Governance-Architecture.md",
+        "type": "standard",
+        "status": "active"
+      },
+      {
+        "id": "STD-005",
+        "name": "Evidence-Standard",
+        "location": "docs/standards/evidence-standard.md",
+        "type": "standard",
+        "status": "active"
+      },
+      {
+        "id": "STD-006",
+        "name": "Naming-Standard",
+        "location": "docs/standards/naming-standard.md",
+        "type": "standard",
+        "status": "active"
+      },
+      {
+        "id": "STD-007",
+        "name": "Output-Standard",
+        "location": "docs/standards/output-standard.md",
+        "type": "standard",
+        "status": "active"
+      },
+      {
+        "id": "STD-008",
+        "name": "Reporting-Standard",
+        "location": "docs/standards/reporting-standard.md",
+        "type": "standard",
+        "status": "active"
+      },
+      {
+        "id": "STD-009",
+        "name": "Governance",
+        "location": "mitra-backend/node_modules/readable-stream/GOVERNANCE.md",
+        "type": "standard",
+        "status": "active"
+      },
+      {
+        "id": "STD-010",
+        "name": "Governance",
+        "location": "node_modules/readable-stream/GOVERNANCE.md",
+        "type": "standard",
+        "status": "active"
+      }
+    ],
+    "methodologies": [
+      {
+        "id": "METH-001",
+        "name": "Workflow",
+        "location": ".opencode/WORKFLOW.md",
+        "type": "methodology"
+      },
+      {
+        "id": "METH-002",
+        "name": "Audit-Methodology",
+        "location": "docs/methodology/audit-methodology.md",
+        "type": "methodology"
+      },
+      {
+        "id": "METH-003",
+        "name": "Svf-Gov-007-Review-Process",
+        "location": "framework/governance/SVF-GOV-007-Review-Process.md",
+        "type": "methodology"
+      },
+      {
+        "id": "METH-004",
+        "name": "Svf-Mth-001-Audit-Methodology",
+        "location": "framework/methodology/SVF-MTH-001-Audit-Methodology.md",
+        "type": "methodology"
+      },
+      {
+        "id": "METH-005",
+        "name": "Svf-Mth-006-Verification-Workflow",
+        "location": "framework/methodology/SVF-MTH-006-Verification-Workflow.md",
+        "type": "methodology"
+      },
+      {
+        "id": "METH-006",
+        "name": "Incident Response Process",
+        "location": "mitra-backend/node_modules/resolve/.github/INCIDENT_RESPONSE_PROCESS.md",
+        "type": "methodology"
+      },
+      {
+        "id": "METH-007",
+        "name": "Incident Response Process",
+        "location": "mitra-frontend/node_modules/resolve/.github/INCIDENT_RESPONSE_PROCESS.md",
+        "type": "methodology"
+      }
+    ],
+    "taxonomies": [],
+    "templates": [
+      {
+        "id": "TMPL-001",
+        "name": "Session Template",
+        "location": ".opencode/SESSION_TEMPLATE.md",
+        "type": "template"
+      },
+      {
+        "id": "TMPL-002",
+        "name": "Checklist-Template",
+        "location": "docs/templates/checklist-template.md",
+        "type": "template"
+      },
+      {
+        "id": "TMPL-003",
+        "name": "Finding-Template",
+        "location": "docs/templates/finding-template.md",
+        "type": "template"
+      },
+      {
+        "id": "TMPL-004",
+        "name": "Findings-Template",
+        "location": "docs/templates/findings-template.md",
+        "type": "template"
+      },
+      {
+        "id": "TMPL-005",
+        "name": "Report-Template",
+        "location": "docs/templates/report-template.md",
+        "type": "template"
+      },
+      {
+        "id": "TMPL-006",
+        "name": "Pull Request Template",
+        "location": "mitra-backend/node_modules/@nestjs/jwt/.github/PULL_REQUEST_TEMPLATE.md",
+        "type": "template"
+      },
+      {
+        "id": "TMPL-007",
+        "name": "Issue Template",
+        "location": "mitra-frontend/node_modules/countup.js/.github/ISSUE_TEMPLATE.md",
+        "type": "template"
+      },
+      {
+        "id": "TMPL-008",
+        "name": "Pull Request Template",
+        "location": "mitra-frontend/node_modules/countup.js/.github/PULL_REQUEST_TEMPLATE.md",
+        "type": "template"
+      }
+    ],
+    "architectures": [],
+    "knowledge": [
+      {
+        "id": "KB-001",
+        "name": "Readme",
+        "location": "knowledge/README.md",
+        "type": "knowledge",
+        "format": "markdown"
+      }
+    ],
+    "reports": [
+      {
+        "id": "RPT-001",
+        "name": "Architectureconflictmatrix",
+        "location": "reports/ArchitectureConflictMatrix.md",
+        "type": "report"
+      },
+      {
+        "id": "RPT-002",
+        "name": "Architectureconsolidation",
+        "location": "reports/ArchitectureConsolidation.md",
+        "type": "report"
+      },
+      {
+        "id": "RPT-003",
+        "name": "Architecturedecisionlog",
+        "location": "reports/ArchitectureDecisionLog.md",
+        "type": "report"
+      },
+      {
+        "id": "RPT-004",
+        "name": "Canonicalarchitectureproposal",
+        "location": "reports/CanonicalArchitectureProposal.md",
+        "type": "report"
+      },
+      {
+        "id": "RPT-005",
+        "name": "Errata",
+        "location": "reports/Errata.md",
+        "type": "report"
+      },
+      {
+        "id": "RPT-006",
+        "name": "Evidencereview",
+        "location": "reports/EvidenceReview.md",
+        "type": "report"
+      },
+      {
+        "id": "RPT-007",
+        "name": "Migrationmatrix",
+        "location": "reports/MigrationMatrix.md",
+        "type": "report"
+      },
+      {
+        "id": "RPT-008",
+        "name": "Readme",
+        "location": "reports/README.md",
+        "type": "report"
+      },
+      {
+        "id": "RPT-009",
+        "name": "Reportverification",
+        "location": "reports/ReportVerification.md",
+        "type": "report"
+      },
+      {
+        "id": "RPT-010",
+        "name": "Validationsummary",
+        "location": "reports/ValidationSummary.md",
+        "type": "report"
+      }
+    ],
+    "metadata": {}
+  }
+}

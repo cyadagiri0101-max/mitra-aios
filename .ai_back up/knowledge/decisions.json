@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "0.1.0",
+  "status": "scaffolding",
+  "updated": "2026-07-08",
+  "owner": "Platform Engineering",
+  "description": "Architectural Decision Records",
+  "data": {
+    "decisions": [],
+    "status": [],
+    "consequences": [],
+    "alternatives": [],
+    "rationale": [],
+    "reviewedBy": [],
+    "metadata": {}
+  }
+}

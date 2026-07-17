@@ -1,0 +1,76 @@
+version: '3.9'
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  MITRA v3.2 — Scheduled Backup Container
+#
+#  This compose file runs a lightweight Alpine-based cron container that
+#  performs automated PostgreSQL and MinIO backups on a daily schedule.
+#
+#  Usage:
+#    docker compose -f docker-compose.backup.yml up -d
+#
+#  The container mounts:
+#    - backup scripts from ./scripts/backup
+#    - backup output directory (./backups)
+#    - .env for database and MinIO credentials
+# ─────────────────────────────────────────────────────────────────────────────
+
+x-restart: &restart
+  restart: unless-stopped
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+networks:
+  mitra-internal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  backup-data:
+
+services:
+  # ── Scheduled Backup Runner ───────────────────────────────────────────────
+  mitra-backup:
+    image: alpine:latest
+    container_name: mitra-backup
+    <<: [*restart, *logging]
+    command: >
+      sh -c "
+        echo '0 2 * * * cd /app && ./scripts/backup/backup-postgres.sh >> /var/log/mitra-backup.log 2>&1' > /etc/crontabs/root &&
+        echo '15 2 * * * cd /app && ./scripts/backup/backup-minio.sh >> /var/log/mitra-backup.log 2>&1' >> /etc/crontabs/root &&
+        echo '0 3 * * 0 cd /app && ./scripts/backup/verify-backup.sh >> /var/log/mitra-backup.log 2>&1' >> /etc/crontabs/root &&
+        mkdir -p /var/log &&
+        touch /var/log/mitra-backup.log &&
+        crond -f -L /var/log/mitra-backup.log
+      "
+    volumes:
+      - ./scripts/backup:/app/scripts/backup:ro
+      - ./backups:/app/backups
+      - ./.env:/app/.env:ro
+      - backup-data:/var/backups
+    networks:
+      - mitra-internal
+    environment:
+      # Inherit from host or .env
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-mitra_v2}
+      DB_USERNAME: ${DB_USERNAME:-mitra_admin}
+      DB_PASSWORD: ${DB_PASSWORD:-}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-}
+      MINIO_BACKUP_BUCKET: ${MINIO_BACKUP_BUCKET:-mitra-backups}
+      BACKUP_DIR: /app/backups
+    depends_on:
+      - postgres
+      - minio
+    profiles:
+      - backup

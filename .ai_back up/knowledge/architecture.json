@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "0.1.0",
+  "status": "scaffolding",
+  "updated": "2026-07-08",
+  "owner": "Platform Engineering",
+  "description": "Architecture Knowledge Base",
+  "data": {
+    "architecturePatterns": [],
+    "layers": [],
+    "components": [],
+    "relationships": [],
+    "constraints": [],
+    "principles": [],
+    "metadata": {}
+  }
+}

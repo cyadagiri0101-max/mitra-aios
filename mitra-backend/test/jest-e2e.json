@@ -1,0 +1,25 @@
+{
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": "..",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "setupFiles": [
+    "<rootDir>/test/jest.e2e.setup.ts"
+  ],
+  "testTimeout": 60000,
+  "maxWorkers": 1,
+  "moduleNameMapper": {
+    "^src/(.*)$": "<rootDir>/src/$1",
+    "^@common/(.*)$": "<rootDir>/src/common/$1",
+    "^@modules/(.*)$": "<rootDir>/src/modules/$1",
+    "^@database/(.*)$": "<rootDir>/src/database/$1",
+    "^@app$": "<rootDir>/src/app.module"
+  }
+}

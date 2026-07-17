@@ -1,0 +1,47 @@
+{
+  "status": "success",
+  "timestamp": "2026-07-09T15:48:58.913169",
+  "steps": [
+    {
+      "name": "scan",
+      "status": "ok",
+      "duration": 0.516
+    },
+    {
+      "name": "index",
+      "status": "ok",
+      "duration": 0.569
+    },
+    {
+      "name": "state",
+      "status": "ok",
+      "duration": 0.142
+    },
+    {
+      "name": "memory",
+      "status": "ok",
+      "duration": 0.002
+    },
+    {
+      "name": "decision",
+      "status": "ok",
+      "duration": 0.001
+    },
+    {
+      "name": "execute",
+      "status": "success",
+      "duration": 0.002,
+      "executionId": "EXEC-20260709154858901835"
+    },
+    {
+      "name": "report",
+      "status": "ok",
+      "duration": 0.009
+    }
+  ],
+  "metrics": {
+    "totalDurationSeconds": 1.242,
+    "stepCount": 7,
+    "failedSteps": 0
+  }
+}

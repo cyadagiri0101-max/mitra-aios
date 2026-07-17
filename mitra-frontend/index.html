@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0A192F" />
+    <meta name="description" content="MITRA v3.2 — AI Production Intelligence Engine" />
+    <!-- CRITICAL FIX C-2: Content-Security-Policy -->
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self';
+               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+               img-src 'self' data: blob:;
+               font-src 'self' https://fonts.gstatic.com;
+               connect-src 'self' http://localhost:3001 https:;
+               frame-ancestors 'none';
+               base-uri 'self';
+               form-action 'self';" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>MITRA v3.2</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

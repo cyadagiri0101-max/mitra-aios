@@ -1,0 +1,13 @@
+{
+  "executionId": "EXEC-20260709154858901835",
+  "timestamp": "2026-07-09T15:48:58.902023",
+  "stepCount": 5,
+  "steps": [
+    "scan",
+    "index",
+    "state",
+    "context",
+    "report"
+  ],
+  "status": "checkpointed"
+}

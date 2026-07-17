@@ -1,0 +1,41 @@
+# ── Secrets — NEVER commit ────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+
+# ── Node ──────────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+
+# ── Build outputs ─────────────────────────────────────────────────────────
+dist/
+build/
+.next/
+
+# ── TypeScript ────────────────────────────────────────────────────────────
+*.tsbuildinfo
+*.js.map
+*.d.ts.map
+
+# ── Test / Coverage ───────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ── Editors ───────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Docker volumes (local dev data) ───────────────────────────────────────
+postgres-data/
+redis-data/
+minio-data/
+ollama-models/
+
+# ── Audit / temp ──────────────────────────────────────────────────────────
+npm-audit-report.json
+npm-audit-prod-report.json

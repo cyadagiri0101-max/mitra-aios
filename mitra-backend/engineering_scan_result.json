@@ -1,0 +1,33 @@
+{
+  "toolNo": "BM480",
+  "startedAt": "2026-07-01T09:38:01.337Z",
+  "finishedAt": "2026-07-01T09:39:28.057Z",
+  "result": {
+    "scannedRoots": 5,
+    "scannedDirectories": 15212,
+    "scannedFiles": 212670,
+    "indexed": 6148,
+    "indexedFolders": 1,
+    "indexedFiles": 0,
+    "skippedFolders": 799,
+    "skippedUnchangedFolders": 1,
+    "changedRecords": 0
+  },
+  "total": {
+    "total": 888639,
+    "folders": 17116,
+    "files": 871523
+  },
+  "counts": [
+    {
+      "toolNo": "BM480",
+      "itemType": "file",
+      "count": 3680
+    },
+    {
+      "toolNo": "BM480",
+      "itemType": "folder",
+      "count": 11
+    }
+  ]
+}

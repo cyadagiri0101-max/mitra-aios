@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-07-08T17:25:49.620444",
+  "repository": "D:\\Mitra3.0",
+  "scripts": [
+    {
+      "name": "Repository Scanner",
+      "script": "D:\\Mitra3.0\\tooling\\scripts\\repository-scanner\\scan-repository.py",
+      "status": "success",
+      "output": "[SCAN] Starting repository scan: D:\\Mitra3.0\n[SCAN] Found 1464 files in 437 directories\n[DETECT] Found 34 duplicate file groups\n[DETECT] Found 8879 potential broken references\n[DETECT] Found 111 poten"
+    },
+    {
+      "name": "Document Registry",
+      "script": "D:\\Mitra3.0\\tooling\\scripts\\repository-scanner\\generate-document-registry.py",
+      "status": "success",
+      "output": "[REGISTRY] Starting document registry generation\n[REGISTRY] Processing 220 markdown documents\n[REGISTRY] Registered 220 documents\n[SAVE] Document registry saved to D:\\Mitra3.0\\.ai\\index\\document-regis"
+    },
+    {
+      "name": "Framework Registry",
+      "script": "D:\\Mitra3.0\\tooling\\scripts\\repository-scanner\\generate-framework-registry.py",
+      "status": "success",
+      "output": "[FRAMEWORK] Starting framework registry generation\n[FRAMEWORK] Detected 1 frameworks\n[FRAMEWORK] Detected 1 components\n[FRAMEWORK] Detected 10 standards\n[SAVE] Framework registry saved to D:\\Mitra3.0\\"
+    },
+    {
+      "name": "State Generator",
+      "script": "D:\\Mitra3.0\\tooling\\scripts\\state-generator\\generate-state.py",
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"D:\\Mitra3.0\\tooling\\scripts\\state-generator\\generate-state.py\", line 9, in <module>\n    import yaml\nModuleNotFoundError: No module named 'yaml'\n"
+    },
+    {
+      "name": "Health Report",
+      "script": "D:\\Mitra3.0\\tooling\\scripts\\repository-scanner\\generate-health-report.py",
+      "status": "success",
+      "output": "[HEALTH] Starting repository health assessment\n[HEALTH] Structure: 100/100 (14/14 directories)\n[HEALTH] Documentation: 100/100 (11/11 files)\n[HEALTH] Consistency: 0/100\n[HEALTH] Completeness: 100/100\n"
+    },
+    {
+      "name": "Context Loader",
+      "script": "D:\\Mitra3.0\\tooling\\scripts\\context-loader\\load-context.py",
+      "status": "success",
+      "output": "[CONTEXT] Starting context loading\n[ERROR] Loading state engagement: No module named 'yaml'\n[ERROR] Loading state framework: No module named 'yaml'\n[ERROR] Loading state next-task: No module named 'ya"
+    },
+    {
+      "name": "Validator",
+      "script": "D:\\Mitra3.0\\tooling\\scripts\\validate\\validate-repository.py",
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"D:\\Mitra3.0\\tooling\\scripts\\validate\\validate-repository.py\", line 244, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"D:\\Mitra3.0\\tooling\\scri"
+    }
+  ],
+  "status": "completed"
+}

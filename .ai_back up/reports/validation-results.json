@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-07-08T17:27:14.831035",
+  "repository": "D:\\Mitra3.0",
+  "results": {
+    "structure": {
+      "passed": true,
+      "errors": [],
+      "warnings": []
+    },
+    "state": {
+      "passed": true,
+      "errors": [],
+      "warnings": []
+    },
+    "index": {
+      "passed": true,
+      "errors": [],
+      "warnings": []
+    },
+    "integrity": {
+      "passed": true,
+      "errors": [],
+      "warnings": []
+    }
+  },
+  "summary": {
+    "totalChecks": 39,
+    "passedChecks": 39,
+    "failedChecks": 0,
+    "warnings": 0
+  }
+}

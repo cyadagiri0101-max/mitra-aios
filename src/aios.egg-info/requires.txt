@@ -1,0 +1,15 @@
+PyYAML<7.0,>=6.0
+typer<1.0,>=0.9.0
+fastapi<1.0,>=0.110.0
+pydantic<3.0,>=2.0
+uvicorn<1.0,>=0.27.0
+websockets<14.0,>=12.0
+
+[dev]
+pytest<9.0,>=8.0
+types-PyYAML<7.0,>=6.0
+httpx2>=0.1.0
+ruff<1.0,>=0.3.0
+pytest-asyncio<1.0,>=0.23.0
+pytest-cov<6.0,>=4.0
+httpx<1.0,>=0.27.0

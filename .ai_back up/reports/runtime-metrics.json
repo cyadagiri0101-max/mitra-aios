@@ -1,0 +1,28 @@
+{
+  "started_at": "2026-07-09T09:33:46.684914",
+  "completed_at": "2026-07-09T09:33:47.833997",
+  "command": "refresh",
+  "steps": [
+    {
+      "plugin": "scanner",
+      "status": "ok"
+    },
+    {
+      "plugin": "state",
+      "status": "ok"
+    },
+    {
+      "plugin": "context",
+      "status": "ok"
+    },
+    {
+      "plugin": "validator",
+      "status": "ok"
+    },
+    {
+      "plugin": "reporting",
+      "status": "ok"
+    }
+  ],
+  "errors": []
+}

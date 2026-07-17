@@ -1,0 +1,5889 @@
+{
+  "schemaVersion": "0.1.0",
+  "status": "generated",
+  "updated": "2026-07-08T17:25:53.940838",
+  "owner": "Platform Engineering",
+  "description": "Document Registry",
+  "data": {
+    "documents": [
+      {
+        "id": "DOC-00001",
+        "title": "MITRA Advanced AI Robot Assistant - Implementation Guide",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "ADVANCED_ROBOT_SYSTEM.md",
+        "lastModified": "2026-06-26T14:20:26.807785",
+        "size": 13477,
+        "author": null,
+        "category": "other",
+        "checksum": "4b8f5b9ecedcf0f2640ef7c10c0ec444",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA Advanced AI Robot Assistant - Implementation Guide",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1. Phoneme Engine (`PhonemeEngine.ts`)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00002",
+        "title": "MITRA v3.2 Implementation Spec",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "AGENT_SPEC.md",
+        "lastModified": "2026-06-20T15:33:33.746810",
+        "size": 9447,
+        "author": null,
+        "category": "agents",
+        "checksum": "36c5060b159719d01310fb25047c938e",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 Implementation Spec",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Backend Module Pattern",
+            "Frontend Component Pattern",
+            "Backend \u2014 New Modules",
+            "1. BOM Analysis Module (`modules/bom-analysis/`)",
+            "2. Drawing Analysis Module (`modules/drawing-analysis/`)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00003",
+        "title": null,
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "AI_RUNTIME_VALIDATION.md",
+        "lastModified": "2026-06-24T12:43:07.473006",
+        "size": 7565,
+        "author": null,
+        "category": "other",
+        "checksum": "c98a7afe08dd66e0d0541d6b54702375",
+        "references": [
+          "./.env"
+        ],
+        "tags": [],
+        "metadata": {
+          "title": null,
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00004",
+        "title": "AI Workspace \u2194 Backend API Mapping",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "AI_WORKSPACE_BACKEND_MAPPING.md",
+        "lastModified": "2026-06-27T15:08:33.241061",
+        "size": 13612,
+        "author": null,
+        "category": "other",
+        "checksum": "73da6b2b8f333c763009bc42f779e6a6",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AI Workspace \u2194 Backend API Mapping",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Service Layer (New)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00005",
+        "title": "AI Workspace Backend Integration - Executive Summary",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "AI_WORKSPACE_EXECUTIVE_SUMMARY.md",
+        "lastModified": "2026-06-27T15:08:44.656373",
+        "size": 11993,
+        "author": null,
+        "category": "other",
+        "checksum": "ede0db0840084abf2c5de35b675c5f0f",
+        "references": [
+          "./mitra-frontend/src/types/aiResponses.ts",
+          "./AI_WORKSPACE_IMPLEMENTATION_REPORT.md",
+          "./mitra-frontend/src/context/AIWorkspaceContext.tsx",
+          "./AI_WORKSPACE_BACKEND_MAPPING.md",
+          "./mitra-frontend/src/services/aiCommandService.ts",
+          "./QUICK_START_AI_INTEGRATION.md"
+        ],
+        "tags": [],
+        "metadata": {
+          "title": "AI Workspace Backend Integration - Executive Summary",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "\u2705 1. Comprehensive Backend Discovery & Audit",
+            "\u2705 2. Command-to-Backend Mapping"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00006",
+        "title": "AI Workspace \u2194 Backend Integration - Implementation Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "AI_WORKSPACE_IMPLEMENTATION_REPORT.md",
+        "lastModified": "2026-06-27T15:08:33.241061",
+        "size": 16542,
+        "author": null,
+        "category": "reports",
+        "checksum": "9daa24cda016be8f5d9775c1ec15cd64",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AI Workspace \u2194 Backend Integration - Implementation Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1. New Files Created",
+            "A. AI Command Service (`mitra-frontend/src/services/aiCommandService.ts`) - 500 lines",
+            "B. Response Type Definitions (`mitra-frontend/src/types/aiResponses.ts`) - 300 lines"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00007",
+        "title": "MITRA AI Robot Assistant - Backend API Specification",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "BACKEND_API_SPECIFICATION.md",
+        "lastModified": "2026-06-26T14:21:48.837688",
+        "size": 11425,
+        "author": null,
+        "category": "other",
+        "checksum": "2dbd2e86f7d71ce6ccd290c22d91113c",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA AI Robot Assistant - Backend API Specification",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1. Text-to-Speech with Phonemes"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00008",
+        "title": "BACKUP AND RECOVERY - MITRA v3.2",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "BACKUP_AND_RECOVERY.md",
+        "lastModified": "2026-06-24T16:16:31.372999",
+        "size": 13972,
+        "author": null,
+        "category": "other",
+        "checksum": "01aa6310689a34417e33894e6eca5580",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "BACKUP AND RECOVERY - MITRA v3.2",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "PostgreSQL Backup Procedure",
+            "Automated Backup (Recommended)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00009",
+        "title": "CAPA VALIDATION REPORT",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "CAPA_VALIDATION.md",
+        "lastModified": "2026-06-24T19:35:27.871413",
+        "size": 2963,
+        "author": null,
+        "category": "other",
+        "checksum": "be58c60e654fb41d6b38caaff52b736d",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "CAPA VALIDATION REPORT",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00010",
+        "title": "Changelog",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "CHANGELOG.md",
+        "lastModified": "2026-07-08T12:48:19.887167",
+        "size": 4531,
+        "author": null,
+        "category": "other",
+        "checksum": "2576a5f8cd3a78d6d951257b0d160087",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Changelog",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Added"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00011",
+        "title": "MITRA v3.2 \u2014 Production Readiness & Implementation Blueprint",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "CHANGELOG_v3.2.md",
+        "lastModified": "2026-06-20T16:35:28.080178",
+        "size": 10128,
+        "author": null,
+        "category": "other",
+        "checksum": "c42c4bdfeb496d856b54fbbff7d9dab4",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 \u2014 Production Readiness & Implementation Blueprint",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Production Ready \u2705",
+            "Remaining Backend Work (Non-Blocking)",
+            "1. BOM Analysis (`modules/bom-analysis/`)",
+            "2. Drawing Analysis (`modules/drawing-analysis/`)",
+            "3. Machine Status (`modules/machine-status/`)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00012",
+        "title": "Repository Completion Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "CompletionReport.md",
+        "lastModified": "2026-07-08T16:18:54.008591",
+        "size": 11524,
+        "author": null,
+        "category": "reports",
+        "checksum": "6bab8e3cc1481414878b15209ed17980",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Repository Completion Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Key Findings",
+            "Key Decision"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00013",
+        "title": "\ud83c\udf89 MITRA Advanced Robot Assistant - COMPLETED",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "COMPLETION_REPORT.md",
+        "lastModified": "2026-06-26T14:40:38.186363",
+        "size": 10037,
+        "author": null,
+        "category": "reports",
+        "checksum": "b06ac7ecd8720ed334b2b18f2b6027f1",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "\ud83c\udf89 MITRA Advanced Robot Assistant - COMPLETED",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Core Engine Systems (1,955 lines of TypeScript)",
+            "Documentation (45,000+ words)",
+            "Integration Points",
+            "Immediate Features (No Backend Required)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00014",
+        "title": "MITRA v2.1 \u2014 Production Corrections Summary",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "CORRECTIONS_SUMMARY.md",
+        "lastModified": "2026-06-19T16:10:58.967277",
+        "size": 7173,
+        "author": null,
+        "category": "other",
+        "checksum": "35894e1f44f869c269801fddbd83bbbd",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v2.1 \u2014 Production Corrections Summary",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Dispatch Module (backend + frontend)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00015",
+        "title": "CRITICAL ISSUE RESOLUTION",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "CRITICAL_ISSUE_RESOLUTION.md",
+        "lastModified": "2026-06-24T18:28:05.054571",
+        "size": 1930,
+        "author": null,
+        "category": "other",
+        "checksum": "dc5acdf60582d18d56df5317af5abcc9",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "CRITICAL ISSUE RESOLUTION",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00016",
+        "title": "DATABASE VALIDATION REPORT",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "DATABASE_VALIDATION.md",
+        "lastModified": "2026-06-24T19:07:32.008387",
+        "size": 3129,
+        "author": null,
+        "category": "other",
+        "checksum": "8205a9dec5d51fb10aab2fb119e578ab",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "DATABASE VALIDATION REPORT",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00017",
+        "title": "MITRA v3.2 \u2014 Complete Deployment Guide",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "DEPLOYMENT.md",
+        "lastModified": "2026-06-23T16:16:32.822092",
+        "size": 6292,
+        "author": null,
+        "category": "other",
+        "checksum": "c5d3c92dcedae01eb0ebc68cc9007cf0",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 \u2014 Complete Deployment Guide",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Required Variables (MUST be filled before starting)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00018",
+        "title": "DEPLOYMENT CHECKLIST - MITRA v3.2",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "DEPLOYMENT_CHECKLIST.md",
+        "lastModified": "2026-06-24T18:28:51.785115",
+        "size": 11583,
+        "author": null,
+        "category": "other",
+        "checksum": "dc7589a71cdfaa3bef5fbf4a7747cc95",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "DEPLOYMENT CHECKLIST - MITRA v3.2",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00019",
+        "title": "End-to-End Validation Plan",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "E2E_VALIDATION_PLAN.md",
+        "lastModified": "2026-06-27T15:37:14.477325",
+        "size": 14450,
+        "author": null,
+        "category": "other",
+        "checksum": "88a2aa6b50f5d2ea49c163c1f86d36ed",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "End-to-End Validation Plan",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Setup",
+            "Verification Checklist"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00020",
+        "title": "FINAL ACCEPTANCE REPORT \u2014 MITRA v3.2",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "FINAL_ACCEPTANCE_REPORT.md",
+        "lastModified": "2026-06-24T20:05:18.840528",
+        "size": 6602,
+        "author": null,
+        "category": "reports",
+        "checksum": "7cf39ae22f3ca9ba1b37983fd8d024c4",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "FINAL ACCEPTANCE REPORT \u2014 MITRA v3.2",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Container Versions",
+            "Startup Commands Used"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00021",
+        "title": "FINAL DELIVERY REPORT - MITRA v3.2",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "FINAL_DELIVERY_REPORT.md",
+        "lastModified": "2026-06-24T16:16:31.372000",
+        "size": 15257,
+        "author": null,
+        "category": "reports",
+        "checksum": "5bbc0373133b23dcfb266128a24691f5",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "FINAL DELIVERY REPORT - MITRA v3.2",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Phase 1: Foundation \u2705",
+            "Phase 2: Core Features \u2705"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00022",
+        "title": "FINAL PROJECT STATUS",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "FINAL_PROJECT_STATUS.md",
+        "lastModified": "2026-06-24T15:03:11.504606",
+        "size": 1318,
+        "author": null,
+        "category": "other",
+        "checksum": "57d821d5ff8b736fe277f0501f810708",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "FINAL PROJECT STATUS",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00023",
+        "title": "Gap Analysis Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "GapAnalysis.md",
+        "lastModified": "2026-07-08T16:17:30.410092",
+        "size": 24254,
+        "author": null,
+        "category": "other",
+        "checksum": "0da44c57fcb2b58cf8373b60edfab3b0",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Gap Analysis Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1.1 Legend",
+            "2.1 Layer 0: Governance (L0)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00024",
+        "title": "Software Verification Framework Governance",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "GOVERNANCE.md",
+        "lastModified": "2026-07-08T12:47:33.929076",
+        "size": 6965,
+        "author": null,
+        "category": "other",
+        "checksum": "e55de3c2777890607e0be3abbc5b66c2",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Framework Governance",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Governance Documents"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00025",
+        "title": "Engineering File Indexer Handoff",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "HANDOFF.md",
+        "lastModified": "2026-07-01T15:23:46.926665",
+        "size": 3559,
+        "author": null,
+        "category": "other",
+        "checksum": "0ccbe31cce266c98ae508f251658bec9",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Engineering File Indexer Handoff",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00026",
+        "title": "Implementation Roadmap",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "ImplementationRoadmap.md",
+        "lastModified": "2026-07-08T16:18:23.771600",
+        "size": 22321,
+        "author": null,
+        "category": "other",
+        "checksum": "b91092f280263fa612684813ccb4dd69",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Implementation Roadmap",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Milestone Summary"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00027",
+        "title": "MITRA Advanced Robot Assistant - Implementation Summary",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "IMPLEMENTATION_SUMMARY.md",
+        "lastModified": "2026-06-26T14:36:32.544163",
+        "size": 12635,
+        "author": null,
+        "category": "other",
+        "checksum": "23ea36be66ff1c404e58c7405d1b6759",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA Advanced Robot Assistant - Implementation Summary",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1. **PhonemeEngine.ts** - Lip Sync System",
+            "2. **VoiceEmotionAnalyzer.ts** - Emotion Detection",
+            "3. **GesturePlanningEngine.ts** - AI-Driven Gestures"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00028",
+        "title": "KNOWLEDGE LAYER VALIDATION REPORT",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "KNOWLEDGE_LAYER_VALIDATION.md",
+        "lastModified": "2026-06-24T19:50:34.572286",
+        "size": 3759,
+        "author": null,
+        "category": "other",
+        "checksum": "2bd76297e9ba71c30f0f8d81f414d2c1",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "KNOWLEDGE LAYER VALIDATION REPORT",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Direct Ollama Test",
+            "Backend Container Reachability",
+            "Fix Applied"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00029",
+        "title": "LOGIN ROOT CAUSE ANALYSIS",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "LOGIN_ROOT_CAUSE.md",
+        "lastModified": "2026-06-24T19:12:01.420985",
+        "size": 4167,
+        "author": null,
+        "category": "other",
+        "checksum": "935f7dd67af86b017ffebae29804c9b0",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "LOGIN ROOT CAUSE ANALYSIS",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Backend Login (curl)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00030",
+        "title": "MASTER DATA VALIDATION REPORT",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "MASTER_DATA_VALIDATION.md",
+        "lastModified": "2026-06-24T19:14:46.489754",
+        "size": 3484,
+        "author": null,
+        "category": "other",
+        "checksum": "abc38cb431b87ed0348a6d1e58de5835",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MASTER DATA VALIDATION REPORT",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Create",
+            "List"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00031",
+        "title": "MITRA Backend \u2014 Database & Entity Audit Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "MITRA-BACKEND-AUDIT-REPORT.md",
+        "lastModified": "2026-06-20T22:55:25.971687",
+        "size": 26104,
+        "author": null,
+        "category": "reports",
+        "checksum": "c800df59aa2f7e462544a8adef9c6d96",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA Backend \u2014 Database & Entity Audit Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1. Missing Database Tables (6 entities have no migration)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00032",
+        "title": "MITRA v3.2 \u2014 Comprehensive Security & Architecture Audit Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "MITRA-COMPLETE-AUDIT-MASTER.md",
+        "lastModified": "2026-06-20T22:59:29.694702",
+        "size": 47196,
+        "author": null,
+        "category": "other",
+        "checksum": "905a5d461b6648cbf29e1f60c7c81963",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 \u2014 Comprehensive Security & Architecture Audit Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00033",
+        "title": "MITRA v2.1 \u2014 Complete System Audit Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "MITRA-COMPLETE-AUDIT-REPORT.md",
+        "lastModified": "2026-06-20T09:49:51.056009",
+        "size": 25297,
+        "author": null,
+        "category": "reports",
+        "checksum": "7825d9238a6492117fd9fa1d0cea6908",
+        "references": [
+          "#4-podman-compatibility-analysis",
+          "#6-honest-conclusion",
+          "#3-frontend-audit",
+          "#1-executive-summary",
+          "#2-backend-audit",
+          "#5-combined-pre-production-checklist"
+        ],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v2.1 \u2014 Complete System Audit Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Severity Matrix (Combined)",
+            "Architecture Quality Score (Combined)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00034",
+        "title": "MITRA v3.2 \u2014 Complete Feature Description",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "MITRA-FEATURE-DESCRIPTION.md",
+        "lastModified": "2026-06-20T17:07:03.659820",
+        "size": 44296,
+        "author": null,
+        "category": "other",
+        "checksum": "d93b55d36118d04b10666b7469726e6d",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 \u2014 Complete Feature Description",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00035",
+        "title": "MITRA v2.1 Frontend \u2014 Production Security Audit Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "MITRA-FRONTEND-AUDIT-REPORT.md",
+        "lastModified": "2026-06-19T17:57:47.821663",
+        "size": 8496,
+        "author": null,
+        "category": "reports",
+        "checksum": "0469966d60359cbb105c6b9da3aa0fdd",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v2.1 Frontend \u2014 Production Security Audit Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "CRITICAL (3/3) \u2705",
+            "HIGH (5/5) \u2705",
+            "MEDIUM (9/9) \u2705"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00036",
+        "title": "MITRA v3.2 Infrastructure, Dependencies & Deployment Security Audit Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "MITRA-INFRASTRUCTURE-SECURITY-AUDIT-v3.2.md",
+        "lastModified": "2026-06-20T22:52:01.341187",
+        "size": 43676,
+        "author": null,
+        "category": "other",
+        "checksum": "79f1ace74370788ca1d57451075999b3",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 Infrastructure, Dependencies & Deployment Security Audit Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "CRIT-001: `axios` Resolved to Potentially Vulnerable Version (1.17.0) in Lockfile",
+            "CRIT-002: `DB_SYNC` Environment-Driven Synchronization Risk in Production"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00037",
+        "title": "MITRA v3.2 \u2014 Complete Bug Fix & Deployment Guide",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "MITRA-v3.2-FIX-SUMMARY.md",
+        "lastModified": "2026-06-20T18:23:00.555759",
+        "size": 12310,
+        "author": null,
+        "category": "other",
+        "checksum": "04bc91025de48412b6b7945d67a540ba",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 \u2014 Complete Bug Fix & Deployment Guide",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Issues Fixed",
+            "1. `mitra-backend/package.json`",
+            "2. `mitra-backend/src/main.ts`"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00038",
+        "title": "MITRA v3.1 Design Specification & Implementation Roadmap",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "mitra.agent.final.md",
+        "lastModified": "2026-06-20T15:03:41.515387",
+        "size": 157452,
+        "author": null,
+        "category": "agents",
+        "checksum": "c0a97fb48e5d2f5d332dcc742d9682ff",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.1 Design Specification & Implementation Roadmap",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 Must Have (Must)",
+            "2.2 Should Have (Should)",
+            "2.3 Could Have (Could)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00039",
+        "title": "MITRA v3.1 Design Specification \u2014 Unified Outline",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "mitra.agent.outline.md",
+        "lastModified": "2026-06-20T14:51:37.588148",
+        "size": 9365,
+        "author": null,
+        "category": "agents",
+        "checksum": "538eff62918f4aec3f7b36e24a558ddf",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.1 Design Specification \u2014 Unified Outline",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1.1 Executive Summary",
+            "1.2 Feature Prioritization (MoSCoW)",
+            "Must Have (Phase 1)",
+            "Should Have (Phase 2)",
+            "Could Have (Phase 3)",
+            "Won't Have (This Cycle)",
+            "1.3 Functional Requirements",
+            "FR-1: AI Copilot Persona",
+            "FR-2: Hero Dashboard Widgets"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00040",
+        "title": "MITRA v3.1 \u2014 Design Specification",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "mitra_sec01.md",
+        "lastModified": "2026-06-20T14:54:13.311440",
+        "size": 32979,
+        "author": null,
+        "category": "other",
+        "checksum": "e23f1fdf427490e1ba9b97c159cc2c48",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.1 \u2014 Design Specification",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 Must Have (Must)",
+            "2.2 Should Have (Should)",
+            "2.3 Could Have (Could)",
+            "2.4 Won't Have (Won't)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00041",
+        "title": "MITRA v3.1 \u2014 Design Specification",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "mitra_sec02.md",
+        "lastModified": "2026-06-20T14:54:20.311618",
+        "size": 17880,
+        "author": null,
+        "category": "other",
+        "checksum": "3b9490c1fbe9859a83b7b90897b35b2a",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.1 \u2014 Design Specification",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Color Usage Rules"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00042",
+        "title": "Section 3: Implementation Roadmap",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "mitra_sec03.md",
+        "lastModified": "2026-06-20T14:54:08.501982",
+        "size": 24686,
+        "author": null,
+        "category": "other",
+        "checksum": "4566aec073e0add689caac6af61702c6",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Section 3: Implementation Roadmap",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Week 1: Brand Language Audit & AI Persona Copy Replacement (F1)",
+            "Week 2: Hero Dashboard Widget Development (F2)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00043",
+        "title": "Section 4: UI Copy & Microcopy",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "mitra_sec04.md",
+        "lastModified": "2026-06-20T14:54:56.529653",
+        "size": 38563,
+        "author": null,
+        "category": "other",
+        "checksum": "942401f2b1caa8740bfe9ab94900dd22",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Section 4: UI Copy & Microcopy",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1.1 Persona Definition",
+            "1.2 Tone",
+            "1.3 Language Rules",
+            "1.4 Avoid List (Prohibited Phrases)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00044",
+        "title": "Section 5: Dashboard Wireframe Concept",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "mitra_sec05.md",
+        "lastModified": "2026-06-20T14:54:44.685608",
+        "size": 41001,
+        "author": null,
+        "category": "other",
+        "checksum": "25691811f8ccbefb3802f9461daff445",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Section 5: Dashboard Wireframe Concept",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 Widget 1: Machines Running",
+            "2.2 Widget 2: Open Projects"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00045",
+        "title": "OLLAMA_INSTANCE_DIAGNOSTIC",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "OLLAMA_INSTANCE_DIAGNOSTIC.md",
+        "lastModified": "2026-06-24T16:05:32.166622",
+        "size": 2125,
+        "author": null,
+        "category": "other",
+        "checksum": "e61d6f1bb91735d929ac2695ff1e8440",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "OLLAMA_INSTANCE_DIAGNOSTIC",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Status: DIFFERENT INSTANCES \u274c",
+            "Model Mismatch:"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00046",
+        "title": "OPERATIONS RUNBOOK - MITRA v3.2",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "OPERATIONS_RUNBOOK.md",
+        "lastModified": "2026-06-24T16:15:04.005547",
+        "size": 13938,
+        "author": null,
+        "category": "other",
+        "checksum": "be00477fd0fdb765176faa7814370867",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "OPERATIONS RUNBOOK - MITRA v3.2",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Startup Sequence (Fresh Boot)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00047",
+        "title": "Phase 1 Completion Audit",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "PHASE1_COMPLETION_AUDIT.md",
+        "lastModified": "2026-06-24T17:10:54.037707",
+        "size": 1424,
+        "author": null,
+        "category": "other",
+        "checksum": "85bd1fdd32f4f0f910d97c654e2962a8",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Phase 1 Completion Audit",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00048",
+        "title": "PHASE 1 GAP ANALYSIS",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "PHASE1_GAP_ANALYSIS.md",
+        "lastModified": "2026-06-24T15:03:11.503610",
+        "size": 1477,
+        "author": null,
+        "category": "other",
+        "checksum": "581c8a259c4702ad782224b637f0e0d3",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "PHASE 1 GAP ANALYSIS",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00049",
+        "title": "PHASE 1 SIGNOFF",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "PHASE1_SIGNOFF.md",
+        "lastModified": "2026-06-24T19:51:28.412213",
+        "size": 2349,
+        "author": null,
+        "category": "other",
+        "checksum": "ac28040a53b184384cf6ad8abec435ea",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "PHASE 1 SIGNOFF",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Login",
+            "Database",
+            "Supplier / Product CRUD",
+            "CAPA"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00050",
+        "title": "PHASE 2 READINESS ASSESSMENT",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "PHASE2_READINESS.md",
+        "lastModified": "2026-06-24T15:03:11.503610",
+        "size": 1631,
+        "author": null,
+        "category": "other",
+        "checksum": "f1753ba010374ed5d26fdf10c391636c",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "PHASE 2 READINESS ASSESSMENT",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00051",
+        "title": "PHASE 3 COMPLETION REPORT",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "PHASE3_COMPLETION_REPORT.md",
+        "lastModified": "2026-06-24T15:03:11.503610",
+        "size": 1580,
+        "author": null,
+        "category": "reports",
+        "checksum": "f5fc0e548ba3a50d7a2f1456927031fa",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "PHASE 3 COMPLETION REPORT",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00052",
+        "title": "PHASE 3 FINAL CLOSEOUT",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "PHASE3_FINAL_CLOSEOUT.md",
+        "lastModified": "2026-06-24T16:10:22.975668",
+        "size": 4237,
+        "author": null,
+        "category": "other",
+        "checksum": "3e1a1105bb5fca8a4973ce3d894194e5",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "PHASE 3 FINAL CLOSEOUT",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Problem Identified",
+            "Root Cause",
+            "Fix Implemented",
+            "Verification",
+            "Health Endpoint"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00053",
+        "title": "PHASE 3 RUNTIME VALIDATION REPORT",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "PHASE3_RUNTIME_VALIDATION.md",
+        "lastModified": "2026-06-24T18:28:59.342389",
+        "size": 9072,
+        "author": null,
+        "category": "other",
+        "checksum": "2656f064d4be4c44a7d3fa606b28b1c9",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "PHASE 3 RUNTIME VALIDATION REPORT",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Test Results Summary"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00054",
+        "title": "PHASE 3 SIGNOFF",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "PHASE3_SIGNOFF.md",
+        "lastModified": "2026-06-24T19:51:58.491432",
+        "size": 2448,
+        "author": null,
+        "category": "other",
+        "checksum": "b611b0dd2b4a152405f208b8e1dd5b5f",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "PHASE 3 SIGNOFF",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Ollama Embeddings",
+            "Knowledge Vectors",
+            "Vector Search"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00055",
+        "title": "Phase 1 E2E Testing - Quick Start Guide",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "PHASE_1_E2E_TESTING.md",
+        "lastModified": "2026-06-27T15:38:49.416166",
+        "size": 10458,
+        "author": null,
+        "category": "other",
+        "checksum": "21f26504b29d1f13c9ef7f85b91c774c",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Phase 1 E2E Testing - Quick Start Guide",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1. Start Backend",
+            "2. Start Frontend",
+            "3. Open Browser & Login",
+            "4. Open DevTools",
+            "5. Verify Admin Permissions",
+            "Step 1: Clear Network Tab",
+            "Step 2: Set Filters (Optional but helpful)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00056",
+        "title": "MITRA v3.1 Design Feedback \u2192 Deliverables Plan",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "plan.md",
+        "lastModified": "2026-06-20T14:50:56.566117",
+        "size": 2837,
+        "author": null,
+        "category": "other",
+        "checksum": "ff992f4ae07fb74a61883d8510d0beab",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.1 Design Feedback \u2192 Deliverables Plan",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1. Formal Requirements Document",
+            "2. Visual Design Direction",
+            "3. Implementation Roadmap",
+            "4. UI Copy & Microcopy",
+            "5. Dashboard Wireframe Concept",
+            "Stage 1: Outline (Orchestrator)",
+            "Stage 2: Parallel Writing (5 subagents)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00057",
+        "title": "Production Readiness Audit Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "PRODUCTION_READINESS_AUDIT.md",
+        "lastModified": "2026-06-27T15:38:49.415173",
+        "size": 15126,
+        "author": null,
+        "category": "other",
+        "checksum": "8eeeeb6648aacac8779ac1669d100f1b",
+        "references": [
+          "mitra-frontend/src/utils/api.ts",
+          "mitra-backend/src/modules/ai/controllers/ai.controller.ts",
+          "mitra-backend/src/modules/planning/controllers/processplan.controller.ts",
+          "mitra-backend/src/modules/machine-status/controllers/machine-status.controller.ts",
+          "mitra-backend/src/modules/dispatch/controllers/dispatch.controller.ts",
+          "mitra-backend/src/modules/bom-analysis/controllers/bom-analysis.controller.ts",
+          "mitra-backend/src/modules/drawing-analysis/controllers/drawing-analysis.controller.ts"
+        ],
+        "tags": [],
+        "metadata": {
+          "title": "Production Readiness Audit Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1. \u2705 Endpoint Verification",
+            "2. \u2705 HTTP Methods Match"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00058",
+        "title": null,
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "PROJECT_STATUS.md",
+        "lastModified": "2026-07-06T09:01:46.061966",
+        "size": 412,
+        "author": null,
+        "category": "other",
+        "checksum": "ad542017cd65b9c9a0207b78bf4869d3",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": null,
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00059",
+        "title": "Mitra Robot Assistant - Quick Reference Card",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "QUICK_REFERENCE.md",
+        "lastModified": "2026-06-26T14:41:40.025607",
+        "size": 8189,
+        "author": null,
+        "category": "other",
+        "checksum": "18128ecf2d49f75cc5ed1549425f6c5f",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Mitra Robot Assistant - Quick Reference Card",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00060",
+        "title": "Quick Start Guide - AI Workspace Backend Integration",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "QUICK_START_AI_INTEGRATION.md",
+        "lastModified": "2026-06-27T15:08:33.242061",
+        "size": 7770,
+        "author": null,
+        "category": "other",
+        "checksum": "b135672cf00aff5b033a9dcc3a7b5ae2",
+        "references": [
+          "./AI_WORKSPACE_IMPLEMENTATION_REPORT.md#testing-checklist",
+          "./AI_WORKSPACE_IMPLEMENTATION_REPORT.md#monitoring--debugging",
+          "./mitra-frontend/src/types/aiResponses.ts",
+          "./AI_WORKSPACE_IMPLEMENTATION_REPORT.md",
+          "./mitra-frontend/src/context/AIWorkspaceContext.tsx",
+          "./AI_WORKSPACE_BACKEND_MAPPING.md",
+          "./mitra-frontend/src/services/aiCommandService.ts",
+          "./QUICK_START_AI_INTEGRATION.md"
+        ],
+        "tags": [],
+        "metadata": {
+          "title": "Quick Start Guide - AI Workspace Backend Integration",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Mock \u2192 Real Transformation",
+            "1. `mitra-frontend/src/services/aiCommandService.ts` (NEW - 500 lines)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00061",
+        "title": "MITRA Software Verification Framework (SVF) v1.0",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "README (2).md",
+        "lastModified": "2026-07-08T11:18:26.533752",
+        "size": 175,
+        "author": null,
+        "category": "other",
+        "checksum": "b3031ff62a104c8af8f27e0d54d475d4",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA Software Verification Framework (SVF) v1.0",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00062",
+        "title": "MITRA Software Verification Framework (SVF)",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "README.md",
+        "lastModified": "2026-07-08T11:59:20.501972",
+        "size": 71,
+        "author": null,
+        "category": "other",
+        "checksum": "8a167c055ce35e780251c9c0d862cad9",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA Software Verification Framework (SVF)",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00063",
+        "title": "RELEASE NOTES - MITRA v3.2",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "RELEASE_NOTES_v1.md",
+        "lastModified": "2026-06-24T16:13:52.221780",
+        "size": 6573,
+        "author": null,
+        "category": "other",
+        "checksum": "ae0366ad22aa9025d2a9670e441b5f39",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "RELEASE NOTES - MITRA v3.2",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Phase 3: AI Runtime Integration",
+            "Phase 2: Core Infrastructure (Included)",
+            "Phase 1: Foundation (Included)",
+            "Ollama Instance Mismatch (Critical)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00064",
+        "title": "Repository Discovery Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "RepositoryDiscovery.md",
+        "lastModified": "2026-07-08T16:16:36.487720",
+        "size": 21931,
+        "author": null,
+        "category": "other",
+        "checksum": "0a512b4cd8b8b6207f11ddabecc9e616",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Repository Discovery Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1.1 Repository at a Glance"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00065",
+        "title": "MITRA Advanced Robot Assistant - Quick Start Guide",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "ROBOT_QUICK_START.md",
+        "lastModified": "2026-06-26T14:23:02.078777",
+        "size": 10372,
+        "author": null,
+        "category": "other",
+        "checksum": "7948ea062d4e71580f5fde5e2385284e",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA Advanced Robot Assistant - Quick Start Guide",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1. Install Dependencies",
+            "2. Create Robot Component"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00066",
+        "title": "MITRA Backend Security Audit Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "security-audit-report.md",
+        "lastModified": "2026-06-20T22:52:42.306917",
+        "size": 30875,
+        "author": null,
+        "category": "reports",
+        "checksum": "20a929edb7c23985616ec7541ce02638",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA Backend Security Audit Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "CRIT-1: Mass Assignment + Missing Validation on User Creation & Update"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00067",
+        "title": "Stabilization Roadmap",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "STABILIZATION_ROADMAP.md",
+        "lastModified": "2026-06-27T15:37:46.227844",
+        "size": 11851,
+        "author": null,
+        "category": "other",
+        "checksum": "dc245301ac2f59633f630cddfb72b0fa",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Stabilization Roadmap",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "\u274c What the Code Audit Verified",
+            "\u26a0\ufe0f What the Code Audit Did NOT Verify",
+            "Activities"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00068",
+        "title": "SVF Phase 2 \u2014 Framework Validation Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "SVF-Phase2-Framework-Validation-Report.md",
+        "lastModified": "2026-07-08T16:27:20.020386",
+        "size": 33934,
+        "author": null,
+        "category": "framework",
+        "checksum": "dae0999a975919474ebac9248bf64adf",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF Phase 2 \u2014 Framework Validation Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1.1 Methodology",
+            "1.2 Governance Documents (8)",
+            "1.3 Standards Documents (10)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00069",
+        "title": "SYSTEM ARCHITECTURE - MITRA v3.2",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "SYSTEM_ARCHITECTURE.md",
+        "lastModified": "2026-06-24T16:14:34.105799",
+        "size": 18548,
+        "author": null,
+        "category": "architecture",
+        "checksum": "a1bb498343773272d736d17d37beda5c",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SYSTEM ARCHITECTURE - MITRA v3.2",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00070",
+        "title": "AIOS-000-Vision",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "architecture/AIOS-000-Vision.md",
+        "lastModified": "2026-07-08T17:11:03.946463",
+        "size": 1028,
+        "author": "Platform Engineering",
+        "category": "architecture",
+        "checksum": "335b52b71552255f5ab1379862af39b2",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AIOS-000-Vision",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Vision Statement",
+            "Platform Purpose",
+            "Strategic Goals",
+            "Scope and Scale"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00071",
+        "title": "AIOS-001-Layer-Architecture",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "architecture/AIOS-001-Layer-Architecture.md",
+        "lastModified": "2026-07-08T17:11:03.946463",
+        "size": 1210,
+        "author": "Platform Engineering",
+        "category": "architecture",
+        "checksum": "51f7cc7bf03b0f59d523e4ba137ac59c",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AIOS-001-Layer-Architecture",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Architecture Overview",
+            "Core Layer (.ai/)",
+            "Framework Layer",
+            "Knowledge Layer"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00072",
+        "title": "AIOS-002-State-Architecture",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "architecture/AIOS-002-State-Architecture.md",
+        "lastModified": "2026-07-08T17:11:03.946463",
+        "size": 1106,
+        "author": "Platform Engineering",
+        "category": "architecture",
+        "checksum": "55939259130c13035dacefee22407d4a",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AIOS-002-State-Architecture",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "State Management Philosophy",
+            "State Types",
+            "State Persistence",
+            "State Transitions"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00073",
+        "title": "AIOS-003-Repository-Architecture",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "architecture/AIOS-003-Repository-Architecture.md",
+        "lastModified": "2026-07-08T17:11:03.946463",
+        "size": 1148,
+        "author": "Platform Engineering",
+        "category": "architecture",
+        "checksum": "c3bc95ce3ba144547b1edda7976848da",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AIOS-003-Repository-Architecture",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Directory Structure Philosophy",
+            "Directory Catalog",
+            "Access Patterns",
+            "Relationships"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00074",
+        "title": "AIOS-004-Knowledge-Architecture",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "architecture/AIOS-004-Knowledge-Architecture.md",
+        "lastModified": "2026-07-08T17:11:03.946463",
+        "size": 1171,
+        "author": "Platform Engineering",
+        "category": "architecture",
+        "checksum": "17397a39ea9dc1f4867f10575d1f946c",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AIOS-004-Knowledge-Architecture",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Knowledge Management Philosophy",
+            "Knowledge Types",
+            "Knowledge Storage",
+            "Knowledge Retrieval"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00075",
+        "title": "AIOS-005-Agent-Architecture",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "architecture/AIOS-005-Agent-Architecture.md",
+        "lastModified": "2026-07-08T17:11:03.946463",
+        "size": 1099,
+        "author": "Platform Engineering",
+        "category": "architecture",
+        "checksum": "a02bfa7bf9fba3dc047a9e48d551f06b",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AIOS-005-Agent-Architecture",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Agent System Philosophy",
+            "Agent Lifecycle",
+            "Agent Types",
+            "Agent Coordination"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00076",
+        "title": "AIOS-006-Context-Loading",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "architecture/AIOS-006-Context-Loading.md",
+        "lastModified": "2026-07-08T17:11:03.946463",
+        "size": 1239,
+        "author": "Platform Engineering",
+        "category": "architecture",
+        "checksum": "208dd43441d6a42bafa5cbad07c1273d",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AIOS-006-Context-Loading",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Context Loading Philosophy",
+            "Context Types",
+            "Context Source Management",
+            "Context Organization"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00077",
+        "title": "AIOS-007-Model-Routing",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "architecture/AIOS-007-Model-Routing.md",
+        "lastModified": "2026-07-08T17:11:03.946463",
+        "size": 1206,
+        "author": "Platform Engineering",
+        "category": "architecture",
+        "checksum": "155c1880b49a5f4331c04ffc62eea9bf",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AIOS-007-Model-Routing",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Model Routing Philosophy",
+            "Model Categories",
+            "Routing Strategy",
+            "Routing Criteria"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00078",
+        "title": "AIOS-008-Governance",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "architecture/AIOS-008-Governance.md",
+        "lastModified": "2026-07-08T17:11:03.946463",
+        "size": 1173,
+        "author": "Platform Engineering",
+        "category": "architecture",
+        "checksum": "e206f3ac3ee41a71e26273dcbf73861a",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AIOS-008-Governance",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Governance Philosophy",
+            "Policy Framework",
+            "Compliance Management",
+            "Security Architecture"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00079",
+        "title": "AIOS-009-Roadmap",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "architecture/AIOS-009-Roadmap.md",
+        "lastModified": "2026-07-08T17:11:03.948462",
+        "size": 1217,
+        "author": "Platform Engineering",
+        "category": "architecture",
+        "checksum": "050866317ad64c074277c65a21726953",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AIOS-009-Roadmap",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Roadmap Vision",
+            "Phase 1: Foundation",
+            "Phase 2: Enhancement",
+            "Phase 3: Integration"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00080",
+        "title": "Software Verification Platform (SVP) \u2014 Platform Vision",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "architecture/SVP-000-Platform-Vision.md",
+        "lastModified": "2026-07-08T17:05:06.939608",
+        "size": 9183,
+        "author": null,
+        "category": "architecture",
+        "checksum": "864d19dce1c56e48f16962e929cc1656",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Platform (SVP) \u2014 Platform Vision",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "3.1 The Repository Is the Permanent Memory",
+            "3.2 AI Conversations Are Disposable"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00081",
+        "title": "Software Verification Platform (SVP) \u2014 Platform Architecture",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "architecture/SVP-001-Platform-Architecture.md",
+        "lastModified": "2026-07-08T17:05:28.379745",
+        "size": 13052,
+        "author": null,
+        "category": "architecture",
+        "checksum": "5dde9a2cbe47395d32269818186d1a03",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Platform (SVP) \u2014 Platform Architecture",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00082",
+        "title": "Software Verification Platform (SVP) \u2014 Layer Architecture",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "architecture/SVP-002-Layer-Architecture.md",
+        "lastModified": "2026-07-08T17:05:57.159392",
+        "size": 14175,
+        "author": null,
+        "category": "architecture",
+        "checksum": "63955d3fc67a8a83d58f53bd6c872cdb",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Platform (SVP) \u2014 Layer Architecture",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00083",
+        "title": "Software Verification Platform (SVP) \u2014 Repository Architecture",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "architecture/SVP-003-Repository-Architecture.md",
+        "lastModified": "2026-07-08T17:06:23.377913",
+        "size": 14420,
+        "author": null,
+        "category": "architecture",
+        "checksum": "824e4f34019035b888e259fecaf5f016",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Platform (SVP) \u2014 Repository Architecture",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00084",
+        "title": "Software Verification Platform (SVP) \u2014 AI Operating System",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "architecture/SVP-004-AI-Operating-System.md",
+        "lastModified": "2026-07-08T17:08:37.830452",
+        "size": 19688,
+        "author": null,
+        "category": "architecture",
+        "checksum": "71a1f390abca993bee482544d402c954",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Platform (SVP) \u2014 AI Operating System",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00085",
+        "title": "Software Verification Platform (SVP) \u2014 State Architecture",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "architecture/SVP-005-State-Architecture.md",
+        "lastModified": "2026-07-08T17:09:00.942805",
+        "size": 11687,
+        "author": null,
+        "category": "architecture",
+        "checksum": "e473bcec090b22dc1fa9928e0a459bf2",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Platform (SVP) \u2014 State Architecture",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00086",
+        "title": "Software Verification Platform (SVP) \u2014 Knowledge Architecture",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "architecture/SVP-006-Knowledge-Architecture.md",
+        "lastModified": "2026-07-08T17:09:26.590891",
+        "size": 12914,
+        "author": null,
+        "category": "architecture",
+        "checksum": "25a460529ac4935023601f1f48f02bdb",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Platform (SVP) \u2014 Knowledge Architecture",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 Architecture Knowledge"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00087",
+        "title": "Software Verification Platform (SVP) \u2014 Governance Architecture",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "architecture/SVP-007-Governance-Architecture.md",
+        "lastModified": "2026-07-08T17:10:03.396094",
+        "size": 13227,
+        "author": null,
+        "category": "architecture",
+        "checksum": "83a450e243df34dbd9762d4c082e9d60",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Platform (SVP) \u2014 Governance Architecture",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00088",
+        "title": "Software Verification Platform (SVP) \u2014 Model Routing",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "architecture/SVP-008-Model-Routing.md",
+        "lastModified": "2026-07-08T17:10:35.245479",
+        "size": 14281,
+        "author": null,
+        "category": "architecture",
+        "checksum": "11813fcfa11bf13d3c21983bf05859d5",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Platform (SVP) \u2014 Model Routing",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 Architecture Tasks"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00089",
+        "title": "Software Verification Platform (SVP) \u2014 Implementation Roadmap",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "architecture/SVP-009-Roadmap.md",
+        "lastModified": "2026-07-08T17:11:00.717883",
+        "size": 12303,
+        "author": null,
+        "category": "architecture",
+        "checksum": "2524179d0b6b611e56cfb235802dc0c5",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Platform (SVP) \u2014 Implementation Roadmap",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00090",
+        "title": "Acceptance Evidence Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/AcceptanceEvidenceReport.md",
+        "lastModified": "2026-07-03T16:39:54.552844",
+        "size": 33056,
+        "author": null,
+        "category": "reports",
+        "checksum": "2868a649b72a781757a3adb927e34093",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Acceptance Evidence Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Database Integrity"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00091",
+        "title": "AI Knowledge Coverage",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/AIKnowledgeCoverage.md",
+        "lastModified": "2026-07-06T16:09:19.805965",
+        "size": 6444,
+        "author": null,
+        "category": "other",
+        "checksum": "8a9ccc4eeef99e13bf2321340c1883df",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AI Knowledge Coverage",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00092",
+        "title": "AI Readiness Assessment",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/AIReadinessAssessment.md",
+        "lastModified": "2026-07-06T12:46:55.713308",
+        "size": 19112,
+        "author": null,
+        "category": "other",
+        "checksum": "05fc28e1dd35030d732dc0121b2c07e3",
+        "references": [
+          "docs/APIValidationReport.md",
+          "docs/EngineeringCoverageReport.md",
+          "docs/ApiConnectivityReport.md",
+          "docs/EndpointCompatibilityMatrix.md",
+          "docs/APIContractGapAnalysis.md",
+          "docs/DatabaseSchemaInventory.md",
+          "docs/IntegrationValidationReport.md"
+        ],
+        "tags": [],
+        "metadata": {
+          "title": "AI Readiness Assessment",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Verified working endpoints",
+            "Missing endpoints (404)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00093",
+        "title": "AI Implementation Roadmap (Phase 7)",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/AIRoadmap.md",
+        "lastModified": "2026-07-06T13:54:02.624286",
+        "size": 11141,
+        "author": null,
+        "category": "other",
+        "checksum": "5976aa7138573c8e0293965857080f10",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AI Implementation Roadmap (Phase 7)",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00094",
+        "title": "EKL API Connectivity Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/ApiConnectivityReport.md",
+        "lastModified": "2026-07-03T15:46:06.930479",
+        "size": 2751,
+        "author": null,
+        "category": "reports",
+        "checksum": "426cfd58f50ec5496bcfccb303ceea2c",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "EKL API Connectivity Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00095",
+        "title": "API Contract Gap Analysis",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/APIContractGapAnalysis.md",
+        "lastModified": "2026-07-04T15:16:48.276678",
+        "size": 4868,
+        "author": null,
+        "category": "other",
+        "checksum": "73867bb923b5f6ea5de883a5dcdc6580",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "API Contract Gap Analysis",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00096",
+        "title": "API Route Inventory",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/APIRouteInventory.md",
+        "lastModified": "2026-07-06T15:45:05.116289",
+        "size": 3199,
+        "author": null,
+        "category": "other",
+        "checksum": "e41b11a93bdb4732ddc81ca576d94607",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "API Route Inventory",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Python FastAPI Endpoints",
+            "TypeScript Express Endpoints",
+            "Verified Route Implementation Notes"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00097",
+        "title": "API Validation Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/APIValidationReport.md",
+        "lastModified": "2026-07-03T16:27:46.991109",
+        "size": 1524,
+        "author": null,
+        "category": "reports",
+        "checksum": "e6207ea0a52f39fda42fbbadb9df9172",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "API Validation Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00098",
+        "title": "Architecture Evidence",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/ArchitectureEvidence.md",
+        "lastModified": "2026-07-06T15:45:05.116289",
+        "size": 3055,
+        "author": null,
+        "category": "architecture",
+        "checksum": "272a9403902c30daf31e2b5276bb7348",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Architecture Evidence",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00099",
+        "title": "Database Architecture Inventory",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/DatabaseArchitectureInventory.md",
+        "lastModified": "2026-07-06T15:45:05.116289",
+        "size": 4850,
+        "author": null,
+        "category": "architecture",
+        "checksum": "04611b5bcea440bb56ada267280f1152",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Database Architecture Inventory",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Database Engine and Connection",
+            "Python ORM Table Inventory",
+            "Python Model Characteristics"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00100",
+        "title": "Database Lineage",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/DatabaseLineage.md",
+        "lastModified": "2026-07-06T12:19:48.800015",
+        "size": 3948,
+        "author": null,
+        "category": "other",
+        "checksum": "49a023eb496931bed50659319c330ffd",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Database Lineage",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00101",
+        "title": "Database Schema Inventory",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/DatabaseSchemaInventory.md",
+        "lastModified": "2026-07-04T15:41:02.588047",
+        "size": 23008,
+        "author": null,
+        "category": "other",
+        "checksum": "d863c0a6ca909a080966ce904afea0f7",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Database Schema Inventory",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Columns",
+            "Foreign Keys",
+            "Indexes",
+            "Columns"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00102",
+        "title": "Data Lineage Map",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/DataLineageMap.md",
+        "lastModified": "2026-07-06T16:09:19.805965",
+        "size": 5451,
+        "author": null,
+        "category": "other",
+        "checksum": "2f54e39c49a771a3800cebc908ddec66",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Data Lineage Map",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00103",
+        "title": "Endpoint Compatibility Matrix",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/EndpointCompatibilityMatrix.md",
+        "lastModified": "2026-07-04T15:16:48.276678",
+        "size": 2191,
+        "author": null,
+        "category": "other",
+        "checksum": "3cad2f7103a0fe93566e3cf7302b1f4d",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Endpoint Compatibility Matrix",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00104",
+        "title": "Engineering Capability Matrix",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/EngineeringCapabilityMatrix.md",
+        "lastModified": "2026-07-06T16:19:38.127491",
+        "size": 8077,
+        "author": null,
+        "category": "other",
+        "checksum": "71e4a90a43c93c4c4bd59e38b83fd488",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Engineering Capability Matrix",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00105",
+        "title": "Engineering Consistency Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/EngineeringConsistencyReport.md",
+        "lastModified": "2026-07-03T16:26:29.494771",
+        "size": 2238,
+        "author": null,
+        "category": "reports",
+        "checksum": "9f7e11cfa62d5142e2be1c909be5a91a",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Engineering Consistency Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1.1 Project Reachability via REST API",
+            "1.2 Record Ownership",
+            "1.3 Product Consistency",
+            "1.4 Customer Consistency",
+            "1.5 Machine Consistency"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00106",
+        "title": "Engineering Coverage Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/EngineeringCoverageReport.md",
+        "lastModified": "2026-07-03T16:26:03.257643",
+        "size": 2192,
+        "author": null,
+        "category": "reports",
+        "checksum": "a48e3c3fcc63c76a4a52bafc2f8c34c5",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Engineering Coverage Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00107",
+        "title": "Engineering Database Origin",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/EngineeringDatabaseOrigin.md",
+        "lastModified": "2026-07-06T12:42:36.491114",
+        "size": 9098,
+        "author": null,
+        "category": "other",
+        "checksum": "41eb71d8fa006df660cba5fc1c5cc2b0",
+        "references": [
+          "acceptance_evidence.py",
+          "explore_data.py",
+          "DEPLOYMENT.md",
+          "generate_docs.py",
+          "pmm_data_library/setup_db.py",
+          "improve_ekl_data.py",
+          "docs/DatabaseSchemaInventory.md"
+        ],
+        "tags": [],
+        "metadata": {
+          "title": "Engineering Database Origin",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Verified database creation points",
+            "Files checked, no CREATE TABLE found",
+            "Engineering database (mekb.sqlite)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00108",
+        "title": "Engineering Duplicate Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/EngineeringDuplicateReport.md",
+        "lastModified": "2026-07-03T16:26:52.274749",
+        "size": 1465,
+        "author": null,
+        "category": "reports",
+        "checksum": "68923e1111d48cb4094cf0395a2cfb75",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Engineering Duplicate Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 Duplicate Products",
+            "2.2 Duplicate Document Index Entries",
+            "2.3 Duplicate Component Details",
+            "2.4 Duplicate Part Lists"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00109",
+        "title": "Engineering Import Pipeline Discovery",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/EngineeringImportPipelineDiscovery.md",
+        "lastModified": "2026-07-06T12:31:39.436073",
+        "size": 12909,
+        "author": null,
+        "category": "other",
+        "checksum": "312fa90ea603bba552f2fda6ca04a484",
+        "references": [
+          "generate_docs.py",
+          "temp%20data/BM454_Process%20planning%20sheet.xlsx",
+          "pmm_data_library/setup_db.py",
+          "scripts/generate_validation_documentation.py",
+          "customer_detection.py",
+          "temp%20data/Blow%20Molds%20Data%20for%20Internal%20Study.xlsx",
+          "pmm_data_library/PMM_Master_Data_Library.xlsx",
+          "explore_data.py",
+          "inspect_pmm_rows.py",
+          "scripts/generate_database_schema_inventory.py",
+          "improve_ekl_data.py",
+          "scripts/generate_model_schema_comparison.py",
+          "docs/DatabaseSchemaInventory.md",
+          "scripts/schema_validation_audit.py",
+          "scripts/verify_model_mismatches.py",
+          "acceptance_evidence.py",
+          "inspect_pmm.py",
+          "scripts/generate_model_schema_verification_report.py",
+          "pmm_data_library/db.py",
+          "temp%20data/029_Blow%20Molds%20Cycle%20Times.xlsx",
+          "docs/ImporterInventory.md"
+        ],
+        "tags": [],
+        "metadata": {
+          "title": "Engineering Import Pipeline Discovery",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "`mekb.sqlite` references",
+            "`pmm_database.db` references",
+            "Verified database creation points",
+            "Verified engineering data sources found in repository"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00110",
+        "title": "Engineering Knowledge Map",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/EngineeringKnowledgeMap.md",
+        "lastModified": "2026-07-06T16:09:19.805965",
+        "size": 20764,
+        "author": null,
+        "category": "other",
+        "checksum": "22dc619d41d152c49fb1772b5f23f3cb",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Engineering Knowledge Map",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00111",
+        "title": "Engineering Orphan Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/EngineeringOrphanReport.md",
+        "lastModified": "2026-07-03T16:27:12.306252",
+        "size": 1119,
+        "author": null,
+        "category": "reports",
+        "checksum": "c603f093eb583983313fdee718a5aac1",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Engineering Orphan Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00112",
+        "title": "Engineering Relationship Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/EngineeringRelationshipReport.md",
+        "lastModified": "2026-07-03T16:25:35.481452",
+        "size": 2670,
+        "author": null,
+        "category": "reports",
+        "checksum": "de40a2f2896d8c7bc31dd3487c0e076c",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Engineering Relationship Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00113",
+        "title": "Engineering Validation Index",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/EngineeringValidationIndex.md",
+        "lastModified": "2026-07-06T08:39:36.334874",
+        "size": 1330,
+        "author": null,
+        "category": "other",
+        "checksum": "817e6f1993cc6ca530072af5f5797623",
+        "references": [
+          "ValidatorVerificationReport.md",
+          "EngineeringRelationshipReport.md",
+          "EngineeringDuplicateReport.md",
+          "EngineeringCoverageReport.md",
+          "EngineeringOrphanReport.md",
+          "ValidationQueryAudit.md",
+          "DatabaseSchemaInventory.md",
+          "EngineeringConsistencyReport.md",
+          "ModelSchemaComparison.md",
+          "EnvironmentAudit.md"
+        ],
+        "tags": [],
+        "metadata": {
+          "title": "Engineering Validation Index",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00114",
+        "title": "Environment Audit",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/EnvironmentAudit.md",
+        "lastModified": "2026-07-04T15:36:15.282848",
+        "size": 954,
+        "author": null,
+        "category": "other",
+        "checksum": "02abc510aa85eebb6b1d44196a08388a",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Environment Audit",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00115",
+        "title": "Error Handling Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/ErrorHandlingReport.md",
+        "lastModified": "2026-07-03T15:47:14.190118",
+        "size": 2918,
+        "author": null,
+        "category": "reports",
+        "checksum": "5233ff91d6131dc8b14fecdb85635a00",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Error Handling Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1.1 EKL Offline / Connection Refused",
+            "1.2 Timeout",
+            "1.3 404 from EKL",
+            "1.4 Invalid Endpoint (Mitra-Mapped Paths)",
+            "1.5 Empty Responses",
+            "1.6 Invalid JSON / 500"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00116",
+        "title": "Implementation Backlog (Verified Missing Components Only)",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/ImplementationBacklog.md",
+        "lastModified": "2026-07-06T16:19:38.127491",
+        "size": 4338,
+        "author": null,
+        "category": "other",
+        "checksum": "6f4b9b95e79093c7c2bccb2af6c7b368",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Implementation Backlog (Verified Missing Components Only)",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00117",
+        "title": "Implementation Decision Matrix",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/ImplementationDecisionMatrix.md",
+        "lastModified": "2026-07-04T15:18:12.437097",
+        "size": 3841,
+        "author": null,
+        "category": "other",
+        "checksum": "afc8821b182f0aaa3f67d33a6bb930bd",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Implementation Decision Matrix",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00118",
+        "title": "Importer Inventory",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/ImporterInventory.md",
+        "lastModified": "2026-07-06T12:18:26.150271",
+        "size": 19999,
+        "author": null,
+        "category": "other",
+        "checksum": "4e8765a9fa9194df732a73ee19564635",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Importer Inventory",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00119",
+        "title": "EKL Integration Validation Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/IntegrationValidationReport.md",
+        "lastModified": "2026-07-03T15:43:25.597092",
+        "size": 5585,
+        "author": null,
+        "category": "reports",
+        "checksum": "be524e0ca8bd0bfb8d613da5fe656281",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "EKL Integration Validation Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "3.1 Mitra Backend Integration Layer",
+            "3.2 EKL API Surface"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00120",
+        "title": "Knowledge Gap Inventory (Verified Gaps Only)",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/KnowledgeGapInventory.md",
+        "lastModified": "2026-07-06T16:09:19.805965",
+        "size": 4780,
+        "author": null,
+        "category": "other",
+        "checksum": "7adc26976133a920097f7a1eef6c300b",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Knowledge Gap Inventory (Verified Gaps Only)",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00121",
+        "title": "Management Demo Matrix",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/ManagementDemoMatrix.md",
+        "lastModified": "2026-07-06T16:19:38.127491",
+        "size": 4491,
+        "author": null,
+        "category": "other",
+        "checksum": "cf1fe889dc1fa045bb226de97dbe6d23",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Management Demo Matrix",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00122",
+        "title": "MITRA Implementation Readiness Summary",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/MITRAImplementationReadiness.md",
+        "lastModified": "2026-07-06T16:19:38.127491",
+        "size": 3381,
+        "author": null,
+        "category": "other",
+        "checksum": "ecfa2121f30c0e4e73bd89d0552fa5b8",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA Implementation Readiness Summary",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00123",
+        "title": "MITRA to EKL Mapping",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/MITRAtoEKLMapping.md",
+        "lastModified": "2026-07-04T15:16:48.276678",
+        "size": 3918,
+        "author": null,
+        "category": "other",
+        "checksum": "a20aed8d5ad647c37857a8923d571b9e",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA to EKL Mapping",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Backend service mapping",
+            "Frontend proxy paths"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00124",
+        "title": "Model Schema Comparison",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/ModelSchemaComparison.md",
+        "lastModified": "2026-07-04T16:15:40.955345",
+        "size": 28185,
+        "author": null,
+        "category": "modes",
+        "checksum": "74798443f51697ce8ed605c057e5b986",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Model Schema Comparison",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00125",
+        "title": "Performance Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/PerformanceReport.md",
+        "lastModified": "2026-07-03T15:47:48.081500",
+        "size": 2602,
+        "author": null,
+        "category": "reports",
+        "checksum": "a6ed236e9be800d4dfb3ebf88c57ce25",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Performance Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1.1 404 Endpoints (Mitra-Mapped)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00126",
+        "title": "Project Traceability Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/ProjectTraceabilityReport.md",
+        "lastModified": "2026-07-03T16:28:10.276312",
+        "size": 1491,
+        "author": null,
+        "category": "reports",
+        "checksum": "048bb5703d0fa033f010ae003a6333f1",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Project Traceability Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00127",
+        "title": "Repository Inventory Progress",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/RepositoryInventoryProgress.md",
+        "lastModified": "2026-07-06T15:09:12.719411",
+        "size": 5327,
+        "author": null,
+        "category": "other",
+        "checksum": "d82bd961d7dc50e97acafb6cd42643d8",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Repository Inventory Progress",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Main Entry Point",
+            "Backend Modules (35 total)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00128",
+        "title": "Search Coverage Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/SearchCoverageReport.md",
+        "lastModified": "2026-07-03T16:27:22.620285",
+        "size": 1339,
+        "author": null,
+        "category": "reports",
+        "checksum": "47141bde2f340defa32e4b6aef67560f",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Search Coverage Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00129",
+        "title": "Search Validation Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/SearchValidationReport.md",
+        "lastModified": "2026-07-03T15:46:40.608923",
+        "size": 2471,
+        "author": null,
+        "category": "reports",
+        "checksum": "54a98dbcbca6ff591577aed61743622e",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Search Validation Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 Direct EKL Project Search",
+            "2.2 Cross-Reference Against Other EKL Endpoints"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00130",
+        "title": "Service Dependency Inventory",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/ServiceDependencyInventory.md",
+        "lastModified": "2026-07-06T15:45:05.116289",
+        "size": 2722,
+        "author": null,
+        "category": "other",
+        "checksum": "4ec3ee5cbcfb018d2493e5ebeffe6a01",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Service Dependency Inventory",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "`src/services/project-service.ts`",
+            "`src/services/importer.service.ts`",
+            "`src/services/folder-scanner.service.ts`"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00131",
+        "title": "User Acceptance Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/UserAcceptanceReport.md",
+        "lastModified": "2026-07-03T16:28:42.200545",
+        "size": 3454,
+        "author": null,
+        "category": "reports",
+        "checksum": "109ddbd488d427274e7508c7bbabe453",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "User Acceptance Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00132",
+        "title": "Validation Query Audit",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/ValidationQueryAudit.md",
+        "lastModified": "2026-07-04T10:16:17.603577",
+        "size": 3510,
+        "author": null,
+        "category": "other",
+        "checksum": "c4462e802b8f7414eb127969a48cd329",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Validation Query Audit",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00133",
+        "title": "Validator Verification Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/ValidatorVerificationReport.md",
+        "lastModified": "2026-07-06T08:39:36.334874",
+        "size": 9830,
+        "author": null,
+        "category": "reports",
+        "checksum": "cef8e7d76ab0b1cb8bbbfcd0f88b4144",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Validator Verification Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Orphan checks"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00134",
+        "title": "MITRA v3.2 \u2014 Production Readiness & Implementation Blueprint",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/audit/CHANGELOG_v3.2.md",
+        "lastModified": "2026-06-23T15:31:14.877538",
+        "size": 10128,
+        "author": null,
+        "category": "other",
+        "checksum": "c42c4bdfeb496d856b54fbbff7d9dab4",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 \u2014 Production Readiness & Implementation Blueprint",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Production Ready \u2705",
+            "Remaining Backend Work (Non-Blocking)",
+            "1. BOM Analysis (`modules/bom-analysis/`)",
+            "2. Drawing Analysis (`modules/drawing-analysis/`)",
+            "3. Machine Status (`modules/machine-status/`)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00135",
+        "title": "MITRA v3.2 \u2014 Complete Deployment Guide",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/audit/DEPLOYMENT.md",
+        "lastModified": "2026-06-23T15:31:14.874743",
+        "size": 6292,
+        "author": null,
+        "category": "other",
+        "checksum": "c5d3c92dcedae01eb0ebc68cc9007cf0",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 \u2014 Complete Deployment Guide",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Required Variables (MUST be filled before starting)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00136",
+        "title": "MITRA Backend \u2014 Database & Entity Audit Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/audit/MITRA-BACKEND-AUDIT-REPORT.md",
+        "lastModified": "2026-06-23T15:31:14.861308",
+        "size": 26104,
+        "author": null,
+        "category": "reports",
+        "checksum": "c800df59aa2f7e462544a8adef9c6d96",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA Backend \u2014 Database & Entity Audit Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1. Missing Database Tables (6 entities have no migration)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00137",
+        "title": "MITRA v3.2 \u2014 Comprehensive Security & Architecture Audit Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/audit/MITRA-COMPLETE-AUDIT-MASTER.md",
+        "lastModified": "2026-06-23T15:31:14.856482",
+        "size": 47196,
+        "author": null,
+        "category": "other",
+        "checksum": "905a5d461b6648cbf29e1f60c7c81963",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 \u2014 Comprehensive Security & Architecture Audit Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00138",
+        "title": "MITRA v2.1 Frontend \u2014 Production Security Audit Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/audit/MITRA-FRONTEND-AUDIT-REPORT.md",
+        "lastModified": "2026-06-23T15:31:14.866238",
+        "size": 8496,
+        "author": null,
+        "category": "reports",
+        "checksum": "0469966d60359cbb105c6b9da3aa0fdd",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v2.1 Frontend \u2014 Production Security Audit Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "CRITICAL (3/3) \u2705",
+            "HIGH (5/5) \u2705",
+            "MEDIUM (9/9) \u2705"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00139",
+        "title": "MITRA v3.2 Infrastructure, Dependencies & Deployment Security Audit Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/audit/MITRA-INFRASTRUCTURE-SECURITY-AUDIT-v3.2.md",
+        "lastModified": "2026-06-23T15:31:14.869743",
+        "size": 43676,
+        "author": null,
+        "category": "other",
+        "checksum": "79f1ace74370788ca1d57451075999b3",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 Infrastructure, Dependencies & Deployment Security Audit Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "CRIT-001: `axios` Resolved to Potentially Vulnerable Version (1.17.0) in Lockfile",
+            "CRIT-002: `DB_SYNC` Environment-Driven Synchronization Risk in Production"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00140",
+        "title": "MITRA v3.2 \u2014 Complete Bug Fix & Deployment Guide",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/audit/MITRA-v3.2-FIX-SUMMARY.md",
+        "lastModified": "2026-06-23T15:31:14.881543",
+        "size": 12310,
+        "author": null,
+        "category": "other",
+        "checksum": "04bc91025de48412b6b7945d67a540ba",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 \u2014 Complete Bug Fix & Deployment Guide",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Issues Fixed",
+            "1. `mitra-backend/package.json`",
+            "2. `mitra-backend/src/main.ts`"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00141",
+        "title": "Audit Lifecycle",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/methodology/audit-lifecycle.md",
+        "lastModified": "2026-07-08T11:59:18.763886",
+        "size": 18,
+        "author": null,
+        "category": "other",
+        "checksum": "5add27e6a9b2fbe3c2957663c182ed0e",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Audit Lifecycle",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00142",
+        "title": "Audit Methodology",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/methodology/audit-methodology.md",
+        "lastModified": "2026-07-08T11:59:20.358743",
+        "size": 20,
+        "author": null,
+        "category": "other",
+        "checksum": "905ba7fc95c690998fa5a2d8b4c96476",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Audit Methodology",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00143",
+        "title": "Forensic Principles",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/methodology/forensic-principles.md",
+        "lastModified": "2026-07-08T11:59:20.370243",
+        "size": 22,
+        "author": null,
+        "category": "other",
+        "checksum": "27a22c64dccb00307c91a29c4a4f5204",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Forensic Principles",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00144",
+        "title": "Verification Philosophy",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/methodology/verification-philosophy.md",
+        "lastModified": "2026-07-08T11:59:18.788917",
+        "size": 26,
+        "author": null,
+        "category": "other",
+        "checksum": "f67cbad52dc82cd02c40af969fd46343",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Verification Philosophy",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00145",
+        "title": "Audit Plan",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/roadmap/audit-plan.md",
+        "lastModified": "2026-07-08T11:59:18.907955",
+        "size": 13,
+        "author": null,
+        "category": "other",
+        "checksum": "f5f544333c88352772e7ad67407ef741",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Audit Plan",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00146",
+        "title": "Deliverables",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/roadmap/deliverables.md",
+        "lastModified": "2026-07-08T11:59:18.923967",
+        "size": 15,
+        "author": null,
+        "category": "other",
+        "checksum": "679a4369f6e88b39197e8372e7fb1eef",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Deliverables",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00147",
+        "title": "Milestones",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/roadmap/milestones.md",
+        "lastModified": "2026-07-08T11:59:18.916968",
+        "size": 13,
+        "author": null,
+        "category": "other",
+        "checksum": "7fc43aed56d9e552d7864f6a50873cb3",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Milestones",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00148",
+        "title": "Phase Roadmap",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/roadmap/phase-roadmap.md",
+        "lastModified": "2026-07-08T11:59:20.436974",
+        "size": 16,
+        "author": null,
+        "category": "other",
+        "checksum": "745224b25759a634b5494ffdbd05fa1b",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Phase Roadmap",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00149",
+        "title": "Confidence Model",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/standards/confidence-model.md",
+        "lastModified": "2026-07-08T11:59:20.414694",
+        "size": 19,
+        "author": null,
+        "category": "modes",
+        "checksum": "f8e16699021d5b95100837683de78cf0",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Confidence Model",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00150",
+        "title": "Evidence Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/standards/evidence-standard.md",
+        "lastModified": "2026-07-08T11:59:20.383780",
+        "size": 20,
+        "author": null,
+        "category": "other",
+        "checksum": "df38c8cb174b1d71194149d5227d6ab6",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Evidence Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00151",
+        "title": "Naming Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/standards/naming-standard.md",
+        "lastModified": "2026-07-08T11:59:18.864906",
+        "size": 18,
+        "author": null,
+        "category": "other",
+        "checksum": "e64b49a014f7ee42531ad3bc0131b1c5",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Naming Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00152",
+        "title": "Output Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/standards/output-standard.md",
+        "lastModified": "2026-07-08T11:59:18.874500",
+        "size": 18,
+        "author": null,
+        "category": "other",
+        "checksum": "187a3d49b099a9df36a5f1d9f0c480f0",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Output Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00153",
+        "title": "Reporting Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/standards/reporting-standard.md",
+        "lastModified": "2026-07-08T11:59:20.402091",
+        "size": 21,
+        "author": null,
+        "category": "reports",
+        "checksum": "a0510826773e73b3030c8f92a481c0bb",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Reporting Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00154",
+        "title": "Severity Model",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/standards/severity-model.md",
+        "lastModified": "2026-07-08T11:59:20.425974",
+        "size": 17,
+        "author": null,
+        "category": "modes",
+        "checksum": "cde0a42329fef224044f90f395e4387c",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Severity Model",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00155",
+        "title": "Checklist Template",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/templates/checklist-template.md",
+        "lastModified": "2026-07-08T11:59:20.459975",
+        "size": 21,
+        "author": null,
+        "category": "other",
+        "checksum": "e1bc35966e56042971fec89d6cbd6426",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Checklist Template",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00156",
+        "title": "Finding Template",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/templates/finding-template.md",
+        "lastModified": "2026-07-08T11:59:18.958967",
+        "size": 19,
+        "author": null,
+        "category": "other",
+        "checksum": "1146fcaf842d5ca32810b1935bde3444",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Finding Template",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00157",
+        "title": "Finding Template",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/templates/findings-template.md",
+        "lastModified": "2026-07-08T11:18:26.633198",
+        "size": 53,
+        "author": null,
+        "category": "other",
+        "checksum": "55e2e3a21ff9785eac0201c45ef9bbf4",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Finding Template",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00158",
+        "title": "Report Template",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "docs/templates/report-template.md",
+        "lastModified": "2026-07-08T11:59:20.448052",
+        "size": 18,
+        "author": null,
+        "category": "reports",
+        "checksum": "1ad9cf98a4052e66b623a4f70db7a876",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Report Template",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00159",
+        "title": "Engagements Layer",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "engagements/README.md",
+        "lastModified": "2026-07-08T17:11:41.927753",
+        "size": 1183,
+        "author": "Platform Engineering",
+        "category": "other",
+        "checksum": "2adfb06b8774299f9a4a9ae9ef43e5e9",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Engagements Layer",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Overview",
+            "Engagement Management",
+            "Project Coordination",
+            "Stakeholder Communication",
+            "Team Coordination"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00160",
+        "title": "Software Verification Framework (SVF) v1.1",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/META.md",
+        "lastModified": "2026-07-08T12:46:46.456891",
+        "size": 11590,
+        "author": null,
+        "category": "framework",
+        "checksum": "445e20475eecdc433d6360dc988a89b0",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Framework (SVF) v1.1",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00161",
+        "title": "Framework Layer",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "framework/README.md",
+        "lastModified": "2026-07-08T17:11:41.927753",
+        "size": 1146,
+        "author": "Platform Engineering",
+        "category": "framework",
+        "checksum": "756ffa1e68faca7088abbafecdc093cf",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Framework Layer",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Overview",
+            "Component Categories",
+            "Framework Components",
+            "Configuration and Customization"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00162",
+        "title": "SVF-GOV-001: Framework Charter",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/governance/SVF-GOV-001-Framework-Charter.md",
+        "lastModified": "2026-07-08T12:56:46.497006",
+        "size": 15713,
+        "author": null,
+        "category": "framework",
+        "checksum": "d535f691dc19594052a5f30a0352b6b7",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-GOV-001: Framework Charter",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00163",
+        "title": "SVF-GOV-002: Roles and Responsibilities",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/governance/SVF-GOV-002-Roles-and-Responsibilities.md",
+        "lastModified": "2026-07-08T12:58:28.022429",
+        "size": 21175,
+        "author": null,
+        "category": "framework",
+        "checksum": "272e2bd183d8294a4069df5072ee4741",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-GOV-002: Roles and Responsibilities",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00164",
+        "title": "SVF-GOV-003: Approval Gates",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/governance/SVF-GOV-003-Approval-Gates.md",
+        "lastModified": "2026-07-08T13:00:22.750659",
+        "size": 19935,
+        "author": null,
+        "category": "framework",
+        "checksum": "9055e1c7140f6b4c8bdfe3cd7d445334",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-GOV-003: Approval Gates",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00165",
+        "title": "SVF-GOV-004: Ethics and Independence",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/governance/SVF-GOV-004-Ethics-and-Independence.md",
+        "lastModified": "2026-07-08T13:01:52.110777",
+        "size": 18758,
+        "author": null,
+        "category": "framework",
+        "checksum": "05083dc5c552649f4dc221ee35bce8b1",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-GOV-004: Ethics and Independence",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00166",
+        "title": "SVF-GOV-005: Decision Authority Matrix",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/governance/SVF-GOV-005-Decision-Authority.md",
+        "lastModified": "2026-07-08T13:03:29.043738",
+        "size": 17538,
+        "author": null,
+        "category": "framework",
+        "checksum": "15782eb7e0dd495e0cba4f5fa3e7d049",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-GOV-005: Decision Authority Matrix",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00167",
+        "title": "SVF-GOV-006: Document Lifecycle Management",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/governance/SVF-GOV-006-Document-Lifecycle.md",
+        "lastModified": "2026-07-08T13:05:07.634092",
+        "size": 18663,
+        "author": null,
+        "category": "framework",
+        "checksum": "ca50c81fb6544eb9aae74ec25132b366",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-GOV-006: Document Lifecycle Management",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00168",
+        "title": "SVF-GOV-007: Review Process",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/governance/SVF-GOV-007-Review-Process.md",
+        "lastModified": "2026-07-08T13:07:00.745499",
+        "size": 22564,
+        "author": null,
+        "category": "framework",
+        "checksum": "abbc8ce621a2f4e0b1bd19b7f77df702",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-GOV-007: Review Process",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00169",
+        "title": "SVF-MTH-001: Audit Methodology",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/methodology/SVF-MTH-001-Audit-Methodology.md",
+        "lastModified": "2026-07-08T14:26:55.458588",
+        "size": 30115,
+        "author": null,
+        "category": "framework",
+        "checksum": "b482cc39b3deed4cd7432ac413679037",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-MTH-001: Audit Methodology",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00170",
+        "title": "SVF-MTH-002: Audit Lifecycle",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/methodology/SVF-MTH-002-Audit-Lifecycle.md",
+        "lastModified": "2026-07-08T14:28:57.304120",
+        "size": 28237,
+        "author": null,
+        "category": "framework",
+        "checksum": "7f3e104934a68fa3d85abbcedfac02ce",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-MTH-002: Audit Lifecycle",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00171",
+        "title": "SVF-MTH-003: Verification Philosophy",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/methodology/SVF-MTH-003-Verification-Philosophy.md",
+        "lastModified": "2026-07-08T14:30:52.557920",
+        "size": 28040,
+        "author": null,
+        "category": "framework",
+        "checksum": "9920e92f29e1d5e0b9ce325e7daa58fd",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-MTH-003: Verification Philosophy",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00172",
+        "title": "SVF-MTH-004: Forensic Principles",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/methodology/SVF-MTH-004-Forensic-Principles.md",
+        "lastModified": "2026-07-08T14:32:52.475098",
+        "size": 26333,
+        "author": null,
+        "category": "framework",
+        "checksum": "8c12737216ba0d04f03ab7124ddade53",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-MTH-004: Forensic Principles",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00173",
+        "title": "SVF-MTH-005: Evidence Collection",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/methodology/SVF-MTH-005-Evidence-Collection.md",
+        "lastModified": "2026-07-08T14:36:26.813403",
+        "size": 24009,
+        "author": null,
+        "category": "framework",
+        "checksum": "7213720c179ec573e82ea3cf5024e462",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-MTH-005: Evidence Collection",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00174",
+        "title": "SVF-MTH-006: Verification Workflow",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/methodology/SVF-MTH-006-Verification-Workflow.md",
+        "lastModified": "2026-07-08T14:38:31.162355",
+        "size": 24903,
+        "author": null,
+        "category": "framework",
+        "checksum": "223bfa29096be06f76bd6677a37222a5",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-MTH-006: Verification Workflow",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00175",
+        "title": "SVF-MTH-007: Confidence Model",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/methodology/SVF-MTH-007-Confidence-Model.md",
+        "lastModified": "2026-07-08T14:40:32.008660",
+        "size": 20076,
+        "author": null,
+        "category": "framework",
+        "checksum": "7b7952709096c66308a10b7c4c21bd22",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-MTH-007: Confidence Model",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00176",
+        "title": "SVF-MTH-008: Severity Model",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/methodology/SVF-MTH-008-Severity-Model.md",
+        "lastModified": "2026-07-08T14:42:02.222773",
+        "size": 21406,
+        "author": null,
+        "category": "framework",
+        "checksum": "22212d2584abf97dc3b9f1409da8efce",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-MTH-008: Severity Model",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00177",
+        "title": "SVF-MTH-009: Risk Assessment",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/methodology/SVF-MTH-009-Risk-Assessment.md",
+        "lastModified": "2026-07-08T14:43:58.930383",
+        "size": 19721,
+        "author": null,
+        "category": "framework",
+        "checksum": "576ba6b262b73e01d078e481bfa4d34c",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-MTH-009: Risk Assessment",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00178",
+        "title": "SVF-MTH-010: Decision Framework",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/methodology/SVF-MTH-010-Decision-Framework.md",
+        "lastModified": "2026-07-08T14:45:57.065488",
+        "size": 27130,
+        "author": null,
+        "category": "framework",
+        "checksum": "e90b76642a0ad5a58155ee6624e6a39e",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-MTH-010: Decision Framework",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00179",
+        "title": "SVF-STD-001: Documentation Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/standards/SVF-STD-001-Documentation.md",
+        "lastModified": "2026-07-08T13:39:04.020795",
+        "size": 12976,
+        "author": null,
+        "category": "framework",
+        "checksum": "dced3f34cf409f41ecbc7d6958628b51",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-STD-001: Documentation Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00180",
+        "title": "SVF-STD-002: Evidence Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/standards/SVF-STD-002-Evidence.md",
+        "lastModified": "2026-07-08T13:41:25.710699",
+        "size": 20973,
+        "author": null,
+        "category": "framework",
+        "checksum": "be02dc961f753f943f05963016e51060",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-STD-002: Evidence Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00181",
+        "title": "SVF-STD-003: Architecture Verification Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/standards/SVF-STD-003-Architecture.md",
+        "lastModified": "2026-07-08T13:42:57.489901",
+        "size": 14725,
+        "author": null,
+        "category": "architecture",
+        "checksum": "959e515cc40a08626f55b9ab5b47673f",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-STD-003: Architecture Verification Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00182",
+        "title": "SVF-STD-004: API Verification Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/standards/SVF-STD-004-API.md",
+        "lastModified": "2026-07-08T13:44:16.310768",
+        "size": 10751,
+        "author": null,
+        "category": "framework",
+        "checksum": "50f662eb87154f8ffdfa84171b027185",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-STD-004: API Verification Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00183",
+        "title": "SVF-STD-005: Database Verification Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/standards/SVF-STD-005-Database.md",
+        "lastModified": "2026-07-08T13:45:17.839489",
+        "size": 9905,
+        "author": null,
+        "category": "framework",
+        "checksum": "6d9288cb3532b37aa8063c9e6b84eff4",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-STD-005: Database Verification Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00184",
+        "title": "SVF-STD-006: Security Verification Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/standards/SVF-STD-006-Security.md",
+        "lastModified": "2026-07-08T13:46:25.357613",
+        "size": 12633,
+        "author": null,
+        "category": "framework",
+        "checksum": "ffcccf16541a788b799e7417cce05c87",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-STD-006: Security Verification Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00185",
+        "title": "SVF-STD-007: AI Component Verification Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/standards/SVF-STD-007-AI.md",
+        "lastModified": "2026-07-08T13:47:29.662088",
+        "size": 11974,
+        "author": null,
+        "category": "framework",
+        "checksum": "1dbe80b7bea083d519dacb23c49991cf",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-STD-007: AI Component Verification Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00186",
+        "title": "SVF-STD-008: Reporting Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/standards/SVF-STD-008-Reporting.md",
+        "lastModified": "2026-07-08T13:48:37.874432",
+        "size": 11788,
+        "author": null,
+        "category": "framework",
+        "checksum": "21b66ad017427f0cee8635286f9f5c13",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-STD-008: Reporting Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00187",
+        "title": "SVF-STD-009: Prompt Engineering Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/standards/SVF-STD-009-Prompts.md",
+        "lastModified": "2026-07-08T13:49:46.537611",
+        "size": 12215,
+        "author": null,
+        "category": "framework",
+        "checksum": "d1c95cc3b229f66a848734a45d5cf4d5",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-STD-009: Prompt Engineering Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00188",
+        "title": "SVF-STD-010: Versioning Standard",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "framework/standards/SVF-STD-010-Versioning.md",
+        "lastModified": "2026-07-08T13:50:52.827454",
+        "size": 10391,
+        "author": null,
+        "category": "framework",
+        "checksum": "abd0b1dd19c9a7c202b6559e6f96ad88",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "SVF-STD-010: Versioning Standard",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "2.1 In Scope",
+            "2.2 Out of Scope"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00189",
+        "title": "Knowledge Layer",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "knowledge/README.md",
+        "lastModified": "2026-07-08T17:11:41.927753",
+        "size": 1139,
+        "author": "Platform Engineering",
+        "category": "other",
+        "checksum": "805b21bb2dfefa6867533f73b6c81910",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Knowledge Layer",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Overview",
+            "Knowledge Domains",
+            "Knowledge Management",
+            "Knowledge Utilization"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00190",
+        "title": "MITRA v3.2 Backup Scripts",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "mitra-backend/scripts/backup/README.md",
+        "lastModified": "2026-06-20T15:49:59.378470",
+        "size": 2527,
+        "author": null,
+        "category": "other",
+        "checksum": "349092b38bef4efd87bf2193be5c2ddc",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA v3.2 Backup Scripts",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Host-level cron (recommended for production)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00191",
+        "title": null,
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "mitra-backend/src/audit_report.md",
+        "lastModified": "2026-07-07T13:47:13.153133",
+        "size": 20362,
+        "author": null,
+        "category": "reports",
+        "checksum": "605478740eb757beec02d2f839ab814e",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": null,
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00192",
+        "title": null,
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "mitra-backend/src/module_verification.md",
+        "lastModified": "2026-07-07T12:53:07.845078",
+        "size": 183979,
+        "author": null,
+        "category": "other",
+        "checksum": "b40cbd624cf9e00d768db250fff17a86",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": null,
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00193",
+        "title": null,
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "mitra-backend/src/verification_usage.md",
+        "lastModified": "2026-07-07T12:55:30.585871",
+        "size": 64928,
+        "author": null,
+        "category": "other",
+        "checksum": "d26ce7b41b006cbf25ca2587ffdbe385",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": null,
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00194",
+        "title": "Software Verification Framework (SVF) v1.1",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "MITRA-SVF-v1.0-Foundation/SVF-v1.1-Architecture-Design.md",
+        "lastModified": "2026-07-08T12:36:27.971005",
+        "size": 53345,
+        "author": null,
+        "category": "architecture",
+        "checksum": "a09ab533fb4abd9013cf4382d141baa8",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Framework (SVF) v1.1",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Vision Statement",
+            "Primary Goals",
+            "Secondary Goals",
+            "Non-Goals"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00195",
+        "title": "Software Verification Framework (SVF) v1.1 Foundation",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "MITRA-SVF-v1.0-Foundation/SVF-v1.1-Foundation-Design.md",
+        "lastModified": "2026-07-08T12:10:48.702780",
+        "size": 33201,
+        "author": null,
+        "category": "other",
+        "checksum": "efeda942769eaf0f499977ad957e8e7c",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Software Verification Framework (SVF) v1.1 Foundation",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00196",
+        "title": "PMM Data Library",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "pmm_data_library/README.md",
+        "lastModified": "2026-06-29T17:34:03.449738",
+        "size": 5946,
+        "author": null,
+        "category": "other",
+        "checksum": "4bf63a89cc7944282716acfd5c6552d2",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "PMM Data Library",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00197",
+        "title": "Phase X+5A",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "prompts/phase-x5a.md",
+        "lastModified": "2026-07-08T11:59:20.470975",
+        "size": 13,
+        "author": null,
+        "category": "other",
+        "checksum": "23d820dcd24d345099cd30d41ba3a09c",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Phase X+5A",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00198",
+        "title": "Phase X+5B",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "prompts/phase-x5b.md",
+        "lastModified": "2026-07-08T11:59:20.481974",
+        "size": 13,
+        "author": null,
+        "category": "other",
+        "checksum": "81573d7730e9a3251cdcce4c58b07130",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Phase X+5B",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00199",
+        "title": "Phase X+5C",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "prompts/phase-x5c.md",
+        "lastModified": "2026-07-08T11:59:20.491974",
+        "size": 13,
+        "author": null,
+        "category": "other",
+        "checksum": "91159c93da1d60239188d606ff18e581",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Phase X+5C",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00200",
+        "title": "Phase X+5D",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "prompts/phase-x5d.md",
+        "lastModified": "2026-07-08T11:59:19.040967",
+        "size": 13,
+        "author": null,
+        "category": "other",
+        "checksum": "f6e6d9592813d4964231f108f260f221",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Phase X+5D",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00201",
+        "title": "Phase X+5E",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "prompts/phase-x5e.md",
+        "lastModified": "2026-07-08T11:59:19.050967",
+        "size": 13,
+        "author": null,
+        "category": "other",
+        "checksum": "7b5b739e5a28e24b7257700730d2cc57",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Phase X+5E",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00202",
+        "title": "MITRA Release Status",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "RELEASE/DEPLOYMENT_STATUS.md",
+        "lastModified": "2026-06-24T12:28:50.222980",
+        "size": 1045,
+        "author": null,
+        "category": "other",
+        "checksum": "723c2c40cdb69c4a940edd741a963ef0",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "MITRA Release Status",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00203",
+        "title": "Deployment Steps",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "RELEASE/DEPLOYMENT_STEPS.md",
+        "lastModified": "2026-06-24T12:28:50.222980",
+        "size": 1246,
+        "author": null,
+        "category": "other",
+        "checksum": "e6954879d2a2f1d2016c60c288f6277d",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Deployment Steps",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00204",
+        "title": "Environment Variables",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "RELEASE/ENVIRONMENT_VARIABLES.md",
+        "lastModified": "2026-06-24T12:28:50.224980",
+        "size": 1019,
+        "author": null,
+        "category": "other",
+        "checksum": "fd1396efb8d5fb06dd2f3faff36a8d1e",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Environment Variables",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00205",
+        "title": "Health Check Results",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "RELEASE/HEALTH_CHECK_RESULTS.md",
+        "lastModified": "2026-06-24T12:28:50.224980",
+        "size": 481,
+        "author": null,
+        "category": "other",
+        "checksum": "eccadc8ba6127a0ba7f1a3327621fae7",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Health Check Results",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00206",
+        "title": "Running Services",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "RELEASE/RUNNING_SERVICES.md",
+        "lastModified": "2026-06-24T12:28:50.222980",
+        "size": 552,
+        "author": null,
+        "category": "other",
+        "checksum": "c4a7f1ff3c3e8e3b14cb71b94065b3fd",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Running Services",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00207",
+        "title": "Releases Layer",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "releases/README.md",
+        "lastModified": "2026-07-08T17:11:41.928754",
+        "size": 1237,
+        "author": "Platform Engineering",
+        "category": "other",
+        "checksum": "8deb204d9fa3b793e351ead4c0fdfb6a",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Releases Layer",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Overview",
+            "Release Planning",
+            "Release Preparation",
+            "Deployment Management"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00208",
+        "title": "Architecture Conflict Matrix",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "reports/ArchitectureConflictMatrix.md",
+        "lastModified": "2026-07-08T16:50:21.679320",
+        "size": 24302,
+        "author": null,
+        "category": "architecture",
+        "checksum": "18c92bc3e6131b226c1ca4ebfc490214",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Architecture Conflict Matrix",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "C-01: Standards Document Count",
+            "C-02: Standards ID Scheme"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00209",
+        "title": "Architecture Consolidation Report",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "reports/ArchitectureConsolidation.md",
+        "lastModified": "2026-07-08T16:49:36.040756",
+        "size": 7062,
+        "author": null,
+        "category": "architecture",
+        "checksum": "c740a1455c97ab4882d44f0f1bb1bd65",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Architecture Consolidation Report",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Key Findings"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00210",
+        "title": "Architecture Decision Log",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "reports/ArchitectureDecisionLog.md",
+        "lastModified": "2026-07-08T16:51:51.327598",
+        "size": 15959,
+        "author": null,
+        "category": "architecture",
+        "checksum": "e2296bd98d84fb7bc2f580bbfd03e483",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Architecture Decision Log",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "AD-001: File Naming Pattern",
+            "AD-002: Standard ID Scheme \u2014 Dual System"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00211",
+        "title": "Canonical Architecture Proposal",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "reports/CanonicalArchitectureProposal.md",
+        "lastModified": "2026-07-08T16:50:54.660772",
+        "size": 20026,
+        "author": null,
+        "category": "architecture",
+        "checksum": "7bead1dab8d4b2e8f25a701e6f6b0cf9",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Canonical Architecture Proposal",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "1.1 Document Layer Model (5-Layer)",
+            "1.2 Architectural Layer Model (8-Layer)"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00212",
+        "title": "Errata",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "reports/Errata.md",
+        "lastModified": "2026-07-08T16:38:31.529704",
+        "size": 13757,
+        "author": null,
+        "category": "reports",
+        "checksum": "15b2948302e435e79e55c0aad007fb60",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Errata",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00213",
+        "title": "Evidence Quality Review",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "reports/EvidenceReview.md",
+        "lastModified": "2026-07-08T16:38:00.134727",
+        "size": 10121,
+        "author": null,
+        "category": "reports",
+        "checksum": "1375d4dbf9e979e3e52624021f3f31f8",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Evidence Quality Review",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Evidence Quality Grades"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00214",
+        "title": "Migration Matrix",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "reports/MigrationMatrix.md",
+        "lastModified": "2026-07-08T16:51:21.010123",
+        "size": 11408,
+        "author": null,
+        "category": "reports",
+        "checksum": "2acb386c0581029e80379cba6cf2ad05",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Migration Matrix",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Legend",
+            "A.1 SVF-v1.1-Foundation-Design.md"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00215",
+        "title": "Reports Layer",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "reports/README.md",
+        "lastModified": "2026-07-08T17:11:41.927753",
+        "size": 1136,
+        "author": "Platform Engineering",
+        "category": "reports",
+        "checksum": "695c53691947e84c920b180dd6aeb721",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Reports Layer",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Overview",
+            "Report Types",
+            "Analytics and Metrics",
+            "Report Generation"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00216",
+        "title": "Report Verification",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "reports/ReportVerification.md",
+        "lastModified": "2026-07-08T16:37:36.700742",
+        "size": 13677,
+        "author": null,
+        "category": "reports",
+        "checksum": "821a54dd55f3e45e9d4abad79bd86b04",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Report Verification",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "A.1 Directory Count",
+            "A.2 File Count",
+            "A.3 Framework Document Count",
+            "A.4 Completion Percentage"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00217",
+        "title": "Validation Summary",
+        "type": "markdown",
+        "status": null,
+        "version": null,
+        "location": "reports/ValidationSummary.md",
+        "lastModified": "2026-07-08T16:39:16.869040",
+        "size": 9139,
+        "author": null,
+        "category": "reports",
+        "checksum": "12117919fa63975b0d7a49b2d92f8dc7",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Validation Summary",
+          "status": null,
+          "version": null,
+          "author": null,
+          "tags": [],
+          "sections": [
+            "Report-by-Report Verdict",
+            "1. RepositoryDiscovery.md \u2014 CONDITIONALLY ACCEPTABLE",
+            "2. GapAnalysis.md \u2014 CONDITIONALLY ACCEPTABLE WITH SIGNIFICANT CAVEATS"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00218",
+        "title": "Tooling Layer",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "tooling/README.md",
+        "lastModified": "2026-07-08T17:11:41.927753",
+        "size": 1203,
+        "author": "Platform Engineering",
+        "category": "other",
+        "checksum": "6d85792d43cc27d9c4488b28e6b77838",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Tooling Layer",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Overview",
+            "Tool Categories",
+            "Tool Documentation",
+            "Tool Integration"
+          ]
+        }
+      },
+      {
+        "id": "DOC-00219",
+        "title": "AIOS Automation Scripts",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "tooling/scripts/README.md",
+        "lastModified": "2026-07-08T17:25:45.957929",
+        "size": 11773,
+        "author": "Platform Engineering",
+        "category": "other",
+        "checksum": "6a03ea5030be389b9d41ecdd1bd541b3",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "AIOS Automation Scripts",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": []
+        }
+      },
+      {
+        "id": "DOC-00220",
+        "title": "Verification Layer",
+        "type": "markdown",
+        "status": null,
+        "version": "0.1.0",
+        "location": "verification/README.md",
+        "lastModified": "2026-07-08T17:11:41.927753",
+        "size": 1237,
+        "author": "Platform Engineering",
+        "category": "other",
+        "checksum": "b9df4ab6c11b1a21756b01e450a26997",
+        "references": [],
+        "tags": [],
+        "metadata": {
+          "title": "Verification Layer",
+          "status": null,
+          "version": "0.1.0",
+          "author": "Platform Engineering",
+          "tags": [],
+          "sections": [
+            "Overview",
+            "Verification Types",
+            "Testing Frameworks",
+            "Quality Assurance"
+          ]
+        }
+      }
+    ],
+    "categories": {
+      "other": [
+        "DOC-00001",
+        "DOC-00003",
+        "DOC-00004",
+        "DOC-00005",
+        "DOC-00007",
+        "DOC-00008",
+        "DOC-00009",
+        "DOC-00010",
+        "DOC-00011",
+        "DOC-00014",
+        "DOC-00015",
+        "DOC-00016",
+        "DOC-00017",
+        "DOC-00018",
+        "DOC-00019",
+        "DOC-00022",
+        "DOC-00023",
+        "DOC-00024",
+        "DOC-00025",
+        "DOC-00026",
+        "DOC-00027",
+        "DOC-00028",
+        "DOC-00029",
+        "DOC-00030",
+        "DOC-00032",
+        "DOC-00034",
+        "DOC-00036",
+        "DOC-00037",
+        "DOC-00040",
+        "DOC-00041",
+        "DOC-00042",
+        "DOC-00043",
+        "DOC-00044",
+        "DOC-00045",
+        "DOC-00046",
+        "DOC-00047",
+        "DOC-00048",
+        "DOC-00049",
+        "DOC-00050",
+        "DOC-00052",
+        "DOC-00053",
+        "DOC-00054",
+        "DOC-00055",
+        "DOC-00056",
+        "DOC-00057",
+        "DOC-00058",
+        "DOC-00059",
+        "DOC-00060",
+        "DOC-00061",
+        "DOC-00062",
+        "DOC-00063",
+        "DOC-00064",
+        "DOC-00065",
+        "DOC-00067",
+        "DOC-00091",
+        "DOC-00092",
+        "DOC-00093",
+        "DOC-00095",
+        "DOC-00096",
+        "DOC-00100",
+        "DOC-00101",
+        "DOC-00102",
+        "DOC-00103",
+        "DOC-00104",
+        "DOC-00107",
+        "DOC-00109",
+        "DOC-00110",
+        "DOC-00113",
+        "DOC-00114",
+        "DOC-00116",
+        "DOC-00117",
+        "DOC-00118",
+        "DOC-00120",
+        "DOC-00121",
+        "DOC-00122",
+        "DOC-00123",
+        "DOC-00127",
+        "DOC-00130",
+        "DOC-00132",
+        "DOC-00134",
+        "DOC-00135",
+        "DOC-00137",
+        "DOC-00139",
+        "DOC-00140",
+        "DOC-00141",
+        "DOC-00142",
+        "DOC-00143",
+        "DOC-00144",
+        "DOC-00145",
+        "DOC-00146",
+        "DOC-00147",
+        "DOC-00148",
+        "DOC-00150",
+        "DOC-00151",
+        "DOC-00152",
+        "DOC-00155",
+        "DOC-00156",
+        "DOC-00157",
+        "DOC-00159",
+        "DOC-00189",
+        "DOC-00190",
+        "DOC-00192",
+        "DOC-00193",
+        "DOC-00195",
+        "DOC-00196",
+        "DOC-00197",
+        "DOC-00198",
+        "DOC-00199",
+        "DOC-00200",
+        "DOC-00201",
+        "DOC-00202",
+        "DOC-00203",
+        "DOC-00204",
+        "DOC-00205",
+        "DOC-00206",
+        "DOC-00207",
+        "DOC-00218",
+        "DOC-00219",
+        "DOC-00220"
+      ],
+      "agents": [
+        "DOC-00002",
+        "DOC-00038",
+        "DOC-00039"
+      ],
+      "reports": [
+        "DOC-00006",
+        "DOC-00012",
+        "DOC-00013",
+        "DOC-00020",
+        "DOC-00021",
+        "DOC-00031",
+        "DOC-00033",
+        "DOC-00035",
+        "DOC-00051",
+        "DOC-00066",
+        "DOC-00090",
+        "DOC-00094",
+        "DOC-00097",
+        "DOC-00105",
+        "DOC-00106",
+        "DOC-00108",
+        "DOC-00111",
+        "DOC-00112",
+        "DOC-00115",
+        "DOC-00119",
+        "DOC-00125",
+        "DOC-00126",
+        "DOC-00128",
+        "DOC-00129",
+        "DOC-00131",
+        "DOC-00133",
+        "DOC-00136",
+        "DOC-00138",
+        "DOC-00153",
+        "DOC-00158",
+        "DOC-00191",
+        "DOC-00212",
+        "DOC-00213",
+        "DOC-00214",
+        "DOC-00215",
+        "DOC-00216",
+        "DOC-00217"
+      ],
+      "framework": [
+        "DOC-00068",
+        "DOC-00160",
+        "DOC-00161",
+        "DOC-00162",
+        "DOC-00163",
+        "DOC-00164",
+        "DOC-00165",
+        "DOC-00166",
+        "DOC-00167",
+        "DOC-00168",
+        "DOC-00169",
+        "DOC-00170",
+        "DOC-00171",
+        "DOC-00172",
+        "DOC-00173",
+        "DOC-00174",
+        "DOC-00175",
+        "DOC-00176",
+        "DOC-00177",
+        "DOC-00178",
+        "DOC-00179",
+        "DOC-00180",
+        "DOC-00182",
+        "DOC-00183",
+        "DOC-00184",
+        "DOC-00185",
+        "DOC-00186",
+        "DOC-00187",
+        "DOC-00188"
+      ],
+      "architecture": [
+        "DOC-00069",
+        "DOC-00070",
+        "DOC-00071",
+        "DOC-00072",
+        "DOC-00073",
+        "DOC-00074",
+        "DOC-00075",
+        "DOC-00076",
+        "DOC-00077",
+        "DOC-00078",
+        "DOC-00079",
+        "DOC-00080",
+        "DOC-00081",
+        "DOC-00082",
+        "DOC-00083",
+        "DOC-00084",
+        "DOC-00085",
+        "DOC-00086",
+        "DOC-00087",
+        "DOC-00088",
+        "DOC-00089",
+        "DOC-00098",
+        "DOC-00099",
+        "DOC-00181",
+        "DOC-00194",
+        "DOC-00208",
+        "DOC-00209",
+        "DOC-00210",
+        "DOC-00211"
+      ],
+      "modes": [
+        "DOC-00124",
+        "DOC-00149",
+        "DOC-00154"
+      ]
+    },
+    "tags": [],
+    "versions": {
+      "0.1.0": [
+        "DOC-00070",
+        "DOC-00071",
+        "DOC-00072",
+        "DOC-00073",
+        "DOC-00074",
+        "DOC-00075",
+        "DOC-00076",
+        "DOC-00077",
+        "DOC-00078",
+        "DOC-00079",
+        "DOC-00159",
+        "DOC-00161",
+        "DOC-00189",
+        "DOC-00207",
+        "DOC-00215",
+        "DOC-00218",
+        "DOC-00219",
+        "DOC-00220"
+      ]
+    },
+    "authors": [
+      "Platform Engineering"
+    ],
+    "relationships": [],
+    "metadata": {}
+  }
+}

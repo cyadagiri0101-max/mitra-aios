@@ -1,0 +1,17 @@
+{
+  "short_name": "MITRA",
+  "name": "MITRA v2.1 — Manufacturing Intelligence Platform",
+  "description": "Industrial Mold Development Lifecycle Management System",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0ea5e9",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

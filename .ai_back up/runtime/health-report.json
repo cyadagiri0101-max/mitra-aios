@@ -1,0 +1,11 @@
+{
+  "type": "health",
+  "timestamp": "2026-07-09T15:48:58.912426",
+  "status": "healthy",
+  "checks": {
+    "reportDirectory": true,
+    "runtimeDirectory": true,
+    "scanData": true,
+    "stateData": true
+  }
+}
