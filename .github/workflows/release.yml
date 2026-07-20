@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/aios
+      url: https://pypi.org/p/mitra-aios
 
     steps:
       - uses: actions/download-artifact@v4
