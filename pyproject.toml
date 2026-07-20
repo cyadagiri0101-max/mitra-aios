@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aios"
-version = "1.2.0rc2"
-description = "MITRA AIOS — AI Operating System runtime (v1.2.0rc2 EOS Convergence)"
+name = "mitra-aios"
+version = "1.2.0rc3"
+description = "MITRA AIOS — AI Operating System runtime (v1.2.0rc3 EOS Convergence)"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
