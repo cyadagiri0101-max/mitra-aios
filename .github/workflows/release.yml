@@ -40,7 +40,7 @@ jobs:
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          password: ${{ pypi-AgEIcHlwaS5vcmcCJDYzYzgxYjYzLTU1NTktNDI2Zi05ZDZkLTE3MzVmMTIwYTU1ZgACKlszLCJhOWQwZjM4OC1hYjFiLTQ2MmYtYmZmMC0yNTQ1ZDY0NmMxYzkiXQAABiC4dYBnZno4VQS8OSfVOb7MWx5eLL7W-jdmr1ckJB95Tg }}
           skip-existing: true
 
   github-release:
