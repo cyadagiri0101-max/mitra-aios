@@ -1,6 +1,6 @@
 # MITRA AIOS — AI Operating System
 
-**Version:** 1.2.0rc2 (EOS Convergence Release Candidate)
+**Version:** 1.2.0rc4 (EOS Convergence Release Candidate)
 
 AIOS is the AI Operating System runtime powering the MITRA Software Verification Framework (SVF). It provides the execution engine, scheduling, memory, agent coordination, RAG, and real-time communication layers for autonomous verification workflows.
 
@@ -8,7 +8,7 @@ AIOS is the AI Operating System runtime powering the MITRA Software Verification
 
 ```bash
 # Install from wheel
-pip install dist/aios-1.2.0rc2-py3-none-any.whl
+pip install mitra-aios
 
 # Verify installation
 aios --version
@@ -67,7 +67,7 @@ AIOS provides 21 commands covering the full system lifecycle:
 
 ```bash
 # Clone and install with dev dependencies
-git clone https://github.com/anomalyco/mitra-aios.git
+git clone https://github.com/cyadagiri0101-max/mitra-aios.git
 cd mitra-aios
 python -m venv .venv
 .venv\Scripts\activate
