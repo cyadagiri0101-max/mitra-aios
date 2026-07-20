@@ -9,7 +9,7 @@ from __future__ import annotations
 import threading
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from aios.core.exceptions import EventBusError
 from aios.core.logger import get_logger

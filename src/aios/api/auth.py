@@ -41,7 +41,7 @@ async def get_current_user(
             raise HTTPException(status_code=401, detail="Invalid token")
         return result
 
-    return {"principal": "authenticated_user", "authenticated": True, "token": token}
+    return {"principal": "authenticated_user", "authenticated": True}
 
 
 async def require_auth(

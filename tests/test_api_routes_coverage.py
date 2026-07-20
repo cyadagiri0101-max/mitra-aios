@@ -298,6 +298,97 @@ class TestSecurityRoutes:
         assert data["total_permissions"] == 0
         assert data["total_secrets"] == 0
 
+    # -- Pydantic validation (422) --
+    def test_grant_permission_empty_principal(self, client, stack):
+        r = client.post("/api/v1/security/permissions/grant", json={
+            "principal": "", "resource": "r1", "level": "read",
+        })
+        assert r.status_code == 422
+
+    def test_grant_permission_empty_resource(self, client, stack):
+        r = client.post("/api/v1/security/permissions/grant", json={
+            "principal": "u1", "resource": "", "level": "read",
+        })
+        assert r.status_code == 422
+
+    def test_grant_permission_missing_principal(self, client, stack):
+        r = client.post("/api/v1/security/permissions/grant", json={
+            "resource": "r1", "level": "read",
+        })
+        assert r.status_code == 422
+
+    def test_store_secret_missing_value(self, client, stack):
+        r = client.post("/api/v1/security/secrets/store", json={
+            "name": "k1",
+        })
+        assert r.status_code == 422
+
+    def test_store_secret_empty_name(self, client, stack):
+        r = client.post("/api/v1/security/secrets/store", json={
+            "name": "", "value": "v1",
+        })
+        assert r.status_code == 422
+
+    def test_create_token_missing_principal(self, client, stack):
+        r = client.post("/api/v1/security/tokens/create", json={
+            "token_type": "access", "expires_in": 3600,
+        })
+        assert r.status_code == 422
+
+    def test_encrypt_empty_data(self, client, stack):
+        r = client.post("/api/v1/security/encrypt", json={"data": ""})
+        assert r.status_code == 422
+
+    def test_decrypt_empty_data(self, client, stack):
+        r = client.post("/api/v1/security/decrypt", json={"data": ""})
+        assert r.status_code == 422
+
+    # -- Edge cases --
+    def test_grant_permission_duplicate(self, client, stack):
+        stack.security_manager.grant_permission.return_value = MagicMock()
+        r1 = client.post("/api/v1/security/permissions/grant", json={
+            "principal": "u1", "resource": "r1", "level": "read",
+        })
+        assert r1.status_code == 200
+        r2 = client.post("/api/v1/security/permissions/grant", json={
+            "principal": "u1", "resource": "r1", "level": "read",
+        })
+        assert r2.status_code == 200
+        assert stack.security_manager.grant_permission.call_count == 2
+
+    def test_store_secret_then_retrieve_roundtrip(self, client, stack):
+        mock_stored = MagicMock()
+        stack.security_manager.store_secret.return_value = mock_stored
+        r_store = client.post("/api/v1/security/secrets/store", json={
+            "name": "mykey", "value": "myval",
+        })
+        assert r_store.status_code == 200
+        assert r_store.json()["stored"] is True
+
+        stack.security_manager.retrieve_secret.return_value = "myval"
+        r_retrieve = client.get("/api/v1/security/secrets/mykey")
+        assert r_retrieve.status_code == 200
+        assert r_retrieve.json()["retrieved_value"] == "myval"
+
+    def test_check_permission_admin_level(self, client, stack):
+        stack.security_manager.check_permission.return_value = True
+        r = client.post("/api/v1/security/permissions/check", json={
+            "principal": "admin", "resource": "system", "level": "admin",
+        })
+        assert r.status_code == 200
+        assert r.json()["granted"] is True
+
+    def test_create_token_minimal(self, client, stack):
+        mock_token = MagicMock()
+        mock_token.value = "tok-min"
+        mock_token.expires_at = 9999.0
+        stack.security_manager.create_token.return_value = mock_token
+        r = client.post("/api/v1/security/tokens/create", json={
+            "principal": "u1",
+        })
+        assert r.status_code == 200
+        assert r.json()["token"] == "tok-min"
+
 
 # ---------------------------------------------------------------------------
 # Plugin routes

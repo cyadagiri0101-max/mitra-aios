@@ -36,6 +36,25 @@ redis-data/
 minio-data/
 ollama-models/
 
+# ── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+.coverage
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
 # ── Audit / temp ──────────────────────────────────────────────────────────
 npm-audit-report.json
 npm-audit-prod-report.json
+
+# ── Generated index artifacts ────────────────────────────────────────────
+.ai/index/index.json
+.ai/index/summary.json
+
+# ── Generated reports ────────────────────────────────────────────────────
+FINAL_ENGINEERING_REPORT.md
+FINAL_REGRESSION_REPORT.md
+FINAL_BENCHMARK_REPORT.md
+FINAL_RELEASE_REPORT.md

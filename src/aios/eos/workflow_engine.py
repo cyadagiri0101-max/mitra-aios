@@ -5,8 +5,8 @@ from __future__ import annotations
 import threading
 from dataclasses import dataclass, field
 from enum import StrEnum
+
 from aios.core.exceptions import WorkflowEngineError
-from aios.eos.types import HealthStatus
 from aios.core.logger import get_logger
 from aios.eos.decision_engine import (
     EOSDecisionEngine,
@@ -14,6 +14,7 @@ from aios.eos.decision_engine import (
     ExecutionStrategy,
     PlannedAction,
 )
+from aios.eos.types import HealthStatus
 
 
 class ExecutionMode(StrEnum):

@@ -8,7 +8,6 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-import pytest
 from typer.testing import CliRunner
 
 from aios.cli.app import app
@@ -251,7 +250,7 @@ class TestCLI:
     def test_help(self):
         result = runner.invoke(app, ["--help"])
         assert result.exit_code == 0
-        assert "AIOS RC1.1" in result.output
+        assert "AIOS 1.2.0rc2" in result.output
 
     def test_scan_help(self):
         result = runner.invoke(app, ["scan", "--help"])

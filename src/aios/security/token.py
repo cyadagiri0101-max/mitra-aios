@@ -22,6 +22,7 @@ class TokenManager:
     def __init__(self) -> None:
         self.logger = get_logger("aios.security.token")
         self._tokens: dict[str, Token] = {}
+        self._value_index: dict[str, str] = {}
         self._lock = threading.Lock()
         self._initialized: bool = False
 
@@ -62,6 +63,7 @@ class TokenManager:
 
         with self._lock:
             self._tokens[token_id] = token
+            self._value_index[token_value] = token_id
 
         self.logger.info("Created %s token for '%s' (ID: %s)", token_type.value, principal, token_id)
         return token
@@ -71,13 +73,15 @@ class TokenManager:
         self._require_initialized()
 
         with self._lock:
-            for token in self._tokens.values():
-                if token.value == token_value:
-                    if time.time() < token.expires_at:
-                        return token
-                    else:
-                        self.logger.warning("Token expired: %s", token.token_id)
-                        return None
+            token_id = self._value_index.get(token_value)
+            if token_id is None:
+                return None
+            token = self._tokens.get(token_id)
+            if token is None:
+                return None
+            if time.time() < token.expires_at:
+                return token
+            self.logger.warning("Token expired: %s", token.token_id)
             return None
 
     def revoke_token(self, token_id: str) -> bool:
@@ -85,8 +89,9 @@ class TokenManager:
         self._require_initialized()
 
         with self._lock:
-            if token_id in self._tokens:
-                del self._tokens[token_id]
+            token = self._tokens.pop(token_id, None)
+            if token is not None:
+                self._value_index.pop(token.value, None)
                 self.logger.info("Revoked token: %s", token_id)
                 return True
             return False
@@ -161,6 +166,7 @@ class TokenManager:
 
         with self._lock:
             self._tokens.clear()
+            self._value_index.clear()
 
         return self
 

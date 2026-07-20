@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aios"
-version = "1.2.0-rc2"
-description = "MITRA AIOS — AI Operating System runtime (v1.2.0-rc2 EOS Convergence)"
+version = "1.2.0rc2"
+description = "MITRA AIOS — AI Operating System runtime (v1.2.0rc2 EOS Convergence)"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
   "PyYAML>=6.0,<7.0",
   "typer>=0.9.0,<1.0",
@@ -39,11 +39,11 @@ include = ["aios*"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-addopts = "--cov=aios --cov-report=term --cov-fail-under=80 --ignore=tests/test_scheduler.py -k 'not TestRealRepo'"
+addopts = "--cov=aios --cov-report=term --cov-fail-under=80 --ignore=tests/test_scheduler.py"
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]

@@ -30,12 +30,19 @@ from aios.cli.commands import (
     validate_cmd,
     workflow_cmd,
 )
+from aios import __version__
 from aios.core.config import load_config
 from aios.core.logger import get_logger
 
+
+def _version_callback(value: bool) -> None:
+    if value:
+        print(f"AIOS {__version__}")
+        raise typer.Exit()
+
 app = typer.Typer(
     name="aios",
-    help="AIOS RC1.1 — AI Operating System runtime",
+    help=f"AIOS {__version__} — AI Operating System runtime",
     no_args_is_help=True,
 )
 
@@ -65,6 +72,10 @@ app.command("config")(config_cmd)
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
+    version: Annotated[
+        bool | None,
+        typer.Option("--version", callback=_version_callback, is_eager=True, help="Show version and exit"),
+    ] = None,
     repo_root: Annotated[
         Path | None,
         typer.Option("--root", "-r", help="Repository root directory"),
@@ -93,7 +104,7 @@ def main(
     config.ensure_directories()
 
     logger = get_logger("aios.cli", config.log_level)
-    logger.info("AIOS v%s | root=%s mode=%s", "1.1.0", root, config.mode)
+    logger.info("AIOS v%s | root=%s mode=%s", __version__, root, config.mode)
 
     ctx.ensure_object(dict)
     ctx.obj["config"] = config

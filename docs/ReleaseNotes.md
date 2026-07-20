@@ -1,6 +1,25 @@
 # MITRA AIOS Release Notes
 
-## Version 1.1.0 (Latest)
+## Version 1.2.0rc2 (Release Candidate 2) — Latest
+
+**Release Date:** 2026-07-20
+
+### Overview
+
+AIOS 1.2.0rc2 is the EOS Convergence Release Candidate, featuring the fully integrated Execution-Oriented System (EOS) core with 21 CLI commands, 15 REST API route modules, 7 LLM providers, 6 embedding providers, 7 vector store providers, and comprehensive production readiness validation.
+
+### What's New in RC2 (Phase 19–22)
+
+- **Registry generation gap fixed** — `aios index` now produces all 10 `*-registry.json` files required by integration tests
+- **CLI version banner** — `aios --help` and `aios --version` correctly show `AIOS 1.2.0rc2` from single source
+- **Production readiness** — Verified clean install from wheel + sdist on fresh environments; dependency vulnerability scan clean; license audit clean
+- **Performance benchmarks** — 35/35 benchmarks passed; core engine stable (runtime ~60 ops/sec, eventbus ~150K ops/sec, API ~137 req/sec)
+- **Security audit** — All CRITICAL/HIGH findings addressed or documented; `FINAL_SECURITY_REPORT.md` published
+- **Full regression suite** — 3410 passed, 0 failed, 92.16% coverage
+
+---
+
+## Version 1.1.0
 
 **Release Date:** July 2026
 

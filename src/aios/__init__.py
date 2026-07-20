@@ -1,6 +1,6 @@
-"""AIOS RC1.1 — AI Operating System runtime."""
+"""AIOS RC1.2 — AI Operating System runtime."""
 
-__version__ = "1.1.0"
+__version__ = "1.2.0rc2"
 
 from aios import agent as agent
 from aios import api as api

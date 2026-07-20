@@ -502,6 +502,38 @@ class TestTokenManager:
         with pytest.raises(SecurityError):
             manager.create_token("user1")
 
+    def test_create_token_bearer_type(self):
+        manager = TokenManager().initialize()
+        token = manager.create_token("user1", TokenType.BEARER, expires_in=3600)
+        assert token.token_type == TokenType.BEARER
+        assert not token.value.startswith("aios_")
+
+    def test_create_token_jwt_type(self):
+        manager = TokenManager().initialize()
+        token = manager.create_token("user1", TokenType.JWT, expires_in=3600)
+        assert token.token_type == TokenType.JWT
+
+    def test_create_token_oauth_type(self):
+        manager = TokenManager().initialize()
+        token = manager.create_token("user1", TokenType.OAUTH, expires_in=3600)
+        assert token.token_type == TokenType.OAUTH
+
+    def test_create_token_default_expiry(self):
+        manager = TokenManager().initialize()
+        token = manager.create_token("user1")
+        assert token.token_type == TokenType.API_KEY
+        assert token.expires_at > time.time()
+
+    def test_token_expiry_exact(self):
+        manager = TokenManager().initialize()
+        now = time.time()
+        token = manager.create_token("user1", expires_in=100)
+        assert token.expires_at == pytest.approx(now + 100, rel=1)
+
+    def test_list_tokens_empty(self):
+        manager = TokenManager().initialize()
+        assert manager.list_tokens() == []
+
 
 # ---------------------------------------------------------------------------
 # PolicyEngine
@@ -666,6 +698,65 @@ class TestSecurityManager:
         assert manager.credential is not None
         assert manager.token is not None
         assert manager.policy is not None
+
+    def test_operations_after_reload(self):
+        manager = SecurityManager().initialize()
+        manager.reload()
+        with pytest.raises(SecurityError):
+            manager.grant_permission("user1", "data", PermissionLevel.READ)
+        with pytest.raises(SecurityError):
+            manager.store_secret("k", "v")
+        with pytest.raises(SecurityError):
+            manager.create_token("user1")
+        with pytest.raises(SecurityError):
+            manager.encrypt("data")
+
+    def test_reload_then_initialize(self):
+        manager = SecurityManager().initialize()
+        manager.reload()
+        manager.initialize()
+        assert manager.is_initialized is True
+        manager.grant_permission("user1", "data", PermissionLevel.READ)
+        assert manager.check_permission("user1", "data", PermissionLevel.READ) is True
+
+    def test_store_secret_overwrite(self):
+        manager = SecurityManager().initialize()
+        manager.store_secret("key", "value1")
+        manager.store_secret("key", "value2")
+        assert manager.retrieve_secret("key") == "value2"
+
+    def test_permission_level_hierarchy(self):
+        manager = SecurityManager().initialize()
+        manager.grant_permission("user1", "data", PermissionLevel.WRITE)
+        assert manager.check_permission("user1", "data", PermissionLevel.NONE) is True
+        assert manager.check_permission("user1", "data", PermissionLevel.READ) is True
+        assert manager.check_permission("user1", "data", PermissionLevel.WRITE) is True
+        assert manager.check_permission("user1", "data", PermissionLevel.EXECUTE) is False
+        assert manager.check_permission("user1", "data", PermissionLevel.ADMIN) is False
+
+    def test_create_token_all_types(self):
+        manager = SecurityManager().initialize()
+        for ttype in (TokenType.API_KEY, TokenType.BEARER, TokenType.OAUTH, TokenType.JWT):
+            token = manager.create_token("user1", ttype, expires_in=3600)
+            assert token.token_type == ttype
+
+    def test_nonexistent_credential(self):
+        manager = SecurityManager().initialize()
+        assert manager.retrieve_credential("nonexistent") is None
+
+    def test_validate_before_initialize(self):
+        manager = SecurityManager()
+        with pytest.raises(SecurityError):
+            manager.validate()
+
+    def test_get_statistics_empty(self):
+        manager = SecurityManager().initialize()
+        stats = manager.get_statistics()
+        assert stats.total_permissions == 0
+        assert stats.total_secrets == 0
+        assert stats.total_credentials == 0
+        assert stats.total_tokens == 0
+        assert stats.total_policies == 0
 
 
 # ---------------------------------------------------------------------------

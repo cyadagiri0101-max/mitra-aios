@@ -8,7 +8,6 @@ from typing import Annotated
 import typer
 
 from aios.cli.commands._stack import get_stack
-from aios.memory.models import MemoryType
 
 
 def memory_cmd(

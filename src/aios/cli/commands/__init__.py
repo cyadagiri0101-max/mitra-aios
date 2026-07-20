@@ -24,6 +24,7 @@ from aios.cli.commands.validate import validate_cmd
 from aios.cli.commands.workflow import workflow_cmd
 
 __all__ = [
+    "get_stack",
     "agent_cmd",
     "chat_cmd",
     "checkpoint_cmd",

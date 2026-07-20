@@ -52,8 +52,8 @@ async def grant_permission(
             level=req.level,
             granted=True,
         )
-    except Exception as e:
-        raise _error(500, f"Failed to grant permission: {e}")
+    except Exception:
+        raise _error(500, "Failed to grant permission")
 
 
 @router.post(
@@ -81,8 +81,8 @@ async def check_permission(
             level=req.level,
             granted=granted,
         )
-    except Exception as e:
-        raise _error(500, f"Failed to check permission: {e}")
+    except Exception:
+        raise _error(500, "Failed to check permission")
 
 
 @router.post(
@@ -107,8 +107,8 @@ async def store_secret(
             name=req.name,
             stored=True,
         )
-    except Exception as e:
-        raise _error(500, f"Failed to store secret: {e}")
+    except Exception:
+        raise _error(500, "Failed to store secret")
 
 
 @router.get(
@@ -135,8 +135,8 @@ async def retrieve_secret(
         )
     except HTTPException:
         raise
-    except Exception as e:
-        raise _error(500, f"Failed to retrieve secret: {e}")
+    except Exception:
+        raise _error(500, "Failed to retrieve secret")
 
 
 @router.post(
@@ -164,8 +164,8 @@ async def create_token(
             expires_at=token.expires_at if hasattr(token, "expires_at") else 0.0,
             principal=req.principal,
         )
-    except Exception as e:
-        raise _error(500, f"Failed to create token: {e}")
+    except Exception:
+        raise _error(500, "Failed to create token")
 
 
 @router.post(
@@ -191,8 +191,8 @@ async def validate_token(
         }
     except HTTPException:
         raise
-    except Exception as e:
-        raise _error(500, f"Failed to validate token: {e}")
+    except Exception:
+        raise _error(500, "Failed to validate token")
 
 
 @router.post(
@@ -211,8 +211,8 @@ async def encrypt(
     try:
         result = stack.security_manager.encrypt(req.data)
         return SecurityEncryptResponse(result=result, operation="encrypt")
-    except Exception as e:
-        raise _error(500, f"Encryption failed: {e}")
+    except Exception:
+        raise _error(500, "Encryption failed")
 
 
 @router.post(
@@ -231,8 +231,8 @@ async def decrypt(
     try:
         result = stack.security_manager.decrypt(req.data)
         return SecurityEncryptResponse(result=result, operation="decrypt")
-    except Exception as e:
-        raise _error(500, f"Decryption failed: {e}")
+    except Exception:
+        raise _error(500, "Decryption failed")
 
 
 @router.get("/statistics", response_model=SecurityStatisticsResponse)
@@ -251,5 +251,5 @@ async def security_statistics(
             total_credentials=stats.total_credentials if hasattr(stats, "total_credentials") else 0,
             total_tokens=stats.total_tokens if hasattr(stats, "total_tokens") else 0,
         )
-    except Exception as e:
-        raise _error(500, f"Failed to get statistics: {e}")
+    except Exception:
+        raise _error(500, "Failed to get statistics")

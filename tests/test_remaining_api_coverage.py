@@ -142,7 +142,6 @@ class TestAuthEnabledPath:
         creds.credentials = "some-token"
         result = await auth_mod.get_current_user(creds)
         assert result["authenticated"] is True
-        assert result["token"] == "some-token"
 
     @pytest.mark.asyncio
     async def test_require_auth_auth_enabled_unauthenticated(self):
@@ -891,6 +890,7 @@ class TestStackCreate:
         mock_config.repo_root = Path.cwd()
         mock_load_config.return_value = mock_config
         loader = MagicMock()
+        loader.initialize.side_effect = RuntimeError("EOS tree initialization failed")
         mock_loader_cls.return_value = loader
 
         from aios.api.stack import create_stack
@@ -912,11 +912,11 @@ class TestStackCreate:
     @patch("aios.api.stack.RegistryManager")
     @patch("aios.api.stack.EOSLoader")
     @patch("aios.api.stack.load_config")
-    def test_create_stack_with_db_path(self, mock_load_config, mock_loader_cls, mock_reg_cls,
-                                       mock_cap_cls, mock_ks_cls, mock_ctx_cls, mock_de_cls,
-                                       mock_wf_cls, mock_re_cls, mock_ob_cls, mock_eb_cls,
-                                       mock_tool_reg_cls, mock_ae_cls, mock_persist_cls,
-                                       mock_init_opt):
+    def test_create_stack_with_db_path2(self, mock_load_config, mock_loader_cls, mock_reg_cls,
+                                        mock_cap_cls, mock_ks_cls, mock_ctx_cls, mock_de_cls,
+                                        mock_wf_cls, mock_re_cls, mock_ob_cls, mock_eb_cls,
+                                        mock_tool_reg_cls, mock_ae_cls, mock_persist_cls,
+                                        mock_init_opt):
         mock_load_config.return_value = MagicMock()
         loader = MagicMock()
         loader.load.return_value = MagicMock(success=True)
@@ -970,7 +970,11 @@ class TestInitializeOptionalManagers:
         assert stack.memory_manager is not None or True
 
     def test_initialize_optional_managers_all_fail(self):
-        from aios.api.stack import EOSStack, _initialize_optional_managers, _OPTIONAL_MANAGER_IMPORTS
+        from aios.api.stack import (
+            _OPTIONAL_MANAGER_IMPORTS,
+            EOSStack,
+            _initialize_optional_managers,
+        )
         stack = EOSStack()
         _OPTIONAL_MANAGER_IMPORTS.clear()
         import aios.api.stack as stack_module

@@ -8,9 +8,11 @@ import time
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any, Protocol
 
 from aios.core.exceptions import MemoryError
 from aios.core.logger import get_logger
+from aios.eos.types import HealthStatus
 from aios.memory.consolidation import ConsolidationEngine
 from aios.memory.embeddings import EmbeddingProvider, MockEmbeddingProvider
 from aios.memory.episodic_memory import EpisodicMemory
@@ -26,6 +28,10 @@ from aios.memory.models import (
 from aios.memory.retrieval import RetrievalEngine
 from aios.memory.semantic_memory import SemanticMemory
 from aios.memory.working_memory import WorkingMemory
+
+
+class _ValidatableComponent(Protocol):
+    def validate(self) -> Any: ...
 
 
 class MemoryManager:
@@ -175,7 +181,8 @@ class MemoryManager:
     def validate(self) -> MemoryValidationResult:
         self._require_initialized()
         result = MemoryValidationResult()
-        for validator in [self._working, self._episodic, self._semantic]:
+        _validators: list[_ValidatableComponent] = [self._working, self._episodic, self._semantic]
+        for validator in _validators:
             sub = validator.validate()
             if not sub.is_valid:
                 result.is_valid = False
@@ -237,25 +244,27 @@ class MemoryManager:
         snap_path = self._snapshot_dir / f"{snapshot_id}.json"
 
         with self._lock:
+            memory_data = {
+                "working": [self._serialize_entry(e) for e in self._backend.list_working()],
+                "episodic": [self._serialize_entry(e) for e in self._backend.list_episodic()],
+                "semantic": [self._serialize_entry(e) for e in self._backend.list_semantic()],
+            }
+            total_entries = sum(len(v) for v in memory_data.values())
             data = {
                 "snapshotId": snapshot_id,
                 "label": label,
                 "created": timestamp,
-                "memory": {
-                    "working": [self._serialize_entry(e) for e in self._backend.list_working()],
-                    "episodic": [self._serialize_entry(e) for e in self._backend.list_episodic()],
-                    "semantic": [self._serialize_entry(e) for e in self._backend.list_semantic()],
-                },
+                "memory": memory_data,
             }
 
         snap_path.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
-        self.logger.info("Snapshot %s created (%d entries)", snapshot_id, sum(len(v) for v in data["memory"].values()))
+        self.logger.info("Snapshot %s created (%d entries)", snapshot_id, total_entries)
         return {
             "snapshot_id": snapshot_id,
             "label": label,
             "created": timestamp,
             "path": str(snap_path),
-            "entry_count": sum(len(v) for v in data["memory"].values()),
+            "entry_count": total_entries,
         }
 
     def restore(self, snapshot_id: str) -> bool:
@@ -304,6 +313,53 @@ class MemoryManager:
             except (json.JSONDecodeError, OSError):
                 continue
         return snapshots
+
+    def health(self) -> HealthStatus:
+        """Check MemoryManager health.
+
+        Returns:
+            HealthStatus: Memory subsystem health with storage metrics.
+        """
+        with self._lock:
+            if not self._initialized:
+                return HealthStatus(
+                    healthy=False,
+                    status="not_initialized",
+                    initialized=False,
+                    message="MemoryManager not initialized",
+                )
+
+            try:
+                stats = self.statistics()
+                healthy = True
+                if stats.retrieval_count > 0 and stats.average_retrieval_latency > 10.0:
+                    healthy = False
+                return HealthStatus(
+                    healthy=healthy,
+                    status="healthy" if healthy else "degraded",
+                    initialized=True,
+                    events_processed=stats.retrieval_count,
+                    total_executions=stats.working_entries,
+                    message=f"Working: {stats.working_entries}, Episodic: {stats.episodic_entries}, Semantic: {stats.semantic_entries}",
+                )
+            except Exception as exc:
+                return HealthStatus(
+                    healthy=False,
+                    status="error",
+                    initialized=True,
+                    message=f"Health check failed: {exc}",
+                )
+
+    def shutdown(self) -> None:
+        """Gracefully shutdown the MemoryManager.
+
+        Clears all memory subsystems. Idempotent.
+        """
+        with self._lock:
+            if not self._initialized:
+                return
+            self._initialized = False
+        self.logger.info("MemoryManager shutdown complete")
 
     @staticmethod
     def _serialize_entry(entry: object) -> dict:

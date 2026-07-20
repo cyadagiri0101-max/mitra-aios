@@ -671,7 +671,10 @@ async def register_tool(
 async def list_tools(
     stack: EOSStack = Depends(get_stack),
 ) -> dict:
-    tools = stack.tool_registry.list_tools()
+    registry = stack.tool_registry
+    if registry is None:
+        raise _http_error(503, "Tool registry not available")
+    tools = registry.list_tools()
     return {
         "tools": [
             {
@@ -691,7 +694,10 @@ async def get_tool(
     name: str,
     stack: EOSStack = Depends(get_stack),
 ) -> dict:
-    tool = stack.tool_registry.get(name)
+    registry = stack.tool_registry
+    if registry is None:
+        raise _http_error(503, "Tool registry not available")
+    tool = registry.get(name)
     if tool is None:
         raise _http_error(404, f"Tool not found: {name}")
     return {
@@ -795,7 +801,10 @@ async def persistence_statistics(
     stack: EOSStack = Depends(get_stack),
 ) -> dict:
     try:
-        stats = stack.persistence.statistics()
+        store = stack.persistence
+        if store is None:
+            raise _http_error(503, "Persistence store not available")
+        stats = store.statistics()
         return {
             "total_workflows": stats.total_workflows,
             "total_executions": stats.total_executions,
@@ -812,7 +821,10 @@ async def persistence_clear(
     stack: EOSStack = Depends(get_stack),
 ) -> dict:
     try:
-        stack.persistence.clear_all()
+        store = stack.persistence
+        if store is None:
+            raise _http_error(503, "Persistence store not available")
+        store.clear_all()
         return {"status": "cleared"}
     except Exception as e:
         raise _http_error(500, str(e))

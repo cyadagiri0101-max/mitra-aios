@@ -11,7 +11,8 @@ aios [OPTIONS] COMMAND [ARGS]
 | `--root` | `-r` | Repository root directory |
 | `--mode` | `-m` | Operating mode |
 | `--log-level` | `-l` | Log level (DEBUG, INFO, WARNING, ERROR) |
-| `--help` | `-h` | Show help |
+| `--version` | | Show version and exit |
+| `--help` | | Show help and exit |
 
 ---
 

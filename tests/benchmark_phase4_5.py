@@ -10,10 +10,10 @@ import json
 import threading
 import time
 import tracemalloc
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field, asdict
+from collections.abc import Callable
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -23,7 +23,7 @@ from aios.core.config import AIOSConfig
 from aios.eos.capability_discovery import CapabilityDiscovery
 from aios.eos.context_builder import EOSContextBuilder
 from aios.eos.decision_engine import EOSDecisionEngine
-from aios.eos.event_bus import EventBus, EventPriority
+from aios.eos.event_bus import EventBus
 from aios.eos.knowledge_service import KnowledgeService
 from aios.eos.loader import EOSLoader
 from aios.eos.registry import RegistryManager
@@ -252,7 +252,6 @@ def app_client(eos_components):
 def test_bench_eventbus_throughput(eos_components, concurrency):
     """Measure EventBus publish + dispatch throughput."""
     bus = eos_components["event_bus"]
-    stats = bus.statistics()
     bus.reload()
 
     received = [0]
@@ -274,7 +273,7 @@ def test_bench_eventbus_throughput(eos_components, concurrency):
     def publish_event(i: int) -> float:
         t0 = time.monotonic()
         for _ in range(10):
-            event = bus.runtime_engine._emit_event(
+            bus.runtime_engine._emit_event(
                 f"bench-{i}",
                 RuntimeEventType.EXECUTION_CREATED,
                 message=f"bench {i}",
@@ -348,7 +347,6 @@ def test_bench_memory_usage(eos_components, concurrency):
 
     snapshot_before = tracemalloc.take_snapshot()
 
-    bus = eos_components["event_bus"]
     engine = eos_components["runtime_engine"]
     scheduler = eos_components["scheduler"]
 
@@ -356,7 +354,7 @@ def test_bench_memory_usage(eos_components, concurrency):
     objects_created = 0
     for i in range(concurrency):
         wf = _make_sample_workflow(step_count=2)
-        exec_id = engine.execute(wf)
+        engine.execute(wf)
         scheduler.schedule_job(f"bench-job-{i}", job_type=JobType.ONE_TIME, priority=i)
         objects_created += 1
         if i % 50 == 0 and i > 0:
@@ -586,7 +584,7 @@ def test_bench_startup_time():
         gc.collect()
         t0 = time.monotonic()
 
-        app = create_app()
+        create_app()
 
         t1 = time.monotonic()
         measurements.append(t1 - t0)
@@ -675,7 +673,6 @@ def test_bench_eventbus_dispatch_latency(eos_components, concurrency):
     bus = eos_components["event_bus"]
     bus.reload()
 
-    received = threading.Event()
     dispatch_latencies: list[float] = []
     dl_lock = threading.Lock()
 

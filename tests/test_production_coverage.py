@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import threading
-import time
 import uuid
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -20,6 +19,7 @@ from aios.security.credential import CredentialStore
 from aios.security.encryption import EncryptionManager
 from aios.security.models import TokenType
 from aios.security.token import TokenManager
+
 # Legacy modules removed in v1.2.0 — StateEngine replaced by PersistenceStore
 # from aios.state.engine import StateEngine
 # from aios.state.validator import StateValidator
@@ -41,7 +41,6 @@ from aios.tools.permission import PermissionManager
 from aios.tools.provider import ToolProvider
 from aios.tools.sandbox import ToolSandbox
 from aios.tools.validation import ValidationEngine
-from aios.utils.serialization import write_json, write_yaml
 from aios.vectorstore.manager import VectorStoreManager
 from aios.vectorstore.models import (
     VectorRecord,
