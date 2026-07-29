@@ -4,6 +4,7 @@ import { OllamaProvider } from '../providers/ollama.provider';
 import { AiContextService } from './ai-context.service';
 import { getEntityManagerToken } from '@nestjs/typeorm';
 import { AiIntent } from '../dto/ai.dto';
+import { AiUsageService } from '@modules/ai-usage/services/ai-usage.service';
 
 const makeOllama = (enabled = true) => ({
   enabled,
@@ -41,6 +42,7 @@ describe('AiService', () => {
         AiService,
         { provide: OllamaProvider, useValue: ollama },
         { provide: AiContextService, useValue: context },
+        { provide: AiUsageService, useValue: { trackUsage: jest.fn().mockResolvedValue(undefined) } },
         { provide: getEntityManagerToken(), useValue: em },
       ],
     }).compile();

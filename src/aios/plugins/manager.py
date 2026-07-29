@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from typing import Any
 
 from aios.core.exceptions import PluginError
 from aios.core.logger import get_logger
@@ -126,7 +127,8 @@ class PluginManager:
         result = PluginValidationResult()
 
         # Validate all components
-        for component in [self._registry, self._loader, self._validator, self._lifecycle]:
+        components: list[Any] = [self._registry, self._loader, self._validator, self._lifecycle]
+        for component in components:
             component_result = component.validate()
             result.warnings.extend(component_result.warnings)
             result.errors.extend(component_result.errors)

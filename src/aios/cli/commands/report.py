@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json as _json
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -23,7 +23,7 @@ def report_cmd(
     config = ctx.obj["config"]
     stack = get_stack(config)
 
-    data: dict[str, object] = {}
+    data: dict[str, Any] = {}
 
     if report_type in ("statistics", "all"):
         if stack.observability:

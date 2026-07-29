@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from typing import Any
 
 from aios.core.exceptions import RAGError
 from aios.core.logger import get_logger
@@ -171,7 +172,7 @@ class RAGManager:
         result = RAGValidationResult()
 
         # Validate all components
-        for component in [
+        components: list[Any] = [
             self._chunk_manager,
             self._index_manager,
             self._embedding_manager,
@@ -180,7 +181,8 @@ class RAGManager:
             self._query_planner,
             self._citation_engine,
             self._hybrid_search,
-        ]:
+        ]
+        for component in components:
             component_result = component.validate()
             result.warnings.extend(component_result.warnings)
             result.errors.extend(component_result.errors)

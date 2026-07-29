@@ -5,6 +5,7 @@ from __future__ import annotations
 import subprocess
 import threading
 import time
+from collections.abc import Iterator
 
 from aios.core.exceptions import ToolError
 from aios.core.logger import get_logger
@@ -80,7 +81,7 @@ class GitProvider(ToolProvider):
             self._latency_sum += latency
         return ToolResponse(result=output.strip(), status=status, error=error, execution_time=latency)
 
-    def stream(self, request: ToolRequest) -> list[str]:
+    def stream(self, request: ToolRequest) -> Iterator[str]:
         self._require_initialized()
         raise NotImplementedError("GitProvider does not support streaming")
 

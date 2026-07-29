@@ -11,11 +11,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 const customerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
-  contactPerson: z.string().max(100).optional().or(z.literal('')),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
-  phone: z.string().max(20).optional().or(z.literal('')),
-  industry: z.string().max(50).optional().or(z.literal('')),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(200),
+  industry: z.string().max(100).optional().or(z.literal('')),
+  contactFirstName: z.string().max(100).optional().or(z.literal('')),
+  contactLastName: z.string().max(100).optional().or(z.literal('')),
+  contactEmail: z.string().email('Invalid email').optional().or(z.literal('')),
+  contactPhone: z.string().max(50).optional().or(z.literal('')),
 });
 
 type CustomerForm = z.infer<typeof customerSchema>;
@@ -27,7 +28,7 @@ export function CustomersPage() {
 
   const { data: customers, isLoading, error } = useQuery({
     queryKey: ['customers'],
-    queryFn: () => api.get('/customer').then(r => { const p = r.data; return Array.isArray(p) ? p : (p?.data ?? []); }),
+    queryFn: () => api.get('/commercial/customers').then(r => { const p = r.data; return Array.isArray(p) ? p : (p?.data ?? []); }),
     retry: 2,
     staleTime: 2 * 60 * 1000,
   });
@@ -37,7 +38,20 @@ export function CustomersPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: CustomerForm) => api.post('/customer', data),
+    mutationFn: (data: CustomerForm) => {
+      const payload: any = { name: data.name };
+      if (data.industry) payload.industry = data.industry;
+      if (data.contactFirstName || data.contactEmail || data.contactPhone) {
+        payload.contacts = [{
+          firstName: data.contactFirstName || data.contactLastName || 'Primary',
+          lastName: data.contactLastName || '',
+          email: data.contactEmail || undefined,
+          phone: data.contactPhone || undefined,
+          isPrimary: true,
+        }];
+      }
+      return api.post('/commercial/customers', payload);
+    },
     onMutate: async (_newData) => {
       await queryClient.cancelQueries({ queryKey: ['customers'] });
       const previous = queryClient.getQueryData(['customers']);
@@ -58,15 +72,16 @@ export function CustomersPage() {
 
   const filtered = customers?.filter((c: any) =>
     c.name?.toLowerCase().includes(search.toLowerCase()) ||
-    c.email?.toLowerCase().includes(search.toLowerCase()),
+    c.contacts?.some((ct: any) => ct.email?.toLowerCase().includes(search.toLowerCase())),
   );
 
   const columns = [
     { key: 'name', header: 'Name' },
-    { key: 'contactPerson', header: 'Contact' },
-    { key: 'email', header: 'Email' },
-    { key: 'phone', header: 'Phone' },
     { key: 'industry', header: 'Industry' },
+    { key: 'status', header: 'Status', render: (c: any) => (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${c.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{c.status}</span>
+    )},
+    { key: 'contacts', header: 'Contacts', render: (c: any) => c.contacts?.length ?? 0 },
   ];
 
   const onSubmit = (data: CustomerForm) => createMutation.mutate(data);
@@ -106,26 +121,34 @@ export function CustomersPage() {
             {formErrors.name && <p className="mt-1 text-xs text-red-600">{formErrors.name.message?.toString()}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
-            <input {...register('contactPerson')} className="input-field" placeholder="Enter contact person" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+            <input {...register('industry')} className="input-field" placeholder="e.g. Automotive" />
+          </div>
+          <hr className="border-gray-200" />
+          <p className="text-xs text-gray-500 font-medium">Primary Contact (optional)</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+              <input {...register('contactFirstName')} className="input-field" placeholder="John" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+              <input {...register('contactLastName')} className="input-field" placeholder="Smith" />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" {...register('email')} className={`input-field ${formErrors.email ? 'border-red-400' : ''}`} placeholder="customer@company.com" />
-            {formErrors.email && <p className="mt-1 text-xs text-red-600">{formErrors.email.message?.toString()}</p>}
+            <input type="email" {...register('contactEmail')} className={`input-field ${formErrors.contactEmail ? 'border-red-400' : ''}`} placeholder="john@company.com" />
+            {formErrors.contactEmail && <p className="mt-1 text-xs text-red-600">{formErrors.contactEmail.message?.toString()}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-            <input {...register('phone')} className="input-field" placeholder="+91 98765 43210" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>
-            <input {...register('industry')} className="input-field" placeholder="e.g. Automotive" />
+            <input {...register('contactPhone')} className="input-field" placeholder="+91 98765 43210" />
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <button type="button" onClick={() => { setIsModalOpen(false); reset(); }} className="btn-secondary">Cancel</button>
             <button type="submit" disabled={createMutation.isPending} className="btn-primary disabled:opacity-50">
-              {createMutation.isPending ? 'Creating…' : 'Create Customer'}
+              {createMutation.isPending ? 'Creating...' : 'Create Customer'}
             </button>
           </div>
         </form>

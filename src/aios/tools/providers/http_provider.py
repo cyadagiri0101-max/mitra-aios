@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import threading
 import time
+from collections.abc import Iterator
 from urllib import request as urlrequest
 
 from aios.core.exceptions import ToolError
@@ -85,7 +86,7 @@ class HTTPProvider(ToolProvider):
             self._latency_sum += latency
         return ToolResponse(result=result, status=status, error=error, execution_time=latency)
 
-    def stream(self, request: ToolRequest) -> list[str]:
+    def stream(self, request: ToolRequest) -> Iterator[str]:
         self._require_initialized()
         raise NotImplementedError("HTTPProvider does not support streaming")
 

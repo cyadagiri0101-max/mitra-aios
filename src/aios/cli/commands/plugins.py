@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json as _json
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -24,7 +24,7 @@ def plugins_cmd(
     config = ctx.obj["config"]
 
     if action == "list":
-        result = {"plugins": [], "total": 0}
+        result: dict[str, Any] = {"plugins": [], "total": 0}
         try:
             from aios.plugins.manager import PluginManager
 

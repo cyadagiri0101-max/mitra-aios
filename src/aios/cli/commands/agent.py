@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json as _json
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -27,7 +27,7 @@ def agent_cmd(
     config = ctx.obj["config"]
 
     if action == "list":
-        result = {"agents": [], "total": 0}
+        result: dict[str, Any] = {"agents": [], "total": 0}
         try:
             from aios.agent.agent_registry import AgentRegistry
 

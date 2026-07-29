@@ -18,6 +18,7 @@ function makeRepo() {
   return {
     findAndCount: jest.fn().mockResolvedValue([[], 0]),
     findOne:      jest.fn().mockResolvedValue(null),
+    count:        jest.fn().mockResolvedValue(0),
     create:       jest.fn((d: any) => ({ ...d })),
     save:         jest.fn((e: any) => Promise.resolve({ id: 'ent-1', ...e })),
   };

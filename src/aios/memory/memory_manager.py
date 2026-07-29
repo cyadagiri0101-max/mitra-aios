@@ -8,6 +8,7 @@ import time
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from aios.core.exceptions import MemoryError
 from aios.core.logger import get_logger
@@ -175,7 +176,8 @@ class MemoryManager:
     def validate(self) -> MemoryValidationResult:
         self._require_initialized()
         result = MemoryValidationResult()
-        for validator in [self._working, self._episodic, self._semantic]:
+        validators: list[Any] = [self._working, self._episodic, self._semantic]
+        for validator in validators:
             sub = validator.validate()
             if not sub.is_valid:
                 result.is_valid = False

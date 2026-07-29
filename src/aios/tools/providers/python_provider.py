@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import threading
 import time
+from collections.abc import Iterator
 
 from aios.core.exceptions import ToolError
 from aios.core.logger import get_logger
@@ -82,7 +83,7 @@ class PythonProvider(ToolProvider):
             self._latency_sum += latency
         return ToolResponse(result=result, status=status, error=error, execution_time=latency)
 
-    def stream(self, request: ToolRequest) -> list[str]:
+    def stream(self, request: ToolRequest) -> Iterator[str]:
         self._require_initialized()
         raise NotImplementedError("PythonProvider does not support streaming")
 

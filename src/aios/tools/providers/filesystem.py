@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import threading
 import time
+from collections.abc import Iterator
 from pathlib import Path
 
 from aios.core.exceptions import ToolError
@@ -101,7 +102,7 @@ class FilesystemProvider(ToolProvider):
             self._latency_sum += latency
         return ToolResponse(result=result, status=status, error=error, execution_time=latency)
 
-    def stream(self, request: ToolRequest) -> list[str]:
+    def stream(self, request: ToolRequest) -> Iterator[str]:
         self._require_initialized()
         raise NotImplementedError("FilesystemProvider does not support streaming")
 

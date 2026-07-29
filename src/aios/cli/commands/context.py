@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json as _json
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -33,7 +33,7 @@ def context_cmd(
         typer.echo(f"Context build failed: {e}", err=True)
         raise typer.Exit(1)
 
-    data = {
+    data: dict[str, Any] = {
         "task": context.task_description,
         "items_count": len(context.items),
         "utilization_percent": context.utilization_percent,

@@ -34,7 +34,7 @@ class PluginInfo:
     status: PluginStatus = PluginStatus.INSTALLED
     installed_at: float = 0.0
     enabled_at: float = 0.0
-    metadata: dict = field(default_factory=dict)
+    runtime_metadata: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)

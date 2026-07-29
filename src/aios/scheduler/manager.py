@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import threading
 import time
+from typing import Any
 
 from aios.core.exceptions import SchedulerError
 from aios.core.logger import get_logger
@@ -168,7 +169,8 @@ class Scheduler:
         result = SchedulerValidationResult()
 
         # Validate all components
-        for component in [self._task_queue, self._priority_queue, self._job_manager]:
+        components: list[Any] = [self._task_queue, self._priority_queue, self._job_manager]
+        for component in components:
             component_result = component.validate()
             result.warnings.extend(component_result.warnings)
             result.errors.extend(component_result.errors)

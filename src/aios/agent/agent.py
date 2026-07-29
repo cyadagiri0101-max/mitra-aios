@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from typing import Any
 
 from aios.agent.context_manager import ContextManager
 from aios.agent.conversation import ConversationManager
@@ -139,7 +140,8 @@ class Agent:
         if not self._config.name:
             result.errors.append("Agent name is required")
             result.is_valid = False
-        for component in [self._planner, self._executor, self._reflection, self._memory, self._tools, self._conversation, self._context]:
+        components: list[Any] = [self._planner, self._executor, self._reflection, self._memory, self._tools, self._conversation, self._context]
+        for component in components:
             sub = component.validate()
             result.warnings.extend(sub.warnings)
             result.errors.extend(sub.errors)

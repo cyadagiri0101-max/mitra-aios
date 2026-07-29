@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Iterator
 
 from aios.core.logger import get_logger
 from aios.llm.config import ProviderConfig
@@ -74,7 +75,7 @@ class OllamaProvider(LLMProvider):
         self._require_initialized()
         raise NotImplementedError("Ollama API transport not implemented")
 
-    def stream(self, request: LLMRequest) -> list[str]:
+    def stream(self, request: LLMRequest) -> Iterator[str]:
         self._require_initialized()
         raise NotImplementedError("Ollama streaming transport not implemented")
 

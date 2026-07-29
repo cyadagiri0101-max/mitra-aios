@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from typing import Any
 
 from aios.core.exceptions import ObservabilityError
 from aios.core.logger import get_logger
@@ -135,7 +136,8 @@ class ObservabilityManager:
         result = ObservabilityValidationResult()
 
         # Validate all components
-        for component in [self._metrics, self._tracing, self._audit, self._health]:
+        components: list[Any] = [self._metrics, self._tracing, self._audit, self._health]
+        for component in components:
             component_result = component.validate()
             result.warnings.extend(component_result.warnings)
             result.errors.extend(component_result.errors)

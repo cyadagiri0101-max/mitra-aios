@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from typing import Any
 
 from aios.core.exceptions import MultiAgentError
 from aios.core.logger import get_logger
@@ -227,7 +228,8 @@ class Coordinator:
         result = MultiAgentValidationResult()
 
         # Validate shared components
-        for component in [self._message_bus, self._shared_memory, self._task_manager, self._consensus_engine]:
+        components: list[Any] = [self._message_bus, self._shared_memory, self._task_manager, self._consensus_engine]
+        for component in components:
             sub_result = component.validate()
             result.warnings.extend(sub_result.warnings)
             result.errors.extend(sub_result.errors)

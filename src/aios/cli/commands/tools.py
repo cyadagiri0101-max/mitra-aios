@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json as _json
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -27,7 +27,7 @@ def tools_cmd(
     config = ctx.obj["config"]
 
     if action == "list":
-        result = {"tools": [], "total": 0}
+        result: dict[str, Any] = {"tools": [], "total": 0}
         try:
             from aios.tools.manager import ToolManager
 

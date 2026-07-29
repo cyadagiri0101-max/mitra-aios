@@ -45,6 +45,10 @@ export abstract class TenantAwareService<E extends IndustrialBaseEntity> {
     const entity = await this.repo.findOne({ where });
     if (!entity) throw new NotFoundException(`${this.entityName} not found`);
 
+    if (tenantId && (entity as unknown as Record<string, unknown>).tenantId && (entity as unknown as Record<string, unknown>).tenantId !== tenantId) {
+      throw new NotFoundException(`${this.entityName} not found`);
+    }
+
     return entity;
   }
 

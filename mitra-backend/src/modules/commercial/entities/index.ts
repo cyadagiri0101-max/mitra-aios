@@ -1,3 +1,5 @@
+export { Customer } from './customer.entity';
+export { Contact } from './contact.entity';
 export { Enquiry } from './enquiry.entity';
 export { Quotation } from './quotation.entity';
 export { QuotationItem } from './quotationitem.entity';

@@ -86,7 +86,7 @@ class ChunkManager:
         """Chunk document by sentences."""
         chunks = []
         sentences = re.split(r'(?<=[.!?])\s+', document.content)
-        current_chunk = []
+        current_chunk: list[str] = []
         current_length = 0
         start_index = 0
 
@@ -111,7 +111,7 @@ class ChunkManager:
                     self._chunks[chunk.id] = chunk
 
                 # Apply overlap
-                overlap_sentences = []
+                overlap_sentences: list[str] = []
                 overlap_length = 0
                 for s in reversed(current_chunk):
                     if overlap_length + len(s) > overlap:

@@ -1,107 +1,97 @@
-# MITRA AIOS — AI Operating System
+# MITRA — Mold Development Lifecycle Platform
 
-**Version:** 1.2.0rc4 (EOS Convergence Release Candidate)
+**Version:** 3.2.0 (Sprint 1.1)
 
-AIOS is the AI Operating System runtime powering the MITRA Software Verification Framework (SVF). It provides the execution engine, scheduling, memory, agent coordination, RAG, and real-time communication layers for autonomous verification workflows.
+MITRA is a mold development lifecycle management platform comprising an AI operating system (AIOS), a NestJS backend, and a React frontend.
 
-## Quick Start
+## Repository Structure
 
-```bash
-# Install from wheel
-pip install mitra-aios
-
-# Verify installation
-aios --version
-aios --help
-
-# Scan a repository
-cd your-project
-aios scan
-aios index
+```
+mitra-aios/              — Python AIOS runtime (FastAPI, CLI, EOS engine)
+mitra-backend/           — NestJS API (TypeORM, PostgreSQL, RBAC)
+mitra-frontend/          — React dashboard (Vite, Tailwind, Zustand)
+docs/                    — Documentation, ADRs, archived reports
+scripts/                 — Utility scripts (backup, probe, validation)
 ```
 
 ## Requirements
 
-- Python >= 3.13
-- Runtime dependencies: PyYAML, typer, fastapi, pydantic, uvicorn, websockets
+| Component  | Runtime        | Database     | Cache  | Storage |
+|------------|---------------|--------------|--------|---------|
+| AIOS       | Python >= 3.13 | —            | —      | —       |
+| Backend    | Node >= 20     | PostgreSQL 16 | Redis 7 | MinIO  |
+| Frontend   | Node >= 20     | —            | —      | —       |
 
-## CLI Overview
-
-AIOS provides 21 commands covering the full system lifecycle:
-
-| Command      | Description |
-|-------------|-------------|
-| `scan`      | Scan the repository and produce scan.json |
-| `index`     | Build indexes from scan results |
-| `state`     | Manage persistence state via EOS PersistenceStore |
-| `context`   | Build execution context for a task |
-| `checkpoint`| Manage persistence checkpoints |
-| `run`       | Run the full autonomous workflow |
-| `execute`   | Execute an EOS workflow through the pipeline |
-| `report`    | Generate observability reports |
-| `metrics`   | Collect and display runtime metrics |
-| `memory`    | Manage long-term and short-term memories |
-| `decision`  | Evaluate execution paths and make decisions |
-| `validate`  | Validate all EOS components against repository evidence |
-| `health`    | Check system health status |
-| `doctor`    | Run comprehensive system diagnostics |
-| `recover`   | Recover system state from a memory snapshot |
-| `chat`      | Chat with an AI agent |
-| `workflow`  | Manage multi-agent workflows |
-| `tools`     | List, inspect, and run registered tools |
-| `plugins`   | Manage AIOS plugins |
-| `agent`     | Manage AI agents |
-| `config`    | View and manage AIOS configuration |
-
-## Documentation
-
-- [CLI Reference](docs/CLI.md) — Full command reference with examples
-- [API Documentation](docs/API.md) — REST API routes and schemas
-- [Developer Guide](docs/DeveloperGuide.md) — Building, testing, and contributing
-- [Configuration Guide](docs/ConfigurationGuide.md) — All configuration options
-- [Architecture](docs/Architecture.md) — System architecture and component design
-- [Release Notes](docs/ReleaseNotes.md) — Version history and upgrade notes
-- [Security Review](FINAL_SECURITY_REPORT.md) — Security audit findings
-
-## Development
+## Quick Start (Full Platform)
 
 ```bash
-# Clone and install with dev dependencies
-git clone https://github.com/cyadagiri0101-max/mitra-aios.git
-cd mitra-aios
-python -m venv .venv
-.venv\Scripts\activate
+# 1. Prerequisites
+#    - PostgreSQL 16+ running on localhost:5432
+#    - Redis 7+ running on localhost:6379 (optional, disabled by default)
+#    - MinIO running on localhost:9000 (optional)
+
+# 2. Configure environment
+cp .env.example .env
+# Edit .env with your DB_USERNAME, DB_PASSWORD, JWT_SECRET
+
+# 3. Backend setup
+cd mitra-backend
+npm install
+npm run build
+npm run migration:run     # Run all TypeORM migrations
+npm run seed              # Seed reference data (requires SEED_ADMIN_PASSWORD)
+npm run start:dev         # http://localhost:3001
+
+# 4. Frontend setup (separate terminal)
+cd mitra-frontend
+npm install
+npm run dev               # http://localhost:3000
+
+# 5. AIOS setup
 pip install -e ".[dev]"
-
-# Run tests
-pytest
-
-# Build distribution
-python -m build
+aios --help
 ```
 
-## Project Structure
+## Testing
 
+```bash
+# Backend unit tests
+cd mitra-backend && npm test
+
+# Backend E2E tests (requires test database)
+cd mitra-backend && npm run test:e2e
+
+# Backend with coverage
+cd mitra-backend && npm run test:cov
+
+# Python AIOS tests
+pytest --cov=aios --cov-fail-under=80
+
+# E2E commercial workflow verification
+python scripts/workflow_certification_probe.py
 ```
-src/aios/
-  cli/         — CLI application and 21 command modules
-  api/         — FastAPI REST API with 15 route modules
-  eos/         — Execution-Oriented System core engine
-  security/    — Authentication, authorization, encryption
-  config/      — Configuration loading and management
-  agent/       — AI agent management and coordination
-  tools/       — Tool execution and sandbox
-  llm/         — LLM provider abstraction (7 providers)
-  embedding/   — Embedding provider abstraction (6 providers)
-  memory/      — Memory systems (working, episodic, semantic)
-  rag/         — Retrieval-Augmented Generation
-  scheduler/   — Job scheduling and queue management
-  multiagent/  — Multi-agent coordination and consensus
-  observability/ — Health, metrics, tracing, audit
-  plugins/     — Plugin system (indexer, scanner)
-  repository/  — File scanning and indexing
-  vectorstore/ — Vector store abstraction (7 providers)
-```
+
+## Release Verification
+
+Push to `main` or `develop` triggers the `release-check` workflow which:
+1. Runs Ruff lint and pytest on AIOS (Python, 80% coverage floor)
+2. Builds and unit-tests the NestJS backend
+3. Runs all TypeORM migrations against a fresh PostgreSQL
+4. Seeds reference data (roles, permissions, workflow states)
+5. Executes E2E tests against the running backend
+6. Runs the workflow certification probe
+7. Builds the React frontend
+
+See [docs/DEVELOPER_QUICKSTART.md](docs/DEVELOPER_QUICKSTART.md) for detailed setup.
+
+## Key Documentation
+
+- [Architecture](docs/Architecture.md)
+- [API Standards](docs/API_STANDARDS.md)
+- [Database Schema](docs/DB_SCHEMAS.md)
+- [Permission Model](docs/PERMISSION_MODEL.md)
+- [Security Architecture](docs/SECURITY_ARCHITECTURE.md)
+- [Developer Quick Start](docs/DEVELOPER_QUICKSTART.md)
 
 ## License
 

@@ -190,18 +190,20 @@ async function seed(dataSource: DataSource) {
 
   // ─── Admin User ──────────────────────────────────────────────────────────
   const userRepo = dataSource.getRepository(User);
-  let adminUser = await userRepo.findOne({ where: { email: 'admin@mitra.local' } });
-  if (!adminUser) {
-    const _seedPass = process.env.SEED_ADMIN_PASSWORD;
+  const _seedPass = process.env.SEED_ADMIN_PASSWORD;
   if (!_seedPass) {
     console.error('[SEED] SEED_ADMIN_PASSWORD env var is required. Set it in .env before seeding.');
     process.exit(1);
   }
-    if (process.env.NODE_ENV === 'production' && !process.env.SEED_ADMIN_PASSWORD) {
-      console.error('[SEED] Set SEED_ADMIN_PASSWORD env var before seeding in production');
-      process.exit(1);
-    }
-    const passwordHash = await bcrypt.hash(_seedPass, 12);
+  if (process.env.NODE_ENV === 'production' && !_seedPass) {
+    console.error('[SEED] Set SEED_ADMIN_PASSWORD env var before seeding in production');
+    process.exit(1);
+  }
+
+  let adminUser = await userRepo.findOne({ where: { email: 'admin@mitra.local' } });
+  const passwordHash = await bcrypt.hash(_seedPass, 12);
+
+  if (!adminUser) {
     adminUser = await userRepo.save(
       userRepo.create({
         email: 'admin@mitra.local',
@@ -215,6 +217,16 @@ async function seed(dataSource: DataSource) {
       }),
     );
     console.log('  ✓ Admin user: admin@mitra.local (password: SEED_ADMIN_PASSWORD)');
+  } else {
+    adminUser.passwordHash = passwordHash;
+    adminUser.roleId = savedRoles['ADMIN']?.id;
+    adminUser.tenantId = defaultTenant.id;
+    adminUser.status = 'active';
+    adminUser.failedLoginAttempts = 0;
+    adminUser.lockedUntil = null;
+    adminUser.refreshTokenHash = null;
+    await userRepo.save(adminUser);
+    console.log('  ✓ Admin user password refreshed to the current SEED_ADMIN_PASSWORD');
   }
 
   // ─── Supplier & Product Master Data ──────────────────────────────────────

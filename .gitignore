@@ -58,3 +58,19 @@ FINAL_ENGINEERING_REPORT.md
 FINAL_REGRESSION_REPORT.md
 FINAL_BENCHMARK_REPORT.md
 FINAL_RELEASE_REPORT.md
+
+# ── Logs ─────────────────────────────────────────────────────────────────
+*.log
+*.err
+
+# ── Temp / generated scripts ────────────────────────────────────────────
+__e2e_check.ts
+check-*.js
+temp data/
+
+# ── Generated AI index ───────────────────────────────────────────────────
+.ai/index/
+.ai/
+
+# ── Release artifacts ────────────────────────────────────────────────────
+RELEASE/

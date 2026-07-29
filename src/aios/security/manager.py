@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from typing import Any
 
 from aios.core.exceptions import SecurityError
 from aios.core.logger import get_logger
@@ -155,7 +156,8 @@ class SecurityManager:
         result = SecurityValidationResult()
 
         # Validate all components
-        for component in [self._encryption, self._permission, self._secret, self._credential, self._token, self._policy]:
+        components: list[Any] = [self._encryption, self._permission, self._secret, self._credential, self._token, self._policy]
+        for component in components:
             component_result = component.validate()
             result.warnings.extend(component_result.warnings)
             result.errors.extend(component_result.errors)

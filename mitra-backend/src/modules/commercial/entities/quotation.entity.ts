@@ -3,10 +3,14 @@ import { IndustrialBaseEntity } from '@common/entities/industrial-base.entity';
 
 export enum QuotationStatus {
   DRAFT = 'DRAFT',
+  SENT = 'SENT',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+  EXPIRED = 'EXPIRED',
+  PROJECT_CREATED = 'PROJECT_CREATED',
   SUBMITTED = 'SUBMITTED',
   UNDER_REVIEW = 'UNDER_REVIEW',
   APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
   REVISED = 'REVISED',
   WON = 'WON',
   LOST = 'LOST',
@@ -83,6 +87,13 @@ export class Quotation extends IndustrialBaseEntity {
 
   @Column({ name: 'terms_and_conditions', type: 'text', nullable: true })
   termsAndConditions: string | null;
+
+  @Column({ name: 'project_id', type: 'uuid', nullable: true })
+  @Index()
+  projectId: string | null;
+
+  @Column({ type: 'jsonb', nullable: true })
+  terms: Record<string, unknown> | null;
 
   @Column({ type: 'text', nullable: true })
   notes: string | null;

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Iterator
 
 from aios.core.logger import get_logger
 from aios.llm.config import ProviderConfig
@@ -71,7 +72,7 @@ class AnthropicProvider(LLMProvider):
         self._validate_config()
         raise NotImplementedError("Anthropic API transport not implemented")
 
-    def stream(self, request: LLMRequest) -> list[str]:
+    def stream(self, request: LLMRequest) -> Iterator[str]:
         self._require_initialized()
         self._validate_config()
         raise NotImplementedError("Anthropic streaming transport not implemented")

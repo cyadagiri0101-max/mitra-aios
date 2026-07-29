@@ -5,6 +5,8 @@ import { of } from 'rxjs';
 const makeContext = (method: string, url: string, user: any = null) => {
   const request = { method, url, user, ip: '127.0.0.1', headers: { 'user-agent': 'jest' } };
   return {
+    getHandler: () => ({}),
+    getClass:   () => ({}),
     switchToHttp: () => ({ getRequest: () => request }),
   } as unknown as ExecutionContext;
 };
@@ -17,7 +19,7 @@ describe('AuditInterceptor', () => {
 
   beforeEach(() => {
     auditSvc = { log: jest.fn().mockResolvedValue(undefined) };
-    interceptor = new AuditInterceptor(auditSvc as any);
+    interceptor = new AuditInterceptor(auditSvc as any, { getAllAndOverride: () => undefined } as any);
   });
 
   it('passes through GET requests without auditing', (done) => {
@@ -79,7 +81,7 @@ describe('AuditInterceptor', () => {
   });
 
   it('does not throw when auditService is null (graceful fallback)', () => {
-    const interceptorNoSvc = new AuditInterceptor(null);
+    const interceptorNoSvc = new AuditInterceptor(null, { getAllAndOverride: () => undefined } as any);
     const ctx = makeContext('POST', '/api/test');
     expect(() => interceptorNoSvc.intercept(ctx, makeHandler())).not.toThrow();
   });

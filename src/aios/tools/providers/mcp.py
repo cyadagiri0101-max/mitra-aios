@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Iterator
 
 from aios.core.exceptions import ToolError
 from aios.core.logger import get_logger
@@ -51,7 +52,7 @@ class MCPProvider(ToolProvider):
         self._require_initialized()
         raise NotImplementedError("MCPProvider requires MCP client implementation")
 
-    def stream(self, request: ToolRequest) -> list[str]:
+    def stream(self, request: ToolRequest) -> Iterator[str]:
         self._require_initialized()
         raise NotImplementedError("MCPProvider requires MCP client implementation")
 
