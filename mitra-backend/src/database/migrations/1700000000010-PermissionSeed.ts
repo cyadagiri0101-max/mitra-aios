@@ -21,7 +21,7 @@ export class PermissionSeed1700000000010 implements MigrationInterface {
 
     for (const r of roles) {
       await queryRunner.query(
-        `INSERT INTO security.roles (name, description, is_system) VALUES ($1, $2, TRUE) ON CONFLICT (name) DO NOTHING`,
+        `INSERT INTO roles (name, description, is_system) VALUES ($1, $2, TRUE) ON CONFLICT (name) DO NOTHING`,
         [r.name, r.description],
       );
     }
@@ -165,7 +165,7 @@ export class PermissionSeed1700000000010 implements MigrationInterface {
 
     for (const p of permissions) {
       await queryRunner.query(
-        `INSERT INTO security.permissions (resource, action) VALUES ($1, $2) ON CONFLICT (resource, action) DO NOTHING`,
+        `INSERT INTO permissions (resource, action) VALUES ($1, $2) ON CONFLICT (resource, action) DO NOTHING`,
         [p.resource, p.action],
       );
     }
@@ -279,9 +279,9 @@ export class PermissionSeed1700000000010 implements MigrationInterface {
       for (const permKey of permKeys) {
         const [resource, action] = permKey.split(':');
         await queryRunner.query(
-          `INSERT INTO security.role_permissions (role_id, permission_id)
+          `INSERT INTO role_permissions (role_id, permission_id)
            SELECT r.id, p.id
-           FROM security.roles r, security.permissions p
+           FROM roles r, permissions p
            WHERE r.name = $1 AND p.resource = $2 AND p.action = $3
            ON CONFLICT DO NOTHING`,
           [roleName, resource, action],
@@ -298,11 +298,11 @@ export class PermissionSeed1700000000010 implements MigrationInterface {
       qa_inspector: [], qa_engineer: [], service_tech: [], viewer: [],
     })) {
       await queryRunner.query(
-        `DELETE FROM security.role_permissions WHERE role_id = (SELECT id FROM security.roles WHERE name = $1)`,
+        `DELETE FROM role_permissions WHERE role_id = (SELECT id FROM roles WHERE name = $1)`,
         [roleName],
       );
     }
-    await queryRunner.query(`DELETE FROM security.permissions`);
-    await queryRunner.query(`DELETE FROM security.roles WHERE is_system = TRUE`);
+    await queryRunner.query(`DELETE FROM permissions`);
+    await queryRunner.query(`DELETE FROM roles WHERE is_system = TRUE`);
   }
 }

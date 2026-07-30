@@ -7,6 +7,7 @@ from typing import Annotated
 
 import typer
 
+from aios import __version__
 from aios.cli.commands import (
     agent_cmd,
     chat_cmd,
@@ -30,7 +31,6 @@ from aios.cli.commands import (
     validate_cmd,
     workflow_cmd,
 )
-from aios import __version__
 from aios.core.config import load_config
 from aios.core.logger import get_logger
 

@@ -54,10 +54,7 @@ npm-audit-prod-report.json
 .ai/index/summary.json
 
 # ── Generated reports ────────────────────────────────────────────────────
-FINAL_ENGINEERING_REPORT.md
-FINAL_REGRESSION_REPORT.md
-FINAL_BENCHMARK_REPORT.md
-FINAL_RELEASE_REPORT.md
+FINAL_*.md
 
 # ── Logs ─────────────────────────────────────────────────────────────────
 *.log

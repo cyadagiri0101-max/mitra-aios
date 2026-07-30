@@ -87,10 +87,10 @@ See [docs/DEVELOPER_QUICKSTART.md](docs/DEVELOPER_QUICKSTART.md) for detailed se
 ## Key Documentation
 
 - [Architecture](docs/Architecture.md)
-- [API Standards](docs/API_STANDARDS.md)
-- [Database Schema](docs/DB_SCHEMAS.md)
-- [Permission Model](docs/PERMISSION_MODEL.md)
-- [Security Architecture](docs/SECURITY_ARCHITECTURE.md)
+- [API Standards](API_STANDARDS.md)
+- [Database Schema](DB_SCHEMAS.md)
+- [Permission Model](PERMISSION_MODEL.md)
+- [Security Architecture](SECURITY_ARCHITECTURE.md)
 - [Developer Quick Start](docs/DEVELOPER_QUICKSTART.md)
 
 ## License

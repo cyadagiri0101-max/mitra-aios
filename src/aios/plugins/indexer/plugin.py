@@ -193,7 +193,6 @@ class IndexerPlugin(BasePlugin):
         for f in files:
             path = f.get("path", "")
             ext = f.get("extension", "")
-            name = f.get("name", "")
             links = tuple(dep_graph.get(path, []))
 
             if reg_name == "document":
