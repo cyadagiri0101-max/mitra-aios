@@ -66,6 +66,8 @@ jobs:
       - name: Install backend deps
         run: npm ci
         working-directory: mitra-backend
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Build backend
         run: npm run build
         working-directory: mitra-backend
