@@ -2,316 +2,153 @@
 
 ## Purpose
 
-This document defines the state machine patterns and workflow orchestration for MITRA. Every domain module is a state machine — entities transition through defined states via events and actions.
-
----
+MITRA's workflow engine governs every stateful business object in the
+platform. It provides the state machine, transition guards, history,
+and cross-domain orchestration used by the commercial, project,
+engineering, manufacturing, quality, and service domains.
 
 ## Architecture
 
-```
-User Action ──► Controller ──► Service
-                                  │
-                                  ▼
-                          State Machine Engine
-                            │           │
-                            ▼           ▼
-                      Validate      Execute Side
-                      Transition    Effects
-                            │           │
-                            ▼           ▼
-                        Update        Publish
-                        Entity        Event
-                            │           │
-                            ▼           ▼
-                        Audit Log    Consumers
-```
+The workflow engine is split into three cooperating parts:
 
-The workflow engine is not a separate service. It is a **pattern** applied consistently in every domain service.
+1. **Workflow states** — the states a domain object can occupy
+   (`workflow_states`).
+2. **Workflow transitions** — the allowed moves between states
+   (`workflow_transitions`), each with guards and effects.
+3. **Workflow instances** — the live state of one entity
+   (`workflow_instances`), with transition history.
 
----
+```
+Entity (RFQ, Quotation, Project, ...)
+   │  status / workflow_instances.row
+   ▼
+WorkflowService.executeTransition(entityType, entityId, action, context)
+   │
+   ├─ validate against workflow_transitions (guards)
+   ├─ write workflow_instances (version-checked)
+   ├─ write audit log + notification queue (same transaction)
+   └─ publish lifecycle events (post-commit, best-effort)
+```
 
 ## State Machine Pattern
 
-Every stateful entity follows this pattern:
+Every workflow defines:
 
-```typescript
-interface StateMachine<S extends string, T extends string> {
-  currentState: S;
-  transitions: Map<S, Map<T, Transition>>;
-}
-
-interface Transition {
-  targetState: string;
-  guards: Guard[];              // conditions that must be true
-  effects: Effect[];             // side effects to execute
-}
-```
+- **States**: e.g. `DRAFT → SUBMITTED → APPROVED → SENT → ACCEPTED`.
+- **Transitions**: pairs of `(from, action) → to` with guard predicates.
+- **Guards**: conditions that must hold for a transition (permission,
+  actor role, business rule). See guard examples below.
+- **Effects**: side effects that run when the transition commits.
 
 ### Guard Examples
 
-```typescript
-// Transition guards
-userHasPermission('commercial:quotation', 'approve'),
-projectInStatus('engineering', 'manufacturing'),
-entityBelongsToUser(currentUser),
-allRequiredFieldsFilled(entity),
-noActiveNCRForEntity(entityId),
-```
+| Domain | Transition | Guard |
+|---|---|---|
+| RFQ | `SUBMIT` | actor has `commercial:rfq:submit` permission |
+| RFQ | `APPROVE` | actor has approval role; RFQ is `SUBMITTED`; no prior approve |
+| Quotation | `ACCEPT` | quotation is `SENT`; customer active; not already accepted |
+| Project | `START` | quotation accepted; project number unique |
 
 ### Effect Examples
 
-```typescript
-// Side effects executed on successful transition
-publishEvent('quotation.accepted', payload),
-notifyUser(projectLead, 'Design approved'),
-createTask('Update BOM', projectId),
-updateProjectTimeline(milestoneId),
-```
-
----
+| Transition | Effect |
+|---|---|
+| RFQ `APPROVE` | notification to owner; RFQ revision snapshot |
+| Quotation `ACCEPT` | project created (via QuotationAcceptanceService); enquiry → CONVERTED |
+| Quotation `SEND` | notification to customer channel |
 
 ## Domain State Machines
 
 ### 1. RFQ
 
 ```
-States:    draft ──► submitted ──► under_review ──► quoted ──► won
-                                                        │
-                                                        └──► lost
+DRAFT → SUBMITTED → APPROVED → (quotation created)
+   ↘ REJECTED        ↗ (revise → DRAFT)
 ```
-
-| From | Action | To | Guards | Effects |
-|------|--------|----|--------|---------|
-| draft | submit | submitted | All required fields filled | Notify sales manager |
-| submitted | assign_reviewer | under_review | User is sales manager | - |
-| under_review | quote | quoted | Valid quotation entered | Create quotation |
-| quoted | win | won | Customer accepts | Publish QuotationAccepted |
-| quoted | lose | lost | Customer rejects or expires | Log reason |
 
 ### 2. Quotation
 
 ```
-States:    draft ──► sent ──► accepted ──► project_created
-                            │
-                            └──► rejected
-                            │
-                            └──► expired
+DRAFT → (items priced) → SENT → ACCEPTED → (project created)
+                            ↘ REJECTED
+                            ↘ REVISED → DRAFT (new revision)
 ```
-
-| From | Action | To | Guards | Effects |
-|------|--------|----|--------|---------|
-| draft | send | sent | Quotation approved internally | Email to customer |
-| sent | accept | accepted | Within valid_until | Publish QuotationAccepted |
-| sent | reject | rejected | - | Log rejection reason |
-| sent | expire | expired | valid_until < today | - |
 
 ### 3. Project
 
+v3.3 (Sprint 2.2) — DB-driven `project_management` workflow (ADR-009):
+
 ```
-States:    planning ──► engineering ──► manufacturing ──► trial ──► dispatch ──► completed
-             │              │                 │             │          │
-             │              │                 │             │          └──► service
-             │              │                 │             │
-             │              │                 │             └──► quality_hold
-             │              │                 │
-             │              │                 └──► rework
-             │              │
-             │              └──► design_review
-             │
-             └──► on_hold ──► resumed
+DRAFT → KICKOFF → DESIGN → PLANNING → EXECUTION → MONITORING → CLOSING → COMPLETED
+                                                                    ↘ ARCHIVED
 ```
 
-| From | Action | To | Guards | Effects |
-|------|--------|----|--------|---------|
-| planning | start_engineering | engineering | Design team assigned | Publish MilestoneReached |
-| engineering | design_approved | manufacturing | All designs approved | Publish DesignApproved |
-| manufacturing | production_complete | trial | All work orders done | Schedule trial |
-| trial | trial_passed | dispatch | Trial results >= threshold | Publish TrialConducted |
-| trial | trial_failed | manufacturing | Trial results < threshold | Create rework tasks |
-| dispatch | delivered | completed | Customer accepts delivery | Publish ProjectCompleted |
-| * | hold | on_hold | Manager action | Notify stakeholders |
-| on_hold | resume | {previous state} | Hold reason resolved | - |
+- The workflow row is the single source of truth; the project `stage` and
+  `status` columns are synced from it by `ProjectWorkflowService`.
+- Transitions are executed through
+  `POST /project/:id/workflow/transition` (permission
+  `project:transition`) and recorded in workflow history + `project_activity_log`.
+- Pre-v3.3 the project stage was a coarse enum mutated by generic updates;
+  that path is gone — generic PATCH never touches `stage`/`status`.
 
 ### 4. Design
 
 ```
-States:    draft ──► under_review ──► approved ──► superseded
+UPLOADED → UNDER_REVIEW → APPROVED
+              ↘ REJECTED → UPLOADED (revision)
 ```
-
-| From | Action | To | Guards | Effects |
-|------|--------|----|--------|---------|
-| draft | submit_review | under_review | CAD file attached | Notify reviewer |
-| under_review | approve | approved | Reviewer approval | Publish DesignApproved |
-| under_review | request_changes | draft | Changes requested | Notify designer |
-| approved | supersede | superseded | New revision created | Archive previous revision |
 
 ### 5. BOM
 
 ```
-States:    draft ──► released ──► revised
+DRAFT → VALIDATED → RELEASED → (work orders)
 ```
-
-| From | Action | To | Guards | Effects |
-|------|--------|----|--------|---------|
-| draft | release | released | All BOM items validated | Publish BOMCreated |
-| released | revise | revised | Engineering change exists | Create new BOM version |
-| released | supersede | superseded | Replacement BOM exists | Archive |
 
 ### 6. Work Order
 
 ```
-States:    pending ──► released ──► in_progress ──► completed ──► closed
-                              │                        │
-                              └──► cancelled            └──► on_hold
+CREATED → SCHEDULED → IN_PROGRESS → COMPLETED
+              ↘ CANCELLED
 ```
-
-| From | Action | To | Guards | Effects |
-|------|--------|----|--------|---------|
-| pending | release | released | Machine available, material ready | Publish WorkOrderReleased |
-| released | start | in_progress | Operator assigned | Publish ProductionRunStarted |
-| in_progress | complete | completed | All quantity produced | Publish ProductionRunCompleted |
-| in_progress | report_issue | on_hold | Issue detected | Create NCR |
-| on_hold | resolve | in_progress | Issue resolved | - |
-| pending | cancel | cancelled | Manager approval | - |
 
 ### 7. NCR
 
 ```
-States:    open ──► under_investigation ──► actioned ──► closed
-             │                                │
-             └──► rejected                    └──► escalated
+OPENED → INVESTIGATING → DISPOSITIONED → CLOSED
 ```
-
-| From | Action | To | Guards | Effects |
-|------|--------|----|--------|---------|
-| open | investigate | under_investigation | QA engineer assigned | - |
-| under_investigation | action | actioned | Root cause identified | Initiate CAPA if needed |
-| actioned | verify | closed | Effectiveness verified | Publish NCR closed |
-| actioned | escalate | escalated | Beyond project scope | Notify management |
-| open | reject | rejected | Not a valid NCR | Log reason |
 
 ### 8. CAPA
 
 ```
-States:    initiated ──► in_progress ──► verification ──► closed
-                                    │
-                                    └──► on_hold
+RAISED → ANALYZING → ACTION_PLANNED → IMPLEMENTED → VERIFIED → CLOSED
 ```
-
-| From | Action | To | Guards | Effects |
-|------|--------|----|--------|---------|
-| initiated | start | in_progress | Actions defined and assigned | - |
-| in_progress | complete_actions | verification | All actions completed | Schedule verification |
-| verification | verify_close | closed | Effectiveness verified | Publish CAPAClosed |
-| verification | reopen | in_progress | Effectiveness not verified | Create follow-up actions |
 
 ### 9. Service Request
 
 ```
-States:    open ──► in_progress ──► resolved ──► closed
-             │                         │
-             └──► on_hold              └──► reopened
+LOGGED → ASSIGNED → IN_PROGRESS → RESOLVED → CLOSED
 ```
 
-| From | Action | To | Guards | Effects |
-|------|--------|----|--------|---------|
-| open | assign | in_progress | Service tech available | Notify assignee |
-| in_progress | resolve | resolved | Resolution documented | Publish ServiceRequestResolved |
-| resolved | close | closed | Customer confirmation | - |
-| resolved | reopen | in_progress | Issue persists | Reset SLA timer |
-| open | hold | on_hold | Parts not available | - |
-
----
-
 ## Cross-Domain Workflows
-
-These workflows span multiple bounded contexts and are orchestrated via the event bus.
 
 ### Quote-to-Project
 
 ```
-Commercial              Project
-────────────────────────────────────────────────
-quotation.accepted ──► project.created
-                        milestone.reached (planning)
+Enquiry → RFQ → Quotation → Acceptance → Project
+   CONVERTED   SUBMITTED   SENT/ACCEPTED   ACTIVE
 ```
 
 ### Design-to-Manufacturing
 
 ```
-Engineering                Manufacturing           Quality
-────────────────────────────────────────────────────────────────
-design.approved ──► production_plan.created
-                    process_plan.created
-                    work_order.released ──► inspection_plan.created
+Design Approved → BOM Released → Work Orders → Production
 ```
 
 ### Issue-to-Closure
 
 ```
-Quality                    Engineering              Knowledge
-────────────────────────────────────────────────────────────────
-ncr.created ──► engineering.change.requested
-capa.initiated
-                    │
-                    ▼
-              change.approved ──► knowledge.entry.created (lesson learned)
+NCR/CAPA → Investigation → Disposition → Verification → Closure
 ```
-
-### Project-to-Knowledge
-
-```
-Project              Knowledge
-────────────────────────────────────────────────
-project.completed ──► knowledge.entry.created (lessons learned, best practices, design rules)
-```
-
----
-
-## Workflow Engine Interface
-
-```typescript
-interface WorkflowEngine {
-  // Transition an entity to a new state
-  transition(
-    domain: string,
-    entityType: string,
-    entityId: string,
-    action: string,
-    context: TransitionContext
-  ): Promise<TransitionResult>;
-
-  // Get current state and available actions
-  getState(
-    domain: string,
-    entityType: string,
-    entityId: string
-  ): Promise<EntityState>;
-
-  // Get state history for an entity
-  getHistory(
-    domain: string,
-    entityType: string,
-    entityId: string
-  ): Promise<StateTransition[]>;
-}
-
-interface TransitionContext {
-  actorId: string;
-  reason?: string;
-  metadata?: Record<string, unknown>;
-}
-
-interface TransitionResult {
-  success: boolean;
-  previousState: string;
-  newState: string;
-  eventsPublished: string[];
-  error?: string;
-}
-```
-
----
 
 ## State Transition History
 
@@ -338,3 +175,80 @@ This table enables:
 - Time-in-state analysis for bottlenecks.
 - Audit of who changed what and why.
 - Replay of entity lifecycle for traceability.
+
+---
+
+## v3.2.1 Addendum — Transactional Workflow Execution
+
+Sprint 2.1.1 hardened the execution model described above:
+
+### 1. Atomic transitions (ADR-001 / ADR-006)
+
+Every mutating workflow operation now runs inside a single database
+transaction:
+
+```
+executeTransition
+└─ dataSource.transaction(async (em) => {
+     state save (guarded by the state machine)
+     workflow instance update (version-checked, ADR-002)
+     audit log write (mandatory, same transaction)
+     notification enqueue (same transaction)
+   })
+   └─ post-commit (best-effort): AI sync / integrations
+```
+
+- Repository methods accept an optional EntityManager and join the caller's
+  transaction when provided.
+- A transition can never commit without its audit record; a failed audit or
+  queue write rolls the whole transition back.
+
+### 2. Guarded transitions (C-1/C-2 remediation)
+
+- `status` is no longer accepted by generic update DTOs.
+- RFQ/Quotation state changes only via state-machine methods; duplicate
+  accept/approve returns 400.
+
+### 3. Optimistic locking (ADR-002)
+
+- `workflow_instances.version` (`@VersionColumn`) — stale writers get
+  `OptimisticLockVersionMismatchError` → HTTP 409.
+
+### 4. Orchestrated acceptance (ADR-004)
+
+- `QuotationAcceptanceService` runs accept → project create → link as a
+  coordinated flow; the project exists only when acceptance commits.
+
+### Verification (v3.2.1)
+
+- Rollback tests: `rfq.service.spec.ts` (audit/queue failure aborts
+  transition, no notification emitted).
+- Structural migration test: `src/test/migration-0014.spec.ts`.
+- e2e: `test/commercial.e2e-spec.ts` (17-test lifecycle incl. duplicate
+  accept → 400, 401, pagination).
+
+## v3.3 Addendum — DB-driven Project Management lifecycle (Sprint 2.2)
+
+- The `project_management` workflow (states `DRAFT → KICKOFF → DESIGN →
+  PLANNING → EXECUTION → MONITORING → CLOSING → COMPLETED → ARCHIVED`, 8
+  transitions) is seeded by migration 0015 (fixed UUIDs) and `seed.ts`
+  (lookup by `stateCode` + `workflowType`).
+- `ProjectWorkflowService` uses the same transactional execution contract:
+  workflow instance version bump, state change, audit, and activity log
+  commit in one transaction; AI sync best-effort post-commit.
+- `ProjectFactoryService` creates the workflow instance at project creation
+  (entity type `project`); `findTransitionsForState` drives the
+  `availableTransitions` list exposed on the project detail route.
+- Guarded transitions: executing an unknown/illegal transition is rejected;
+  only seeded transitions are executable.
+- Verification: `project-workflow.service.spec.ts` (8 tests) covers
+  permission-filtered transitions, lazy instance init, stage/status sync, and
+  COMPLETED setting `actualEndDate`.
+
+### References
+
+- `docs/architecture/ADR-001-transactional-workflow-consistency.md`
+- `docs/architecture/ADR-002-optimistic-locking.md`
+- `docs/architecture/ADR-006-workflow-transaction-architecture.md`
+- `docs/architecture/ADR-009-project-management-domain.md`
+- `docs/architecture/WORKFLOW_ARCHITECTURE.md`

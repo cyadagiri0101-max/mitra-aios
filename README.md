@@ -1,8 +1,19 @@
 # MITRA — Mold Development Lifecycle Platform
 
-**Version:** 3.2.0 (Sprint 1.1)
+**Version:** 3.2.0 (Sprint 2.1 — Commercial Domain)
 
 MITRA is a mold development lifecycle management platform comprising an AI operating system (AIOS), a NestJS backend, and a React frontend.
+
+## Sprint 2.1 — Commercial Domain
+
+Backend (`mitra-backend/src/modules/commercial`) and frontend (`mitra-frontend/src/pages`):
+
+- **Customers** — master data (types, categories, addresses, notes, attachments, activities) with CSV import/export, lead conversion and premium list/detail pages
+- **Contacts** — per-customer directory with primary-contact management
+- **Leads** — pipeline dashboard (KPIs: total / open / weighted pipeline value / converted), create, convert-to-customer, soft delete
+- **RFQs** — configurable workflow (DB-driven states + transitions: DRAFT → SUBMITTED → TECHNICAL_REVIEW → COMMERCIAL_REVIEW → APPROVED → QUOTED → ACCEPTED → PROJECT_READY), product lines, revision history, linked quotations, detail page with workflow timeline
+- **Quotations** — pricing with margin tracking (value / margin / avg margin %), send → approve → accept (creates project) → reject, revisions, expiry
+- Cross-cutting: RBAC permissions (`customer/contact/lead/rfq/quotation:*`), business audit trail, AI-context sync endpoints (`/commercial/ai-context`), TypeORM migration `1700000000011-CommercialDomainSprint2.ts` + seed data (30 permissions, 8-role matrix, 10 RFQ workflow states, 13 transitions)
 
 ## Repository Structure
 

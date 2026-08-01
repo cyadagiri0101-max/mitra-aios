@@ -1,223 +1,66 @@
 # Database Architecture
 
 ## Purpose
+This document reflects the database architecture currently implemented for MITRA v3.2.1, including the workflow versioning and migration 0014 hardening that the release certification is validating.
 
-This document defines the database architecture for MITRA — schema design, entity relationships, indexing, partitioning, versioning, and migration strategy.
+## Architecture principles
+1. Domain data remains organized around bounded contexts and is stored in PostgreSQL tables that align to the backend modules.
+2. UUID-based identifiers are the default model for the transactional entities used by the backend.
+3. Workflow state and instance versioning are explicit and support optimistic locking for concurrent transitions.
+4. Audit data remains append-oriented and is not used for runtime state transitions.
+5. Migration 0014 strengthens data integrity by enforcing partial uniqueness and null-safe foreign-key behavior where required.
 
----
+## Current implementation view
 
-## Architecture Principles
+### Commercial schema concerns
+- Customers, contacts, RFQs, quotations, and acceptance history are modeled around the commercial workflow.
+- Quotation acceptance links the accepted quotation to the created project.
+- The workflow state and version are stored separately from the business record so transaction boundaries remain explicit.
 
-1. **Schema-per-domain.** Each bounded context owns its PostgreSQL schema. No cross-schema foreign keys.
-2. **UUIDs everywhere.** All primary keys are UUID v4. No auto-increment IDs exposed externally.
-3. **Project ID on every row.** Every entity that belongs to a domain carries `project_id` for universal traceability.
-4. **Immutable audit trail.** Audit and event tables are append-only. No updates, no deletes.
-5. **Soft deletes preferred.** Entity records use `deleted_at` rather than physical deletion.
-6. **JSONB for flexibility.** Domain-specific attributes use JSONB columns where the schema may evolve.
+### Workflow state and locking
+- Workflow instances carry a version column that is incremented on successful transition.
+- A version mismatch is surfaced as an optimistic-lock conflict and becomes an HTTP 409 response.
+- The transaction commits the state change, workflow instance update, audit row, and notification row together.
 
----
+### Migration 0014 posture
+- Migration 0014 is part of the v3.2.1 hardening set.
+- It applies data-integrity safeguards such as partial uniqueness and `ON DELETE SET NULL` handling in the affected master-data relationships.
 
-## Schema Map
-
-```
-Database: mitra
+## Database shape summary
+```text
+PostgreSQL
 ├── commercial
+│   ├── customers
+│   ├── contacts
+│   ├── rfqs
+│   └── quotations
 ├── project
-├── engineering
-├── manufacturing
-├── quality
-├── service
-├── knowledge
-├── security
-└── audit
+│   ├── projects
+│   ├── milestones
+│   ├── tasks
+│   └── teams
+├── workflow
+│   ├── workflow_instances
+│   ├── workflow_states
+│   └── workflow_transitions
+├── audit
+│   └── audit_events
+└── platform
+    └── notifications
 ```
 
----
+## Key integrity rules
+- Business state changes are not applied through ad-hoc updates; workflow methods own state transitions.
+- Audit records are created in the same transaction as the workflow transition to prevent split-brain state.
+- Notification rows are written transactionally so they are never emitted for a rolled-back transition.
 
-## Schema: commercial
+## Validation checklist for release
+- Schema: ready for runtime validation once the PostgreSQL environment is available
+- Foreign keys: should be validated against the actual migration output in a live database
+- Constraints and indexes: should be validated against the actual migration output in a live database
+- Optimistic locking: validated by the workflow unit tests in the backend suite
+- Rollback: validated by the workflow and migration regression tests in the backend suite
 
-Owns: CRM, RFQ, Quotation.
-
-```
-customers
-├── id                  UUID PK
-├── project_id          UUID        -- set when quotation is won
-├── name                VARCHAR(200)
-├── industry            VARCHAR(100)
-├── status              VARCHAR(20)  -- active, inactive, lead
-├── attributes          JSONB        -- flexible customer attributes
-├── created_at          TIMESTAMP
-├── updated_at          TIMESTAMP
-├── deleted_at          TIMESTAMP    -- soft delete
-
-contacts
-├── id                  UUID PK
-├── customer_id         UUID FK → customers.id
-├── first_name          VARCHAR(100)
-├── last_name           VARCHAR(100)
-├── email               VARCHAR(200)
-├── phone               VARCHAR(50)
-├── role                VARCHAR(100)
-├── created_at          TIMESTAMP
-
-rfqs
-├── id                  UUID PK
-├── customer_id         UUID FK → customers.id
-├── project_id          UUID        -- set when quotation is won
-├── reference_number    VARCHAR(50) UNIQUE
-├── status              VARCHAR(30)  -- draft, submitted, under_review, quoted, won, lost
-├── specifications      JSONB
-├── received_at         TIMESTAMP
-├── created_at          TIMESTAMP
-
-quotations
-├── id                  UUID PK
-├── rfq_id              UUID FK → rfqs.id
-├── customer_id         UUID FK → customers.id
-├── project_id          UUID        -- set when accepted → project created
-├── version             INT
-├── status              VARCHAR(30)  -- draft, sent, accepted, rejected, expired
-├── amount              DECIMAL(15,2)
-├── terms               JSONB
-├── valid_until         DATE
-├── accepted_at         TIMESTAMP
-├── created_at          TIMESTAMP
-```
-
----
-
-## Schema: project
-
-Owns: Projects, Milestones, Tasks, Teams, Timeline.
-
-```
-projects
-├── id                  UUID PK
-├── quotation_id        UUID
-├── customer_id         UUID
-├── name                VARCHAR(200)
-├── status              VARCHAR(30)  -- planning, engineering, manufacturing, trial, dispatch, completed
-├── priority            VARCHAR(20)
-├── start_date          DATE
-├── delivery_date       DATE
-├── actual_completion   DATE
-├── attributes          JSONB
-├── created_at          TIMESTAMP
-
-milestones
-├── id                  UUID PK
-├── project_id          UUID FK → projects.id
-├── name                VARCHAR(200)
-├── sequence            INT
-├── target_date         DATE
-├── actual_date         DATE
-├── status              VARCHAR(30)  -- pending, in_progress, completed
-├── created_at          TIMESTAMP
-
-tasks
-├── id                  UUID PK
-├── project_id          UUID FK → projects.id
-├── milestone_id        UUID FK → milestones.id
-├── title               VARCHAR(300)
-├── description         TEXT
-├── assigned_to         UUID
-├── status              VARCHAR(30)  -- todo, in_progress, review, done
-├── due_date            DATE
-├── completed_at        TIMESTAMP
-├── created_at          TIMESTAMP
-
-teams
-├── id                  UUID PK
-├── project_id          UUID FK → projects.id
-├── name                VARCHAR(100)
-├── created_at          TIMESTAMP
-
-team_members
-├── id                  UUID PK
-├── team_id             UUID FK → teams.id
-├── user_id             UUID FK → security.users.id
-├── role                VARCHAR(50)  -- lead, engineer, technician, viewer
-├── created_at          TIMESTAMP
-```
-
----
-
-## Schema: engineering
-
-Owns: Designs, Drawing Revisions, BOM, Process Plans, Engineering Changes.
-
-```
-designs
-├── id                  UUID PK
-├── project_id          UUID FK → projects.id
-├── design_number       VARCHAR(50) UNIQUE
-├── revision            INT DEFAULT 1
-├── status              VARCHAR(30)  -- draft, under_review, approved, superseded
-├── cad_file_ref        TEXT         -- MinIO object key
-├── metadata            JSONB        -- CAD metadata (format, version, author, etc.)
-├── approved_by         UUID
-├── approved_at         TIMESTAMP
-├── created_at          TIMESTAMP
-
-drawing_revisions
-├── id                  UUID PK
-├── design_id           UUID FK → designs.id
-├── project_id          UUID FK → projects.id
-├── revision_number     INT
-├── file_ref            TEXT         -- MinIO object key
-├── changes             TEXT
-├── status              VARCHAR(30)  -- draft, approved, superseded
-├── approved_by         UUID
-├── created_at          TIMESTAMP
-
-boms
-├── id                  UUID PK
-├── project_id          UUID FK → projects.id
-├── design_id           UUID FK → designs.id
-├── version             INT
-├── status              VARCHAR(30)  -- draft, released, revised
-├── created_at          TIMESTAMP
-
-bom_items
-├── id                  UUID PK
-├── bom_id              UUID FK → boms.id
-├── project_id          UUID FK → projects.id
-├── parent_item_id      UUID        -- for multi-level BOM
-├── part_number         VARCHAR(100)
-├── description         TEXT
-├── quantity            DECIMAL(10,2)
-├── unit                VARCHAR(20)
-├── material            VARCHAR(100)
-├── specification       JSONB
-├── created_at          TIMESTAMP
-
-process_plans
-├── id                  UUID PK
-├── project_id          UUID FK → projects.id
-├── bom_id              UUID FK → boms.id
-├── version             INT
-├── status              VARCHAR(30)
-├── created_at          TIMESTAMP
-
-process_operations
-├── id                  UUID PK
-├── process_plan_id     UUID FK → process_plans.id
-├── sequence            INT
-├── operation_name      VARCHAR(200)
-├── machine_type        VARCHAR(100)
-├── estimated_time      INT         -- minutes
-├── description         TEXT
-├── created_at          TIMESTAMP
-
-engineering_changes
-├── id                  UUID PK
-├── project_id          UUID FK → projects.id
-├── change_number       VARCHAR(50) UNIQUE
-├── status              VARCHAR(30)  -- requested, under_review, approved, implemented
-├── reason              TEXT
-├── affected_entities   JSONB        -- [{type, id, description}]
-├── requested_by        UUID
-├── approved_by         UUID
 ├── created_at          TIMESTAMP
 ```
 
@@ -616,3 +459,95 @@ CREATE TABLE knowledge.knowledge_entries_design
   - Data migrations are separate from schema migrations.
   - Migrations run in transaction blocks where possible.
   - Always backup before running migrations in production.
+
+---
+
+## v3.2.1 Addendum — Data Integrity Remediation (migration 0014)
+
+Migration `1700000000014-DataIntegrityRemediation.ts` shipped in v3.2.1:
+
+1. **`workflow_instances.version`** — integer `NOT NULL DEFAULT 1`, backing
+   TypeORM `@VersionColumn` optimistic locking (ADR-002). Version conflicts
+   surface as HTTP 409 via `OptimisticLockVersionMismatchErrorFilter`
+   (`src/common/filters/`).
+2. **Full UNIQUE → partial unique indexes** on soft-delete-aware business
+   keys (`WHERE deleted_at IS NULL AND <col> IS NOT NULL`):
+
+   | Table | Column | Index |
+   |---|---|---|
+   | `customers` | `code` | `uq_customers_code_active` |
+   | `leads` | `lead_number` | `uq_leads_lead_number_active` |
+   | `rfqs` | `rfq_number` | `uq_rfqs_rfq_number_active` |
+   | `customer_types` | `code` | `uq_customer_types_code_active` |
+   | `customer_categories` | `code` | `uq_customer_categories_code_active` |
+
+3. **Referential integrity** — FK `ON DELETE SET NULL`:
+
+   | Constraint | Table | Column → References |
+   |---|---|---|
+   | `fk_leads_contact` | `leads` | `contact_id` → `contacts(id)` |
+   | `fk_leads_owner` | `leads` | `owner_id` → `users(id)` |
+   | `fk_leads_converted_customer` | `leads` | `converted_customer_id` → `customers(id)` |
+   | `fk_rfqs_enquiry` | `rfqs` | `enquiry_id` → `enquiries(id)` |
+   | `fk_rfqs_contact` | `rfqs` | `contact_id` → `contacts(id)` |
+
+4. **Query indexes**: `IDX_rfqs_enquiry` (`rfqs.enquiry_id`),
+   `IDX_customer_activities_reference` (`customer_activities.reference_type,
+   reference_id`).
+
+Rollback: `down()` reverses everything (see
+`docs/guides/Migration_0014_Guide.md`). Structural up/down behavior is tested
+by `mitra-backend/src/test/migration-0014.spec.ts`.
+
+### Integrity guarantees (v3.2.1)
+
+- Active master-data keys are unique at the DB level (defense in depth behind
+  service checks).
+- Deleting a contact/owner/enquiry nulls dependent references instead of
+  orphaning or failing.
+- Workflow instance writes are conflict-detected (version) and transactional
+  (state + audit + notification commit together, ADR-006).
+
+## v3.3 Addendum — Project Management Domain (migration 0015)
+
+Migration `1700000000015-ProjectManagementDomain.ts` shipped in v3.3
+(Sprint 2.2, ADR-009):
+
+### New tables (all VARCHAR enum fields, `IndustrialBaseEntity` tenant scoping)
+
+| Table | Purpose |
+|---|---|
+| `project_teams` | Teams per project (name, department, description) |
+| `project_team_members` | Member ↔ team link with role + capacity_pct |
+| `project_milestones` | Template-derived milestones (planned/actual dates, delay days, approvals) |
+| `project_tasks` | Tasks with status/priority/dates/hours/progress, assignee, milestone link |
+| `project_task_dependencies` | Task dependency edges (soft-delete aware) |
+| `project_task_activity` | Per-task comments/attachments/status notes |
+| `project_risks` | Likelihood × impact → exposure score (clamped 1–25) |
+| `project_documents` | Documents with status + current version link |
+| `project_document_versions` | Immutable released versions (major.minor, checksum, release notes) |
+| `project_activity_log` | Domain-wide business-event audit feed |
+
+### Extended table
+- `projects`: `planned_start_date`, `target_delivery_date`, `overall_progress`,
+  `health_status`, `budget`, `priority`, `risk_level`, `business_unit`,
+  `manager_id` (nullable FK), workflow-created columns for the
+  `project_management` lifecycle.
+
+### Seeds embedded in the migration
+- `project_management` workflow: 9 states (`a0000000-…-0001..0009`: DRAFT,
+  KICKOFF, DESIGN, PLANNING, EXECUTION, MONITORING, CLOSING, COMPLETED,
+  ARCHIVED) and 8 transitions (`b0000000-…-0001..0008`).
+- DEFAULT_MOLD milestone template: 10 items (`c0000000-…-100..110`, day
+  offsets 0/14/30/45/60/75/85/90/95/110).
+- 8 departments (`d0000000-…-0001..0008`): MANAGEMENT, SALES, DESIGN,
+  PLANNING, PROCUREMENT, PRODUCTION, QUALITY, SERVICE.
+
+### Notes
+- `seed.ts` re-provisions the same workflow/template/departments by
+  `(stateCode, workflowType)` / `code`, so migration-seeded fixed-UUID rows
+  win on databases where both run.
+- The factory reads the DEFAULT_MOLD template with a 3-condition fallback
+  (`tenant_id IS NULL` / matching tenant / any) so tenant-seeded copies are
+  always found.
+- Rollback `down()` drops the new tables and restores `projects` columns.
