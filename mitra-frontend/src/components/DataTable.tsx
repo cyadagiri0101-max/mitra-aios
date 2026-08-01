@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { memo, ReactNode } from 'react';
 
 interface Column<T> {
   key: string;
@@ -13,19 +13,19 @@ interface DataTableProps<T> {
   onRowClick?: (item: T) => void;
 }
 
-export function DataTable<T extends Record<string, any>>({ columns, data, loading, onRowClick }: DataTableProps<T>) {
+function DataTableInner<T extends Record<string, any>>({ columns, data, loading, onRowClick }: DataTableProps<T>) {
   if (loading) {
     return (
-      <div className="p-8 text-center">
-        <div className="inline-block w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+      <div className="p-8 text-center" role="status" aria-live="polite">
+        <div className="inline-block w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
         <p className="text-slate-300 text-sm mt-2">Loading…</p>
       </div>
     );
   }
   if (!data?.length) {
     return (
-      <div className="p-12 text-center">
-        <svg className="w-12 h-12 text-slate-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="p-12 text-center" role="status" aria-live="polite">
+        <svg className="w-12 h-12 text-slate-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
         </svg>
         <p className="text-sm text-slate-300 font-medium">No data available</p>
@@ -40,10 +40,10 @@ export function DataTable<T extends Record<string, any>>({ columns, data, loadin
         <thead className="bg-slate-900/90">
           <tr>
             {columns.map(col => (
-              <th key={col.key} className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                {col.header}
-              </th>
-            ))}
+                <th key={col.key} className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400" scope="col">
+                  {col.header}
+                </th>
+              ))}
           </tr>
         </thead>
         <tbody className="divide-y divide-white/10">
@@ -65,3 +65,5 @@ export function DataTable<T extends Record<string, any>>({ columns, data, loadin
     </div>
   );
 }
+
+export const DataTable = memo(DataTableInner) as typeof DataTableInner;

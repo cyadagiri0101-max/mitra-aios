@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate } from 'react-router-dom';
 
 const customerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(200),
@@ -25,6 +26,7 @@ export function CustomersPage() {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: customers, isLoading, error } = useQuery({
     queryKey: ['customers'],
@@ -76,7 +78,9 @@ export function CustomersPage() {
   );
 
   const columns = [
-    { key: 'name', header: 'Name' },
+    { key: 'name', header: 'Name', render: (c: any) => (
+      <button onClick={() => navigate(`/customers/${c.id}`)} className="text-cyan-300 hover:text-cyan-200 hover:underline">{c.name}</button>
+    )},
     { key: 'industry', header: 'Industry' },
     { key: 'status', header: 'Status', render: (c: any) => (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${c.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{c.status}</span>

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef } from 'react';
+import { memo, ReactNode, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -9,20 +9,50 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+const FOCUSABLE =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function ModalInner({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusables = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE),
+      ).filter((el) => el.offsetParent !== null);
+      if (focusables.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && (active === first || active === overlayRef.current)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
+
     if (isOpen) {
-      document.addEventListener('keydown', handleEsc);
+      previousFocusRef.current = document.activeElement as HTMLElement | null;
+      document.addEventListener('keydown', handleKey);
       document.body.style.overflow = 'hidden';
+      requestAnimationFrame(() => dialogRef.current?.focus());
     }
     return () => {
-      document.removeEventListener('keydown', handleEsc);
+      document.removeEventListener('keydown', handleKey);
       document.body.style.overflow = '';
+      if (isOpen) previousFocusRef.current?.focus?.();
     };
   }, [isOpen, onClose]);
 
@@ -39,7 +69,11 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className={`bg-white rounded-xl shadow-2xl w-full ${sizeClasses[size]} mx-4 max-h-[90vh] flex flex-col`}>
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        className={`bg-white rounded-xl shadow-2xl w-full outline-none ${sizeClasses[size]} mx-4 max-h-[90vh] flex flex-col`}
+      >
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <h3 id="modal-title" className="text-lg font-semibold text-gray-900">{title}</h3>
           <button
@@ -55,3 +89,5 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
     </div>
   );
 }
+
+export const Modal = memo(ModalInner);

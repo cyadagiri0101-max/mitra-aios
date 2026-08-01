@@ -1,5 +1,5 @@
 import {
-  createContext, useContext, useState, useCallback,
+  createContext, useContext, useState, useCallback, useMemo,
   useEffect, ReactNode, useRef,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -182,8 +182,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return user.permissions.includes(`${resource}:${action}`);
   }, [user]);
 
-  return (
-    <AuthContext.Provider value={{
+  const value = useMemo(
+    () => ({
       user,
       isAuthenticated: !!accessToken && !!user,
       isLoading,
@@ -191,7 +191,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       hasRole,
       hasPermission,
-    }}>
+    }),
+    [user, accessToken, isLoading, login, logout, hasRole, hasPermission],
+  );
+
+  return (
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

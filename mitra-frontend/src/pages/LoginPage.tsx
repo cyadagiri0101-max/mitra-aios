@@ -264,14 +264,17 @@ function LoginForm({
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.35 }}
             >
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-[#A1A1A6]">
+              <label htmlFor="login-email" className="block text-xs font-semibold uppercase tracking-wider mb-2 text-[#A1A1A6]">
                 Email
               </label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-3.5 w-4 h-4 text-[#A1A1A6] transition-colors group-focus-within:text-cyan-300" />
                 <input
+                  id="login-email"
                   type="email"
                   autoComplete="email"
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? 'login-email-error' : undefined}
                   {...register('email', {
                     required: 'Email is required',
                     pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Valid email required' },
@@ -281,7 +284,7 @@ function LoginForm({
                 />
               </div>
               {errors.email && (
-                <p className="mt-2 text-xs flex items-center gap-1 text-red-400">
+                <p id="login-email-error" role="alert" className="mt-2 text-xs flex items-center gap-1 text-red-400">
                   <AlertCircle className="w-3 h-3" /> {errors.email.message?.toString()}
                 </p>
               )}
@@ -292,14 +295,17 @@ function LoginForm({
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-[#A1A1A6]">
+              <label htmlFor="login-password" className="block text-xs font-semibold uppercase tracking-wider mb-2 text-[#A1A1A6]">
                 Password
               </label>
               <div className="relative group">
                 <Lock className="absolute left-4 top-3.5 w-4 h-4 text-[#A1A1A6] transition-colors group-focus-within:text-cyan-300" />
                 <input
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
+                  aria-invalid={!!errors.password}
+                  aria-describedby={errors.password ? 'login-password-error' : undefined}
                   {...register('password', {
                     required: 'Password is required',
                     minLength: { value: 8, message: 'Minimum 8 characters' },
@@ -310,14 +316,15 @@ function LoginForm({
                 <button
                   type="button"
                   onClick={() => setShowPassword(s => !s)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
                   className="absolute right-4 top-3.5 text-[#A1A1A6] hover:text-cyan-300 transition-colors"
-                  tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-2 text-xs flex items-center gap-1 text-red-400">
+                <p id="login-password-error" role="alert" className="mt-2 text-xs flex items-center gap-1 text-red-400">
                   <AlertCircle className="w-3 h-3" /> {errors.password.message?.toString()}
                 </p>
               )}

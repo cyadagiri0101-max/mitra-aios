@@ -5,7 +5,7 @@ import {
   LayoutDashboard, FolderKanban, Mail, FileText, PenTool, Calendar,
   Factory, ShieldCheck, FlaskConical, AlertTriangle, Truck, Wrench, Bot,
   BarChart3, FileStack, Users, GitPullRequest, Workflow, Search, Settings,
-  ChevronLeft, ChevronRight, Boxes, Layers, Ruler,
+  ChevronLeft, ChevronRight, Boxes, Layers, Ruler, Target, ClipboardList,
 } from 'lucide-react';
 
 type NavItem = { path: string; label: string; icon: React.ElementType; roles: string[]; badge?: string };
@@ -14,6 +14,8 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/dashboard',     label: 'Dashboard',     icon: LayoutDashboard, roles: ['all'] },
   { path: '/projects',      label: 'Projects',      icon: FolderKanban,    roles: ['all'] },
   { path: '/enquiries',     label: 'Enquiries',     icon: Mail,            roles: ['SALES','ADMIN','MANAGEMENT'] },
+  { path: '/leads',         label: 'Leads',         icon: Target,          roles: ['SALES','ADMIN','MANAGEMENT'], badge: 'New' },
+  { path: '/rfqs',          label: 'RFQs',          icon: ClipboardList,   roles: ['SALES','ADMIN','MANAGEMENT'], badge: 'New' },
   { path: '/quotations',    label: 'Quotations',    icon: FileText,        roles: ['SALES','ADMIN','MANAGEMENT'] },
   { path: '/design',        label: 'Design',        icon: PenTool,         roles: ['DESIGN','ADMIN','MANAGEMENT'] },
   { path: '/planning',      label: 'Planning',      icon: Calendar,        roles: ['PLANNING','ADMIN','MANAGEMENT'] },

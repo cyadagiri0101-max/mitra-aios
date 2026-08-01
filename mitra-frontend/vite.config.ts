@@ -26,11 +26,19 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Vendor code-splitting: react, recharts, router in separate chunks
-        manualChunks: {
-          'vendor-react':    ['react', 'react-dom', 'react-router-dom'],
-          'vendor-query':    ['@tanstack/react-query', 'axios'],
-          'vendor-charts':   ['recharts'],
-          'vendor-ui':       ['lucide-react', '@headlessui/react'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('framer-motion') || id.includes('motion-dom') || id.includes('motion-utils')) {
+              return 'vendor-motion';
+            }
+            if (id.includes('recharts')) return 'vendor-charts';
+            if (id.includes('@tanstack/react-query') || id.includes('axios')) return 'vendor-query';
+            if (id.includes('lucide-react') || id.includes('@headlessui/react')) return 'vendor-ui';
+            if (id.includes('react-router-dom') || id.includes('react-dom') || id.includes('/react/')) {
+              return 'vendor-react';
+            }
+          }
+          return undefined;
         },
       },
     },

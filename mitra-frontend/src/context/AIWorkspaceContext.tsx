@@ -25,6 +25,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useMemo,
   useState,
   useRef,
   type ReactNode,
@@ -411,26 +412,46 @@ export function AIWorkspaceProvider({ children }: { children: ReactNode }) {
 
   // ── Context value ────────────────────────────────────────────────────────
 
-  const value: AIWorkspaceContextValue = {
-    isCommandBarOpen,
-    recentCommandIds,
-    openCommandBar,
-    closeCommandBar,
-    handleCommand,
+  const value: AIWorkspaceContextValue = useMemo(
+    () => ({
+      isCommandBarOpen,
+      recentCommandIds,
+      openCommandBar,
+      closeCommandBar,
+      handleCommand,
 
-    actions,
-    addAction,
-    executeAction,
-    cancelAction,
-    retryAction,
-    clearCompletedActions,
+      actions,
+      addAction,
+      executeAction,
+      cancelAction,
+      retryAction,
+      clearCompletedActions,
 
-    executionPreview,
-    isExecutingPreviewId,
-    openExecutionPreview,
-    closeExecutionPreview,
-    confirmExecution,
-  };
+      executionPreview,
+      isExecutingPreviewId,
+      openExecutionPreview,
+      closeExecutionPreview,
+      confirmExecution,
+    }),
+    [
+      isCommandBarOpen,
+      recentCommandIds,
+      openCommandBar,
+      closeCommandBar,
+      handleCommand,
+      actions,
+      addAction,
+      executeAction,
+      cancelAction,
+      retryAction,
+      clearCompletedActions,
+      executionPreview,
+      isExecutingPreviewId,
+      openExecutionPreview,
+      closeExecutionPreview,
+      confirmExecution,
+    ],
+  );
 
   return (
     <AIWorkspaceContext.Provider value={value}>

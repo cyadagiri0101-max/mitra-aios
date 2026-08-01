@@ -12,19 +12,22 @@
  * to avoid breaking any existing search-result references.
  */
 
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { SystemStatusBar } from './SystemStatusBar';
-import { SearchOverlay } from './SearchOverlay';
-import { AIDock } from './AI/AIDock';
-import { AIWorkspace } from './AI/AIWorkspace';
 import {
   AIWorkspaceProvider,
   useAIWorkspace,
 } from '../context/AIWorkspaceContext';
+
+// AI overlays are heavy (three.js robot, speech recognition) — load on demand
+const AIDock = lazy(() => import('./AI/AIDock').then((m) => ({ default: m.AIDock })));
+const AIWorkspace = lazy(() => import('./AI/AIWorkspace').then((m) => ({ default: m.AIWorkspace })));
+// Search overlay is only needed when the user opens search
+const SearchOverlay = lazy(() => import('./SearchOverlay').then((m) => ({ default: m.SearchOverlay })));
 
 // ─── Inner layout (consumes AIWorkspaceContext) ───────────────────────────────
 
@@ -78,16 +81,22 @@ function LayoutInner() {
       </div>
 
       {/* Existing right-rail AI assistant — unchanged */}
-      <AIDock />
+      <Suspense fallback={null}>
+        <AIDock />
+      </Suspense>
 
       {/* SearchOverlay: kept for programmatic access */}
-      <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+      <Suspense fallback={null}>
+        <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+      </Suspense>
 
       {/*
        * AIWorkspace: renders the ⌘K command palette overlay and the
        * execution-preview confirmation modal. Both are invisible when closed.
        */}
-      <AIWorkspace />
+      <Suspense fallback={null}>
+        <AIWorkspace />
+      </Suspense>
     </div>
   );
 }
