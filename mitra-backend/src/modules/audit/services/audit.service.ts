@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, EntityManager } from 'typeorm';
 import { AuditLog, AuditEventType } from '../entities/audit-log.entity';
 
 export interface AuditLogInput {
@@ -26,8 +26,15 @@ export class AuditService {
     private readonly auditLogRepository: Repository<AuditLog>,
   ) {}
 
-  async log(input: AuditLogInput): Promise<AuditLog> {
-    const log = this.auditLogRepository.create({
+  /**
+   * Write an audit record.
+   * @param em optional EntityManager — when provided the record is written
+   *           inside the caller's transaction (commit/rollback with the
+   *           business change), guaranteeing audit trail integrity.
+   */
+  async log(input: AuditLogInput, em?: EntityManager): Promise<AuditLog> {
+    const repo = em ? em.getRepository(AuditLog) : this.auditLogRepository;
+    const log = repo.create({
       entityType: input.entityType,
       entityId: input.entityId,
       action: input.action,
@@ -42,7 +49,7 @@ export class AuditService {
       userAgent: input.userAgent ?? null,
       metadata: input.metadata ?? null,
     });
-    return this.auditLogRepository.save(log);
+    return repo.save(log);
   }
 
   async logBusinessEvent(
@@ -51,6 +58,7 @@ export class AuditService {
     entityId: string,
     userId: string,
     metadata?: Record<string, any>,
+    em?: EntityManager,
   ): Promise<AuditLog> {
     return this.log({
       entityType: entity,
@@ -59,7 +67,7 @@ export class AuditService {
       eventType: AuditEventType.BUSINESS,
       userId,
       metadata,
-    });
+    }, em);
   }
 
   async findByEntity(entityType: string, entityId: string, tenantId?: string) {

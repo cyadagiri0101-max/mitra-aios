@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsEmail, MinLength, MaxLength, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsEmail, MinLength, MaxLength, IsUUID, IsObject } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 
 export class CreateContactDto {
@@ -14,7 +14,7 @@ export class CreateContactDto {
   @MaxLength(100)
   lastName: string;
 
-  @ApiProperty({ example: 'john@acme.com' })
+  @ApiPropertyOptional({ example: 'john@acme.com' })
   @IsOptional()
   @IsEmail()
   email?: string;
@@ -25,16 +25,45 @@ export class CreateContactDto {
   @MaxLength(50)
   phone?: string;
 
+  @ApiPropertyOptional({ example: '+1-555-0111' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  mobile?: string;
+
   @ApiPropertyOptional({ example: 'procurement_manager' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   role?: string;
 
+  @ApiPropertyOptional({ example: 'Senior Buyer' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  designation?: string;
+
+  @ApiPropertyOptional({ example: 'Procurement' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  department?: string;
+
+  @ApiPropertyOptional({ example: { email: true, phone: true, sms: false, whatsapp: true } })
+  @IsOptional()
+  @IsObject()
+  communicationPreferences?: Record<string, boolean>;
+
   @ApiPropertyOptional({ default: false })
   @IsOptional()
   @IsBoolean()
   isPrimary?: boolean;
+
+  @ApiPropertyOptional({ example: 'Prefers calls in the morning' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  notes?: string;
 }
 
 export class UpdateContactDto extends PartialType(CreateContactDto) {
@@ -42,6 +71,12 @@ export class UpdateContactDto extends PartialType(CreateContactDto) {
   @IsOptional()
   @IsUUID()
   customerId?: string;
+}
+
+export class StandaloneCreateContactDto extends CreateContactDto {
+  @ApiProperty({ example: 'uuid-of-customer' })
+  @IsUUID()
+  customerId: string;
 }
 
 export class ContactResponseDto {
@@ -64,7 +99,19 @@ export class ContactResponseDto {
   phone: string | null;
 
   @ApiPropertyOptional()
+  mobile: string | null;
+
+  @ApiPropertyOptional()
   role: string | null;
+
+  @ApiPropertyOptional()
+  designation: string | null;
+
+  @ApiPropertyOptional()
+  department: string | null;
+
+  @ApiPropertyOptional()
+  communicationPreferences: Record<string, boolean> | null;
 
   @ApiProperty()
   isPrimary: boolean;

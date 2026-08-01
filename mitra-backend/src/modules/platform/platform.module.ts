@@ -4,9 +4,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
+import { AuditModule } from '@modules/audit/audit.module';
+
 import { AuthService } from './services/auth.service';
 import { UserService } from './services/user.service';
 import { RoleService } from './services/role.service';
+import { RoleAssignmentService } from './services/role-assignment.service';
+import { NotificationService } from './services/notification.service';
 import { TenantService } from './services/tenant.service';
 
 import { AuthController } from './controllers/auth.controller';
@@ -29,6 +33,7 @@ import { JwtStrategy } from '@common/strategies/jwt.strategy';
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    AuditModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -47,7 +52,7 @@ import { JwtStrategy } from '@common/strategies/jwt.strategy';
     ]),
   ],
   controllers: [AuthController, UserController, RoleController, TenantController],
-  providers: [AuthService, UserService, RoleService, TenantService, JwtStrategy],
-  exports: [AuthService, UserService, RoleService, TenantService, JwtModule, TypeOrmModule],
+  providers: [AuthService, UserService, RoleService, RoleAssignmentService, NotificationService, TenantService, JwtStrategy],
+  exports: [AuthService, UserService, RoleService, RoleAssignmentService, NotificationService, TenantService, JwtModule, TypeOrmModule],
 })
 export class PlatformModule {}

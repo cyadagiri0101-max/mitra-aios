@@ -2,7 +2,7 @@ import {
   Injectable, BadRequestException, NotFoundException, ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, EntityManager } from 'typeorm';
 import { WorkflowState } from '../entities/workflow-state.entity';
 import { WorkflowTransition } from '../entities/workflow-transition.entity';
 import { WorkflowInstance, WorkflowHistoryEntry } from '../entities/workflow-instance.entity';
@@ -83,15 +83,41 @@ export class WorkflowService {
     return this.stateRepository.find({ where, order: { sortOrder: 'ASC' }, take: 200 });
   }
 
+  /** Available outgoing transitions for a workflow state (config-driven). */
+  async findTransitionsForState(stateId: string, tenantId?: string, workflowType?: string) {
+    const where: any = { fromStateId: stateId, isActive: true, deletedAt: IsNull() };
+    if (workflowType) where.workflowType = workflowType;
+    if (tenantId) where.tenantId = tenantId;
+    return this.transitionRepository.find({
+      where,
+      relations: ['toState'],
+      order: { name: 'ASC' },
+    });
+  }
+
   async createInstance(
     workflowType: string,
     entityType: string,
     entityId: string,
     context: WorkflowContext,
+    em?: EntityManager,
   ) {
-    const initialState = await this.stateRepository.findOne({
-      where: { workflowType, isInitial: true, deletedAt: IsNull() },
-    });
+    const stateRepo = em ? em.getRepository(WorkflowState) : this.stateRepository;
+    const instanceRepo = em ? em.getRepository(WorkflowInstance) : this.instanceRepository;
+
+    // M-4 fix: resolve the initial state tenant-aware — prefer a
+    // tenant-specific state definition, fall back to the system default.
+    let initialState = null;
+    if (context.tenantId) {
+      initialState = await stateRepo.findOne({
+        where: { workflowType, isInitial: true, tenantId: context.tenantId, deletedAt: IsNull() },
+      });
+    }
+    if (!initialState) {
+      initialState = await stateRepo.findOne({
+        where: { workflowType, isInitial: true, tenantId: IsNull(), deletedAt: IsNull() },
+      });
+    }
     if (!initialState) {
       throw new BadRequestException(`No initial state for workflow: ${workflowType}`);
     }
@@ -106,7 +132,7 @@ export class WorkflowService {
       attachments: [],
     };
 
-    const instance = this.instanceRepository.create({
+    const instance = instanceRepo.create({
       workflowType, entityType, entityId,
       currentStateId: initialState.id,
       currentState: initialState,
@@ -116,20 +142,32 @@ export class WorkflowService {
       history: [historyEntry],
       status: 'active',
     });
-    return this.instanceRepository.save(instance);
+    return instanceRepo.save(instance);
   }
 
-  async executeTransition(instanceId: string, transitionId: string, context: WorkflowContext) {
+  async executeTransition(
+    instanceId: string,
+    transitionId: string,
+    context: WorkflowContext,
+    em?: EntityManager,
+  ) {
+    const instanceRepo = em ? em.getRepository(WorkflowInstance) : this.instanceRepository;
+    const transitionRepo = em ? em.getRepository(WorkflowTransition) : this.transitionRepository;
+
     const where: any = { id: instanceId, deletedAt: IsNull() };
     if (context.tenantId) where.tenantId = context.tenantId;
-    const instance = await this.instanceRepository.findOne({
+    const instance = await instanceRepo.findOne({
       where,
       relations: ['currentState'],
     });
     if (!instance) throw new NotFoundException('Workflow instance not found');
 
-    const transition = await this.transitionRepository.findOne({
-      where: { id: transitionId, fromStateId: instance.currentStateId, deletedAt: IsNull() },
+    const transitionWhere: any = {
+      id: transitionId, fromStateId: instance.currentStateId, deletedAt: IsNull(),
+    };
+    if (context.tenantId) transitionWhere.tenantId = context.tenantId;
+    const transition = await transitionRepo.findOne({
+      where: transitionWhere,
       relations: ['fromState', 'toState'],
     });
     if (!transition) {
@@ -189,20 +227,27 @@ export class WorkflowService {
       attachments: [],
     };
     instance.history = [...(instance.history ?? []), historyEntry];
-    return this.instanceRepository.save(instance);
+    return instanceRepo.save(instance);
   }
 
-  async getInstanceHistory(instanceId: string, tenantId?: string) {
+  async getInstanceHistory(instanceId: string, tenantId?: string, em?: EntityManager) {
+    const instanceRepo = em ? em.getRepository(WorkflowInstance) : this.instanceRepository;
     const where: any = { id: instanceId, deletedAt: IsNull() };
     if (tenantId) where.tenantId = tenantId;
-    const instance = await this.instanceRepository.findOne({ where });
+    const instance = await instanceRepo.findOne({ where });
     if (!instance) throw new NotFoundException('Instance not found');
     return instance.history ?? [];
   }
 
-  async findInstanceByEntity(entityType: string, entityId: string, tenantId?: string) {
+  async findInstanceByEntity(
+    entityType: string,
+    entityId: string,
+    tenantId?: string,
+    em?: EntityManager,
+  ) {
+    const instanceRepo = em ? em.getRepository(WorkflowInstance) : this.instanceRepository;
     const where: any = { entityType, entityId, deletedAt: IsNull() };
     if (tenantId) where.tenantId = tenantId;
-    return this.instanceRepository.findOne({ where, relations: ['currentState'] });
+    return instanceRepo.findOne({ where, relations: ['currentState'] });
   }
 }

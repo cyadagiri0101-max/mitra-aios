@@ -44,7 +44,7 @@ export class CPSReviewController {
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'MANAGEMENT')
   @Delete(':id')
-  @HttpCode(200)
+  @HttpCode(204)
   async remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser) {
     return this.service.remove(id, user.id, user.tenantId);
   }

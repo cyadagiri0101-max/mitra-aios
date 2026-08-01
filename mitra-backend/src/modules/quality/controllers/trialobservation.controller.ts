@@ -61,7 +61,7 @@ export class TrialObservationController {
   @Roles('ADMIN', 'MANAGEMENT')
   @Permissions('quality:delete')
   @Delete(':id')
-  @HttpCode(200)
+  @HttpCode(204)
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthUser,

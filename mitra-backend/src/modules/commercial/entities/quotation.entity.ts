@@ -1,4 +1,4 @@
-import { Entity, Column, Index } from 'typeorm';
+import { Entity, Column, VersionColumn, Index  } from 'typeorm';
 import { IndustrialBaseEntity } from '@common/entities/industrial-base.entity';
 
 export enum QuotationStatus {
@@ -27,6 +27,10 @@ export class Quotation extends IndustrialBaseEntity {
   @Index()
   enquiryId: string | null;
 
+  @Column({ name: 'rfq_id', type: 'uuid', nullable: true })
+  @Index()
+  rfqId: string | null;
+
   @Column({ name: 'revision_number', type: 'int', default: 1 })
   revisionNumber: number;
 
@@ -45,6 +49,18 @@ export class Quotation extends IndustrialBaseEntity {
 
   @Column({ name: 'subtotal', type: 'decimal', precision: 18, scale: 2, default: 0 })
   subtotal: number;
+
+  @Column({ name: 'estimated_cost', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  estimatedCost: number;
+
+  @Column({ name: 'selling_price', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  sellingPrice: number;
+
+  @Column({ name: 'margin_amount', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  marginAmount: number;
+
+  @Column({ name: 'margin_pct', type: 'decimal', precision: 5, scale: 2, default: 0 })
+  marginPct: number;
 
   @Column({ name: 'discount_pct', type: 'decimal', precision: 5, scale: 2, default: 0 })
   discountPct: number;
@@ -69,6 +85,9 @@ export class Quotation extends IndustrialBaseEntity {
 
   @Column({ name: 'payment_terms', type: 'text', nullable: true })
   paymentTerms: string | null;
+
+  @Column({ name: 'delivery_terms', type: 'text', nullable: true })
+  deliveryTerms: string | null;
 
   @Column({ name: 'warranty_months', type: 'int', default: 12 })
   warrantyMonths: number;
@@ -97,4 +116,7 @@ export class Quotation extends IndustrialBaseEntity {
 
   @Column({ type: 'text', nullable: true })
   notes: string | null;
+
+  @VersionColumn()
+  version: number;
 }

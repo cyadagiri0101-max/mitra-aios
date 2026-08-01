@@ -1,70 +1,226 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable, BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, Like } from 'typeorm';
 import { Quotation, QuotationStatus } from '../entities/quotation.entity';
-import { QuotationItem } from '../entities/quotationitem.entity';
 import { Enquiry, EnquiryStatus } from '../entities/enquiry.entity';
-import { CreateQuotationDto, UpdateQuotationDto, AcceptQuotationDto, RejectQuotationDto } from '../dto/quotation.dto';
+import { Rfq } from '../entities/rfq.entity';
+import {
+  CreateQuotationDto, UpdateQuotationDto, ApproveQuotationDto,
+  AcceptQuotationDto, RejectQuotationDto, ReviseQuotationDto, QuotationFilterDto,
+} from '../dto/quotation.dto';
 import { TenantAwareService } from '@common/services/tenant-aware.service';
+import { AuditService } from '../../audit/services/audit.service';
+import { CommercialAiService } from './commercial-ai.service';
+import { QuotationPricingService, PricedItem } from './quotation-pricing.service';
+import { QuotationItemService } from './quotation-item.service';
+import { QuotationMarginService } from './quotation-margin.service';
+import { QuotationApprovalService } from './quotation-approval.service';
+import { QuotationRevisionService } from './quotation-revision.service';
 
 @Injectable()
 export class QuotationService extends TenantAwareService<Quotation> {
   constructor(
     @InjectRepository(Quotation)
     repo: Repository<Quotation>,
-    @InjectRepository(QuotationItem)
-    private readonly itemRepo: Repository<QuotationItem>,
     @InjectRepository(Enquiry)
     private readonly enquiryRepo: Repository<Enquiry>,
+    @InjectRepository(Rfq)
+    private readonly rfqRepo: Repository<Rfq>,
+    private readonly auditService: AuditService,
+    private readonly aiService: CommercialAiService,
+    private readonly pricingService: QuotationPricingService,
+    private readonly itemService: QuotationItemService,
+    private readonly marginService: QuotationMarginService,
+    private readonly approvalService: QuotationApprovalService,
+    private readonly revisionService: QuotationRevisionService,
   ) {
     super(repo, 'Quotation');
   }
 
-  async createFromRfq(
+  // ── Create ────────────────────────────────────────────────────────────────
+  async createQuotation(
     dto: CreateQuotationDto,
     userId?: string,
     tenantId?: string | null,
   ): Promise<Quotation> {
     const quotationNumber = await this.generateQuotationNumber(tenantId);
-    const enquiry = await this.enquiryRepo.findOne({ where: { id: dto.rfqId, deletedAt: IsNull() } });
-    const customerName = dto.customerName ?? enquiry?.customerName ?? 'Unknown Customer';
-    const productName = dto.productName ?? enquiry?.productName ?? null;
+    const rfq = dto.rfqId
+      ? await this.rfqRepo.findOne({ where: { id: dto.rfqId, deletedAt: IsNull() } })
+      : null;
+    const enquiry = !rfq && dto.enquiryId
+      ? await this.enquiryRepo.findOne({ where: { id: dto.enquiryId, deletedAt: IsNull() } })
+      : null;
+
+    const customerName = dto.customerName ?? rfq?.customerName ?? enquiry?.customerName ?? 'Unknown Customer';
+    const discountPct = Number(dto.discountPct ?? 0);
+    const taxPct = Number(dto.taxPct ?? 18);
+
+    const pricing = dto.items?.length
+      ? this.pricingService.reprice(dto.items as Array<Partial<PricedItem>>, discountPct, taxPct)
+      : { items: [], subtotal: 0, estimatedCost: 0, discountAmount: 0, taxAmount: 0, totalAmount: 0, marginAmount: 0, marginPct: 0 };
 
     const entity = this.repo.create({
       quotationNumber,
-      enquiryId: dto.rfqId,
+      rfqId: rfq?.id ?? null,
+      enquiryId: rfq ? null : (enquiry?.id ?? null),
       customerId: dto.customerId,
       customerName,
       status: QuotationStatus.DRAFT,
       quotationDate: new Date(),
-      validUntil: new Date(dto.validUntil),
-      totalAmount: dto.amount,
-      subtotal: dto.amount,
-      terms: (dto.terms as any)?.payment_terms ?? null,
-      deliveryWeeks: (dto.terms as any)?.delivery_weeks ?? null,
-      warrantyMonths: (dto.terms as any)?.warranty_months ?? 12,
+      validUntil: dto.validUntil ? new Date(dto.validUntil) : null,
+      currency: dto.currency ?? 'INR',
+      subtotal: pricing.subtotal,
+      estimatedCost: pricing.estimatedCost,
+      sellingPrice: pricing.subtotal,
+      marginAmount: pricing.marginAmount,
+      marginPct: pricing.marginPct,
+      discountPct,
+      discountAmount: pricing.discountAmount,
+      taxPct,
+      taxAmount: pricing.taxAmount,
+      totalAmount: pricing.totalAmount,
+      paymentTerms: dto.paymentTerms ?? null,
+      deliveryTerms: dto.deliveryTerms ?? null,
+      deliveryWeeks: dto.deliveryWeeks ?? null,
+      warrantyMonths: dto.warrantyMonths ?? 12,
+      termsAndConditions: dto.termsAndConditions ?? null,
+      revisionNumber: 1,
       ...(tenantId ? { tenantId } : {}),
       ...(userId ? { createdBy: userId, updatedBy: userId } : {}),
     } as unknown as Quotation);
 
     const saved = await this.repo.save(entity);
 
-    // Update enquiry status to CONVERTED
-    await this.enquiryRepo.update(
-      { id: dto.rfqId },
-      { status: EnquiryStatus.CONVERTED },
-    );
+    if (pricing.items.length > 0) {
+      await this.itemService.replaceItems(saved.id, pricing.items, userId, tenantId);
+    }
 
-    if (productName && enquiry) {
+    if (rfq?.enquiryId) {
       await this.enquiryRepo.update(
-        { id: dto.rfqId },
-        { productName },
+        { id: rfq.enquiryId, deletedAt: IsNull() },
+        { status: EnquiryStatus.CONVERTED },
+      ).catch(() => undefined);
+    } else if (enquiry) {
+      await this.enquiryRepo.update(
+        { id: enquiry.id },
+        { status: EnquiryStatus.CONVERTED },
       );
     }
 
-    return saved;
+    await this.auditService.logBusinessEvent(
+      'quotation.created', 'Quotation', saved.id, userId ?? 'system', 
+      { quotationNumber, customerId: dto.customerId, rfqId: rfq?.id ?? null, totalAmount: pricing.totalAmount, tenantId },
+    );
+    await this.aiService.syncEntityContext('quotation', saved.id, {
+      quotationNumber,
+      customerId: dto.customerId,
+      customerName,
+      rfqId: rfq?.id ?? null,
+      currency: saved.currency,
+      subtotal: saved.subtotal,
+      estimatedCost: saved.estimatedCost,
+      marginPct: saved.marginPct,
+      totalAmount: saved.totalAmount,
+      status: saved.status,
+    }, userId, tenantId);
+
+    return this.findOneWithItems(saved.id, tenantId);
   }
 
+  // ── Read ──────────────────────────────────────────────────────────────────
+  async findAllFiltered(
+    tenantId?: string | null,
+    page = 1,
+    limit = 20,
+    search?: string,
+    filters: QuotationFilterDto = {},
+  ) {
+    const qb = this.repo.createQueryBuilder('q')
+      .where('q.deletedAt IS NULL')
+      .orderBy('q.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (tenantId) qb.andWhere('q.tenantId = :tenantId', { tenantId });
+    if (filters.status) qb.andWhere('q.status = :status', { status: filters.status });
+    if (filters.customerId) qb.andWhere('q.customerId = :customerId', { customerId: filters.customerId });
+    if (filters.rfqId) qb.andWhere('q.rfqId = :rfqId', { rfqId: filters.rfqId });
+    if (filters.currency) qb.andWhere('q.currency = :currency', { currency: filters.currency });
+    if (search) {
+      qb.andWhere(
+        '(q.quotationNumber ILIKE :search OR q.customerName ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async findAllWithItems(tenantId?: string | null, page = 1, limit = 20) {
+    return this.findAllFiltered(tenantId, page, limit);
+  }
+
+  async findOneWithItems(id: string, tenantId?: string | null) {
+    const quotation = await this.findOne(id, tenantId);
+    const items = await this.itemService.findItems(id);
+    (quotation as unknown as Record<string, unknown>)['items'] = items;
+    return quotation;
+  }
+
+  // ── Update ────────────────────────────────────────────────────────────────
+  async updateQuotation(
+    id: string,
+    dto: UpdateQuotationDto,
+    userId?: string,
+    tenantId?: string | null,
+  ): Promise<Quotation> {
+    const quotation = await this.findOne(id, tenantId);
+    if (quotation.status !== QuotationStatus.DRAFT) {
+      throw new BadRequestException('Only draft quotations can be edited');
+    }
+
+    const { items, ...data } = dto as unknown as Record<string, unknown>;
+    const allowed = this.extractAllowedFields(data);
+
+    if (items !== undefined && Array.isArray(items)) {
+      const discountPct = Number(allowed.discountPct ?? quotation.discountPct ?? 0);
+      const taxPct = Number(allowed.taxPct ?? quotation.taxPct ?? 18);
+      const pricing = this.pricingService.reprice(items as Array<Partial<PricedItem>>, discountPct, taxPct);
+
+      Object.assign(allowed, {
+        subtotal: pricing.subtotal,
+        estimatedCost: pricing.estimatedCost,
+        sellingPrice: pricing.subtotal,
+        marginAmount: pricing.marginAmount,
+        marginPct: pricing.marginPct,
+        taxAmount: pricing.taxAmount,
+        totalAmount: pricing.totalAmount,
+      });
+      await this.itemService.replaceItems(id, pricing.items, userId, tenantId);
+    }
+
+    Object.assign(quotation, allowed, userId ? { updatedBy: userId } : {});
+    const saved = await this.repo.save(quotation);
+
+    await this.auditService.logBusinessEvent(
+      'quotation.updated', 'Quotation', id, userId ?? 'system', 
+      { quotationNumber: saved.quotationNumber, fields: Object.keys(allowed), tenantId },
+    );
+    await this.aiService.syncEntityContext('quotation', id, {
+      quotationNumber: saved.quotationNumber,
+      subtotal: saved.subtotal,
+      estimatedCost: saved.estimatedCost,
+      marginPct: saved.marginPct,
+      status: saved.status,
+    }, userId, tenantId);
+
+    return this.findOneWithItems(id, tenantId);
+  }
+
+  // ── Lifecycle (delegated) ─────────────────────────────────────────────────
   async sendQuotation(
     id: string,
     userId?: string,
@@ -76,7 +232,31 @@ export class QuotationService extends TenantAwareService<Quotation> {
     }
     quotation.status = QuotationStatus.SENT;
     quotation.updatedBy = userId ?? null;
-    return this.repo.save(quotation);
+
+    const saved = await this.repo.save(quotation);
+    await this.auditService.logBusinessEvent(
+      'quotation.sent', 'Quotation', id, userId ?? 'system', 
+      { quotationNumber: saved.quotationNumber, tenantId },
+    );
+    return saved;
+  }
+
+  async approveQuotation(
+    id: string,
+    dto: ApproveQuotationDto,
+    userId?: string,
+    tenantId?: string | null,
+  ): Promise<Quotation> {
+    return this.approvalService.approveQuotation(id, dto, userId, tenantId);
+  }
+
+  async reviseQuotation(
+    id: string,
+    dto: ReviseQuotationDto,
+    userId?: string,
+    tenantId?: string | null,
+  ): Promise<Quotation> {
+    return this.revisionService.reviseQuotation(id, dto, userId, tenantId);
   }
 
   async acceptQuotation(
@@ -85,29 +265,7 @@ export class QuotationService extends TenantAwareService<Quotation> {
     userId?: string,
     tenantId?: string | null,
   ): Promise<{ quotation: Quotation; projectData: Record<string, unknown> }> {
-    const quotation = await this.findOne(id, tenantId);
-    if (quotation.status !== QuotationStatus.SENT) {
-      throw new BadRequestException('Only sent quotations can be accepted');
-    }
-
-    quotation.status = QuotationStatus.ACCEPTED;
-    quotation.approvedBy = userId ?? null;
-    quotation.approvedAt = new Date();
-    const saved = await this.repo.save(quotation);
-
-    const enquiry = await this.enquiryRepo.findOne({ where: { id: quotation.enquiryId ?? '', deletedAt: IsNull() } });
-    const projectData = {
-      name: dto.projectName,
-      customerId: quotation.customerId,
-      customerName: dto.customerName ?? quotation.customerName ?? enquiry?.customerName ?? 'Unknown Customer',
-      productName: dto.productName ?? enquiry?.productName ?? dto.projectName,
-      description: `Project from quotation ${quotation.quotationNumber}`,
-      projectValue: quotation.totalAmount,
-      targetDeliveryDate: quotation.validUntil,
-      quotationId: id,
-    };
-
-    return { quotation: saved, projectData };
+    return this.approvalService.acceptQuotation(id, dto, userId, tenantId);
   }
 
   async rejectQuotation(
@@ -116,39 +274,7 @@ export class QuotationService extends TenantAwareService<Quotation> {
     userId?: string,
     tenantId?: string | null,
   ): Promise<Quotation> {
-    const quotation = await this.findOne(id, tenantId);
-    if (quotation.status !== QuotationStatus.SENT) {
-      throw new BadRequestException('Only sent quotations can be rejected');
-    }
-
-    quotation.status = QuotationStatus.REJECTED;
-    quotation.rejectionReason = dto.reason;
-    quotation.updatedBy = userId ?? null;
-    return this.repo.save(quotation);
-  }
-
-  async findAllWithItems(tenantId?: string | null, page = 1, limit = 20) {
-    const where: any = { deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-
-    const [data, total] = await this.repo.findAndCount({
-      where,
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { createdAt: 'DESC' },
-    });
-
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
-  }
-
-  async findOneWithItems(id: string, tenantId?: string | null) {
-    const quotation = await this.findOne(id, tenantId);
-    const items = await this.itemRepo.find({
-      where: { quotationId: id, deletedAt: IsNull() },
-      order: { lineNumber: 'ASC' },
-    });
-      (quotation as any).items = items;
-    return quotation;
+    return this.approvalService.rejectQuotation(id, dto, userId, tenantId);
   }
 
   async linkProject(id: string, projectId: string, userId?: string, tenantId?: string | null): Promise<Quotation> {
@@ -156,7 +282,12 @@ export class QuotationService extends TenantAwareService<Quotation> {
     quotation.projectId = projectId;
     quotation.status = QuotationStatus.PROJECT_CREATED;
     quotation.updatedBy = userId ?? null;
+
     return this.repo.save(quotation);
+  }
+
+  async getMarginSummary(tenantId?: string | null, from?: string, to?: string) {
+    return this.marginService.getMarginSummary(tenantId, from, to);
   }
 
   private async generateQuotationNumber(tenantId?: string | null): Promise<string> {

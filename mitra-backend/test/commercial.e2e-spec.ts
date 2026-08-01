@@ -5,13 +5,14 @@ import { createTestApp } from './utils/test-app';
 const ADMIN_EMAIL = 'admin@mitra.local';
 const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? 'E2eAdminPass!2026';
 
-describe('Commercial E2E: Customer → Contact → Enquiry → Quotation → Project', () => {
+describe('Commercial E2E: Customer → Contact → Enquiry → RFQ → Quotation → Project', () => {
   let app: INestApplication;
   let server: any;
   let accessToken: string;
   let customerId: string;
   let contactId: string;
   let enquiryId: string;
+  let rfqId: string;
   let quotationId: string;
   let projectId: string;
 
@@ -36,7 +37,6 @@ describe('Commercial E2E: Customer → Contact → Enquiry → Quotation → Pro
       .send({
         name: 'ABC Plastics Pvt Ltd',
         industry: 'packaging',
-        attributes: { region: 'APAC', tier: 'gold' },
         contacts: [{
           firstName: 'Engineering',
           lastName: 'Manager',
@@ -56,7 +56,7 @@ describe('Commercial E2E: Customer → Contact → Enquiry → Quotation → Pro
     contactId = res.body.contacts[0].id;
   });
 
-  it('2. Creates an enquiry (RFQ)', async () => {
+  it('2. Creates an enquiry (RFQ request)', async () => {
     const res = await request(server)
       .post('/api/commercial/enquiries')
       .set('Authorization', `Bearer ${accessToken}`)
@@ -82,7 +82,28 @@ describe('Commercial E2E: Customer → Contact → Enquiry → Quotation → Pro
     enquiryId = res.body.id;
   });
 
-  it('3. Submits the enquiry (DRAFT → SUBMITTED)', async () => {
+  it('3. Converts the enquiry into an RFQ (workflow instance registered)', async () => {
+    const res = await request(server)
+      .post('/api/commercial/rfqs')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        enquiryId,
+        customerId,
+        customerName: 'ABC Plastics Pvt Ltd',
+        moldType: 'BLOW',
+        material: 'P20',
+        targetQuantity: 500000,
+        annualVolume: 500000,
+        priority: 'HIGH',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.rfqNumber).toMatch(/^RFQ-/);
+    expect(res.body.workflowState).toBe('DRAFT');
+    rfqId = res.body.id;
+  });
+
+  it('4. Submits the enquiry (DRAFT → SUBMITTED)', async () => {
     const res = await request(server)
       .post(`/api/commercial/enquiries/${enquiryId}/submit`)
       .set('Authorization', `Bearer ${accessToken}`);
@@ -90,7 +111,7 @@ describe('Commercial E2E: Customer → Contact → Enquiry → Quotation → Pro
     expect(res.body.status).toBe('SUBMITTED');
   });
 
-  it('4. Reviews the enquiry (SUBMITTED → UNDER_REVIEW)', async () => {
+  it('5. Reviews the enquiry (SUBMITTED → UNDER_REVIEW)', async () => {
     const res = await request(server)
       .post(`/api/commercial/enquiries/${enquiryId}/review`)
       .set('Authorization', `Bearer ${accessToken}`);
@@ -98,30 +119,38 @@ describe('Commercial E2E: Customer → Contact → Enquiry → Quotation → Pro
     expect(res.body.status).toBe('UNDER_REVIEW');
   });
 
-  it('5. Creates a quotation from the RFQ/enquiry', async () => {
+  it('6. Creates a quotation from the RFQ with priced items', async () => {
     const res = await request(server)
       .post('/api/commercial/quotations')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        rfqId: enquiryId,
-        customerId: customerId,
-        amount: 1850000,
-        terms: {
-          payment_terms: '50% advance, 50% on delivery',
-          delivery_weeks: 12,
-          warranty_months: 12,
-        },
+        rfqId,
+        customerId,
+        items: [{
+          description: '500 mL Bottle Blow Mold',
+          itemCategory: 'MOLD',
+          quantity: 1,
+          unitPrice: 1850000,
+          estimatedCost: 1480000,
+          leadTimeWeeks: 12,
+        }],
+        paymentTerms: '50% advance, 50% on delivery',
+        deliveryWeeks: 12,
+        warrantyMonths: 12,
         validUntil: '2026-09-27',
       });
 
     expect(res.status).toBe(201);
     expect(res.body.quotationNumber).toMatch(/^QTN-/);
     expect(res.body.status).toBe('DRAFT');
-    expect(res.body.totalAmount).toBe(1850000);
+    // 1 × 1,850,000 + 18% tax
+    expect(res.body.subtotal).toBe(1850000);
+    expect(res.body.taxAmount).toBe(333000);
+    expect(res.body.totalAmount).toBe(2183000);
     quotationId = res.body.id;
   });
 
-  it('6. Sends the quotation (DRAFT → SENT)', async () => {
+  it('7. Sends the quotation (DRAFT → SENT)', async () => {
     const res = await request(server)
       .post(`/api/commercial/quotations/${quotationId}/send`)
       .set('Authorization', `Bearer ${accessToken}`);
@@ -129,7 +158,7 @@ describe('Commercial E2E: Customer → Contact → Enquiry → Quotation → Pro
     expect(res.body.status).toBe('SENT');
   });
 
-  it('7. Accepts the quotation and creates a project', async () => {
+  it('8. Accepts the quotation and creates a project', async () => {
     const res = await request(server)
       .post(`/api/commercial/quotations/${quotationId}/accept`)
       .set('Authorization', `Bearer ${accessToken}`)
@@ -145,7 +174,7 @@ describe('Commercial E2E: Customer → Contact → Enquiry → Quotation → Pro
     projectId = res.body.project.id;
   });
 
-  it('8. Fetches the customer with contacts and verifies the data', async () => {
+  it('9. Fetches the customer with contacts and verifies the data', async () => {
     const res = await request(server)
       .get(`/api/commercial/customers/${customerId}`)
       .set('Authorization', `Bearer ${accessToken}`);
@@ -156,7 +185,7 @@ describe('Commercial E2E: Customer → Contact → Enquiry → Quotation → Pro
     expect(res.body.contacts.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('9. Fetches the enquiry and verifies its status', async () => {
+  it('10. Fetches the enquiry and verifies it was converted by the quotation', async () => {
     const res = await request(server)
       .get(`/api/commercial/enquiries/${enquiryId}`)
       .set('Authorization', `Bearer ${accessToken}`);
@@ -165,7 +194,7 @@ describe('Commercial E2E: Customer → Contact → Enquiry → Quotation → Pro
     expect(res.body.status).toBe('CONVERTED');
   });
 
-  it('10. Fetches the quotation and verifies the project link', async () => {
+  it('11. Fetches the quotation and verifies the project link', async () => {
     const res = await request(server)
       .get(`/api/commercial/quotations/${quotationId}`)
       .set('Authorization', `Bearer ${accessToken}`);
@@ -175,29 +204,28 @@ describe('Commercial E2E: Customer → Contact → Enquiry → Quotation → Pro
     expect(res.body.projectId).toBe(projectId);
   });
 
-  it('11. Fetches the created project and verifies its data', async () => {
+  it('12. Fetches the created project and verifies its value from the quotation', async () => {
     const res = await request(server)
       .get(`/api/project/${projectId}`)
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(projectId);
     expect(res.body.name).toBe('ABC Bottle Blow Mold Project');
-    expect(res.body.projectValue).toBe(1850000);
+    expect(res.body.projectValue).toBe(2183000);
   });
 
-  it('12. Business rule: duplicate customer name is allowed (no unique constraint on name)', async () => {
+  it('13. Business rule: duplicate customer name is allowed (no unique constraint on name)', async () => {
     const res = await request(server)
       .post('/api/commercial/customers')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         name: 'ABC Plastics Pvt Ltd',
         industry: 'packaging',
-        attributes: { region: 'APAC', tier: 'silver' },
       });
     expect(res.status).toBe(201);
   });
 
-  it('13. Business rule: cannot accept an already-accepted quotation', async () => {
+  it('14. Business rule: cannot accept an already-accepted quotation', async () => {
     const res = await request(server)
       .post(`/api/commercial/quotations/${quotationId}/accept`)
       .set('Authorization', `Bearer ${accessToken}`)
@@ -206,27 +234,28 @@ describe('Commercial E2E: Customer → Contact → Enquiry → Quotation → Pro
     expect(res.body.message).toMatch(/sent/i);
   });
 
-  it('14. Business rule: cannot create a project without a linked quotation', async () => {
+  it('15. Business rule: direct project creation does not bypass the quotation workflow', async () => {
     const res = await request(server)
       .post('/api/project')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         name: 'Orphan Project',
+        customerName: 'ABC Plastics Pvt Ltd',
         productName: 'Test',
         cavitation: 1,
       });
-    // Direct project creation is allowed but should not bypass quotation workflow
+    // Direct project creation is allowed but has no quotation link
     expect(res.status).toBe(201);
     const orphanId = res.body.id;
     expect(orphanId).toBeDefined();
   });
 
-  it('15. RBAC: unauthenticated requests to commercial endpoints are rejected', async () => {
+  it('16. RBAC: unauthenticated requests to commercial endpoints are rejected', async () => {
     const res = await request(server).get('/api/commercial/customers');
     expect(res.status).toBe(401);
   });
 
-  it('16. RBAC: paginated listing works for customers', async () => {
+  it('17. RBAC: paginated listing works for customers', async () => {
     const res = await request(server)
       .get('/api/commercial/customers?page=1&limit=10')
       .set('Authorization', `Bearer ${accessToken}`);

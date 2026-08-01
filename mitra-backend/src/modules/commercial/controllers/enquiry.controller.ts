@@ -51,7 +51,7 @@ export class EnquiryController {
   @ApiOperation({ summary: 'Update enquiry' })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: Partial<CreateEnquiryDto>,
+    @Body() dto: UpdateEnquiryDto,
     @CurrentUser() user: AuthUser,
   ) {
     return this.service.update(id, dto as unknown as Record<string, unknown>, user.id, user.tenantId);
@@ -60,7 +60,7 @@ export class EnquiryController {
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'MANAGEMENT')
   @Delete(':id')
-  @HttpCode(200)
+  @HttpCode(204)
   @ApiOperation({ summary: 'Soft-delete enquiry' })
   async remove(
     @Param('id', ParseUUIDPipe) id: string,

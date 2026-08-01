@@ -1,4 +1,4 @@
-import { Entity, Column, Index } from 'typeorm';
+import { Entity, Column, VersionColumn, Index  } from 'typeorm';
 import { IndustrialBaseEntity } from '@common/entities/industrial-base.entity';
 
 @Entity('quotation_items')
@@ -28,6 +28,18 @@ export class QuotationItem extends IndustrialBaseEntity {
   @Column({ name: 'unit_price', type: 'decimal', precision: 18, scale: 2 })
   unitPrice: number;
 
+  @Column({ name: 'estimated_cost', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  estimatedCost: number;
+
+  @Column({ name: 'selling_price', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  sellingPrice: number;
+
+  @Column({ name: 'margin_amount', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  marginAmount: number;
+
+  @Column({ name: 'margin_pct', type: 'decimal', precision: 5, scale: 2, default: 0 })
+  marginPct: number;
+
   @Column({ name: 'discount_pct', type: 'decimal', precision: 5, scale: 2, default: 0 })
   discountPct: number;
 
@@ -42,4 +54,7 @@ export class QuotationItem extends IndustrialBaseEntity {
 
   @Column({ type: 'text', nullable: true })
   remarks: string | null;
+
+  @VersionColumn()
+  version: number;
 }

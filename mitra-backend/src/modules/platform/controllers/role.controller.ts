@@ -55,7 +55,7 @@ export class RoleController {
   }
 
   @Delete(':id')
-  @HttpCode(200)
+  @HttpCode(204)
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   async remove(

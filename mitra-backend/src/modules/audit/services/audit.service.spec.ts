@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuditService } from './audit.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { AuditLog } from '../entities/audit-log.entity';
+import { AuditLog, AuditEventType } from '../entities/audit-log.entity';
 
 const makeRepo = () => {
   const qb = {
@@ -90,6 +90,43 @@ describe('AuditService', () => {
       await service.log({ ...baseInput, metadata: { trialId: 't-123' } });
       const saved = repo.save.mock.calls[0][0];
       expect(saved.metadata).toEqual({ trialId: 't-123' });
+    });
+  });
+
+  // ── eventType classification ───────────────────────────────────────────────
+
+  describe('eventType classification', () => {
+    it('defaults plain log() calls to CRUD', async () => {
+      await service.log({ entityType: 'capas', entityId: 'c-1', action: 'PATCH' });
+      const saved = repo.save.mock.calls[0][0];
+      expect(saved.eventType).toBe(AuditEventType.CRUD);
+    });
+
+    it('logBusinessEvent always writes BUSINESS type', async () => {
+      await service.logBusinessEvent('customer.updated', 'Customer', 'c-1', 'u-1', { tenantId: 't' });
+      const saved = repo.save.mock.calls[0][0];
+      expect(saved.eventType).toBe(AuditEventType.BUSINESS);
+    });
+
+    it('honours an explicit eventType override in log()', async () => {
+      await service.log({
+        entityType: 'users', entityId: 'u-1', action: 'LOGIN',
+        eventType: AuditEventType.AUTH,
+      });
+      const saved = repo.save.mock.calls[0][0];
+      expect(saved.eventType).toBe(AuditEventType.AUTH);
+    });
+
+    it('passes the transactional EntityManager through to the record write', async () => {
+      const em: any = {
+        getRepository: jest.fn(() => ({ create: (d: any) => d, save: jest.fn(async (e: any) => e) })),
+      };
+      const record = await service.log(
+        { entityType: 'rfqs', entityId: 'r-1', action: 'TRANSITION' },
+        em,
+      );
+      expect(em.getRepository).toHaveBeenCalledWith(AuditLog);
+      expect(record.action).toBe('TRANSITION');
     });
   });
 

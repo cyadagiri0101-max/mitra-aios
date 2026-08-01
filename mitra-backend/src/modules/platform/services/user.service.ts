@@ -4,6 +4,8 @@ import { Repository, IsNull } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { User } from '../entities/user.entity';
 import { Role } from '../entities/role.entity';
+import { UpdateUserDto } from '../dto/update-user.dto';
+import { CreateUserDto } from '../dto/create-user.dto';
 
 
 export class UserService {
@@ -54,11 +56,20 @@ export class UserService {
     return this.userRepository.findOne({ where, relations: ['role', 'role.permissions'] });
   }
 
-  async create(dto: any, userId: string) {
+  async create(dto: CreateUserDto, userId: string, tenantId?: string | null) {
     const existing = await this.userRepository.findOne({
       where: { email: dto.email, deletedAt: IsNull() },
     });
     if (existing) throw new BadRequestException('Email already registered');
+
+    // Defense in depth: the role must exist and belong to the caller's tenant
+    // (or be a system role) — an ADMIN can never assign a foreign-tenant role.
+    if (dto.roleId) {
+      const roleWhere: any = { id: dto.roleId, deletedAt: IsNull() };
+      if (tenantId) roleWhere.tenantId = tenantId;
+      const role = await this.roleRepository.findOne({ where: roleWhere });
+      if (!role) throw new BadRequestException('Role not found in this tenant');
+    }
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
     const user = this.userRepository.create({
@@ -69,7 +80,8 @@ export class UserService {
       phone: dto.phone ?? null,
       roleId: dto.roleId ?? null,
       status: dto.status ?? 'active',
-      tenantId: dto.tenantId ?? null,
+      // Tenant is ALWAYS taken from the caller's JWT (H-3 fix), never the body.
+      tenantId: tenantId ?? null,
       failedLoginAttempts: 0,
       createdBy: userId,
       updatedBy: userId,
@@ -77,13 +89,16 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
-  async update(id: string, dto: any, userId: string, tenantId?: string | null) {
+  /**
+   * Profile update — roleId is deliberately NEVER applied here (C-1 fix).
+   * Role changes are handled exclusively by RoleAssignmentService.
+   */
+  async update(id: string, dto: UpdateUserDto, userId: string, tenantId?: string | null) {
     const user = await this.findOne(id, tenantId);
     // Password changes must go through AuthService.changePassword only
     if (dto.firstName  !== undefined) user.firstName  = dto.firstName;
     if (dto.lastName   !== undefined) user.lastName   = dto.lastName;
     if (dto.phone      !== undefined) user.phone      = dto.phone ?? null;
-    if (dto.roleId     !== undefined) user.roleId     = dto.roleId ?? null;
     if (dto.status     !== undefined) user.status     = dto.status;
     if (dto.avatarUrl  !== undefined) user.avatarUrl  = dto.avatarUrl ?? null;
     user.updatedBy = userId;

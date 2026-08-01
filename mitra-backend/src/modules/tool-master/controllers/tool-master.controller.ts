@@ -75,7 +75,7 @@ export class ToolMasterController {
   @Roles('ADMIN', 'MANAGEMENT')
   @Permissions('tool-master:delete')
   @Delete(':id')
-  @HttpCode(200)
+  @HttpCode(204)
   async remove(@Param('id') id: string, @CurrentUser() user: AuthUser) {
     return this.service.remove(id, user.id, user.tenantId);
   }

@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index, VersionColumn } from 'typeorm';
 import { IndustrialBaseEntity } from '@common/entities/industrial-base.entity';
 import { WorkflowState } from './workflow-state.entity';
 
@@ -44,4 +44,12 @@ export class WorkflowInstance extends IndustrialBaseEntity {
 
   @Column({ type: 'varchar', length: 20, default: 'active' })
   status: string;
+
+  /**
+   * Optimistic locking (Sprint 2.1.1): every transition bumps the version;
+   * a concurrent transition on the same instance fails with an optimistic
+   * lock mismatch instead of silently losing the update.
+   */
+  @VersionColumn()
+  version: number;
 }

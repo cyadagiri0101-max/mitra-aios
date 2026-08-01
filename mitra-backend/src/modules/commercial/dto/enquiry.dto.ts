@@ -21,6 +21,9 @@ export class CreateEnquiryDto {
   @ApiPropertyOptional() @IsOptional() @IsDateString() requiredDeliveryDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() remarks?: string;
 }
-export class UpdateEnquiryDto extends PartialType(CreateEnquiryDto) {
-  @ApiPropertyOptional({ enum: EnquiryStatus }) @IsOptional() @IsEnum(EnquiryStatus) status?: EnquiryStatus;
-}
+/**
+ * UpdateEnquiryDto — profile fields only.
+ * SECURITY (C-3 remediation): `status` is deliberately excluded; status
+ * changes flow exclusively through the workflow engine.
+ */
+export class UpdateEnquiryDto extends PartialType(CreateEnquiryDto) {}

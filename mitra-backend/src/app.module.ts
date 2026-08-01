@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -46,6 +46,8 @@ import { ProductModule } from './modules/product/product.module';
 import { ToolMasterModule } from './modules/tool-master/tool-master.module';
 import { EngineeringFileIndexerModule } from './modules/engineering-file-indexer/engineering-file-indexer.module';
 import { EngineeringLibraryModule } from './modules/engineering-library/engineering-library.module';
+import { SchemaIntegrityService } from './common/services/schema-integrity.service';
+import { OptimisticLockFilter } from './common/filters/optimistic-lock.filter';
 
 @Module({
   imports: [
@@ -118,12 +120,14 @@ import { EngineeringLibraryModule } from './modules/engineering-library/engineer
   ],
   providers: [
     IndustrialSubscriber,
+    SchemaIntegrityService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
     { provide: APP_INTERCEPTOR, useClass: RequestContextInterceptor },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
+    { provide: APP_FILTER, useClass: OptimisticLockFilter },
   ],
 })
 export class AppModule {}
