@@ -40,6 +40,41 @@ export class ProjectService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
+  /**
+   * Advanced listing: pagination, free-text search, structured filters,
+   * whitelisted sorting (Sprint 2.2).
+   */
+  async findAllAdvanced(tenantId?: string, query: Record<string, any> = {}) {
+    const page = Math.max(1, Number(query.page ?? 1));
+    const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
+
+    const qb = this.projectRepo.createQueryBuilder('p').where('p.deleted_at IS NULL');
+    if (tenantId) qb.andWhere('p.tenant_id = :tenantId', { tenantId });
+    if (query.search) {
+      qb.andWhere(
+        '(p.name ILIKE :search OR p.project_number ILIKE :search OR p.customer_name ILIKE :search OR p.product_name ILIKE :search)',
+        { search: `%${query.search}%` },
+      );
+    }
+    if (query.status) qb.andWhere('p.status = :status', { status: query.status });
+    if (query.projectType) qb.andWhere('p.project_type = :projectType', { projectType: query.projectType });
+    if (query.riskLevel) qb.andWhere('p.risk_level = :riskLevel', { riskLevel: query.riskLevel });
+    if (query.priority) qb.andWhere('p.priority = :priority', { priority: query.priority });
+    if (query.customerId) qb.andWhere('p.customer_id = :customerId', { customerId: query.customerId });
+    if (query.businessUnit) qb.andWhere('p.business_unit = :businessUnit', { businessUnit: query.businessUnit });
+    if (query.stage) qb.andWhere('p.stage = :stage', { stage: query.stage });
+
+    // Whitelisted sort fields — anything else falls back to createdAt DESC.
+    const SORTABLE = new Set(['name', 'projectNumber', 'createdAt', 'plannedEndDate', 'budget', 'priority', 'status']);
+    const sortBy = query.sortBy ?? 'createdAt';
+    const field = SORTABLE.has(sortBy) ? `p.${sortBy}` : 'p.created_at';
+    const direction = query.sortOrder === 'ASC' ? 'ASC' : 'DESC';
+    qb.orderBy(field, direction).addOrderBy('p.created_at', 'DESC');
+
+    const [data, total] = await qb.skip((page - 1) * limit).take(limit).getManyAndCount();
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
   async findOne(id: string, tenantId?: string | null) {
     const where: any = { id, deletedAt: IsNull() };
     if (tenantId) where.tenantId = tenantId;

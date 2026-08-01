@@ -8,6 +8,9 @@ import { Supplier, SupplierStatus } from '../modules/supplier/entities/supplier.
 import { Product, ProductStatus } from '../modules/product/entities/product.entity';
 import { WorkflowState } from '../modules/workflow/entities/workflow-state.entity';
 import { WorkflowTransition } from '../modules/workflow/entities/workflow-transition.entity';
+import { MilestoneTemplate } from '../modules/project/entities/milestone-template.entity';
+import { MilestoneTemplateItem } from '../modules/project/entities/milestone-template-item.entity';
+import { Department } from '../modules/project/entities/department.entity';
 const bcrypt = require('bcryptjs');
 
 /** Run: npx ts-node src/database/seed.ts */
@@ -77,9 +80,61 @@ async function seed(dataSource: DataSource) {
     { resource: 'user', action: 'create' },
     { resource: 'user', action: 'update' },
     { resource: 'user', action: 'delete' },
+    { resource: 'user', action: 'assign_role' }, // C-1: ADMIN-only role assignment
     { resource: 'role', action: 'read' },
     { resource: 'role', action: 'manage' },
     { resource: 'audit', action: 'read' },
+    // Commercial permissions (Sprint 2.1)
+    { resource: 'customer', action: 'read' },
+    { resource: 'customer', action: 'create' },
+    { resource: 'customer', action: 'update' },
+    { resource: 'customer', action: 'delete' },
+    { resource: 'customer', action: 'import' },
+    { resource: 'customer', action: 'export' },
+    { resource: 'contact', action: 'read' },
+    { resource: 'contact', action: 'create' },
+    { resource: 'contact', action: 'update' },
+    { resource: 'contact', action: 'delete' },
+    { resource: 'lead', action: 'read' },
+    { resource: 'lead', action: 'create' },
+    { resource: 'lead', action: 'update' },
+    { resource: 'lead', action: 'delete' },
+    { resource: 'lead', action: 'convert' },
+    { resource: 'rfq', action: 'read' },
+    { resource: 'rfq', action: 'create' },
+    { resource: 'rfq', action: 'update' },
+    { resource: 'rfq', action: 'delete' },
+    { resource: 'rfq', action: 'transition' },
+    { resource: 'quotation', action: 'read' },
+    { resource: 'quotation', action: 'create' },
+    { resource: 'quotation', action: 'update' },
+    { resource: 'quotation', action: 'delete' },
+    { resource: 'quotation', action: 'approve' },
+    // Project management permissions (Sprint 2.2)
+    { resource: 'project:milestone', action: 'read' },
+    { resource: 'project:milestone', action: 'create' },
+    { resource: 'project:milestone', action: 'update' },
+    { resource: 'project:milestone', action: 'delete' },
+    { resource: 'project:milestone', action: 'approve' },
+    { resource: 'project:task', action: 'read' },
+    { resource: 'project:task', action: 'create' },
+    { resource: 'project:task', action: 'update' },
+    { resource: 'project:task', action: 'delete' },
+    { resource: 'project:team', action: 'read' },
+    { resource: 'project:team', action: 'create' },
+    { resource: 'project:team', action: 'update' },
+    { resource: 'project:team', action: 'delete' },
+    { resource: 'project:timeline', action: 'read' },
+    { resource: 'project:risk', action: 'read' },
+    { resource: 'project:risk', action: 'create' },
+    { resource: 'project:risk', action: 'update' },
+    { resource: 'project:risk', action: 'close' },
+    { resource: 'project:risk', action: 'delete' },
+    { resource: 'project:document', action: 'read' },
+    { resource: 'project:document', action: 'create' },
+    { resource: 'project:document', action: 'update' },
+    { resource: 'project:document', action: 'delete' },
+    { resource: 'project:activity', action: 'read' },
   ];
 
   const permRepo = dataSource.getRepository(Permission);
@@ -102,52 +157,121 @@ async function seed(dataSource: DataSource) {
     ADMIN: Object.keys(savedPermissions), // full access
     MANAGEMENT: [
       'project:read', 'project:create', 'project:update', 'project:delete', 'project:transition',
+      'project:milestone:read', 'project:milestone:create', 'project:milestone:update', 'project:milestone:delete', 'project:milestone:approve',
+      'project:task:read', 'project:task:create', 'project:task:update', 'project:task:delete',
+      'project:team:read', 'project:team:create', 'project:team:update', 'project:team:delete',
+      'project:timeline:read',
+      'project:risk:read', 'project:risk:create', 'project:risk:update', 'project:risk:close', 'project:risk:delete',
+      'project:document:read', 'project:document:create', 'project:document:update', 'project:document:delete',
+      'project:activity:read',
       'design:read', 'design:create', 'design:approve', 'design:release', 'design:delete',
       'quality:read', 'quality:create', 'quality:close', 'quality:delete',
       'document:read', 'document:upload', 'document:download', 'document:checkout', 'document:delete',
       'workflow:read', 'workflow:transition', 'workflow:approve',
       'service:read', 'service:create', 'service:update', 'service:delete',
       'user:read', 'role:read', 'audit:read',
+      'customer:read', 'customer:create', 'customer:update', 'customer:delete', 'customer:import', 'customer:export',
+      'contact:read', 'contact:create', 'contact:update', 'contact:delete',
+      'lead:read', 'lead:create', 'lead:update', 'lead:delete', 'lead:convert',
+      'rfq:read', 'rfq:create', 'rfq:update', 'rfq:delete', 'rfq:transition',
+      'quotation:read', 'quotation:create', 'quotation:update', 'quotation:delete', 'quotation:approve',
     ],
     SALES: [
       'project:read', 'project:create', 'project:update', 'project:transition',
+      'project:milestone:read', 'project:task:read', 'project:timeline:read',
+      'project:risk:read',
+      'project:document:read', 'project:document:create',
+      'project:activity:read',
       'document:read', 'document:upload', 'document:download',
       'workflow:read',
       'service:read', 'service:create', 'service:update',
+      'customer:read', 'customer:create', 'customer:update', 'customer:import', 'customer:export',
+      'contact:read', 'contact:create', 'contact:update',
+      'lead:read', 'lead:create', 'lead:update', 'lead:convert',
+      'rfq:read', 'rfq:create', 'rfq:update', 'rfq:transition',
+      'quotation:read', 'quotation:create', 'quotation:update',
     ],
     DESIGN: [
       'project:read', 'project:update',
+      'project:milestone:read', 'project:milestone:update',
+      'project:task:read', 'project:task:create', 'project:task:update',
+      'project:team:read',
+      'project:timeline:read',
+      'project:risk:read', 'project:risk:create', 'project:risk:update',
+      'project:document:read', 'project:document:create', 'project:document:update',
+      'project:activity:read',
       'design:read', 'design:create', 'design:approve', 'design:release', 'design:delete',
       'document:read', 'document:upload', 'document:download', 'document:checkout',
       'workflow:read', 'workflow:transition',
       'service:read', 'service:update',
+      'customer:read', 'contact:read', 'lead:read',
+      'rfq:read', 'rfq:update',
+      'quotation:read',
     ],
     PLANNING: [
       'project:read', 'project:update', 'project:transition',
+      'project:milestone:read', 'project:milestone:update',
+      'project:task:read', 'project:task:create', 'project:task:update',
+      'project:team:read',
+      'project:timeline:read',
+      'project:risk:read', 'project:risk:create', 'project:risk:update',
+      'project:document:read', 'project:document:create', 'project:document:update',
+      'project:activity:read',
       'document:read', 'document:upload', 'document:download',
       'workflow:read', 'workflow:transition', 'workflow:approve',
       'service:read', 'service:update',
+      'customer:read', 'contact:read', 'lead:read',
+      'rfq:read', 'rfq:update',
+      'quotation:read',
     ],
     PRODUCTION: [
       'project:read',
+      'project:milestone:read', 'project:milestone:update',
+      'project:task:read', 'project:task:create', 'project:task:update',
+      'project:team:read',
+      'project:timeline:read',
+      'project:risk:read', 'project:risk:create', 'project:risk:update',
+      'project:document:read',
+      'project:activity:read',
       'quality:read', 'quality:create', 'quality:close',
       'document:read', 'document:upload', 'document:download',
       'workflow:read', 'workflow:transition',
       'service:read', 'service:update',
+      'customer:read', 'contact:read', 'lead:read',
+      'rfq:read',
+      'quotation:read',
     ],
     QUALITY: [
       'project:read',
+      'project:milestone:read', 'project:milestone:update',
+      'project:task:read', 'project:task:update',
+      'project:team:read',
+      'project:timeline:read',
+      'project:risk:read', 'project:risk:create', 'project:risk:update',
+      'project:document:read', 'project:document:create',
+      'project:activity:read',
       'design:read',
       'quality:read', 'quality:create', 'quality:close', 'quality:delete',
       'document:read', 'document:upload', 'document:download', 'document:checkout',
       'workflow:read', 'workflow:transition', 'workflow:approve',
       'service:read', 'service:update', 'service:delete',
+      'customer:read', 'contact:read', 'lead:read',
+      'rfq:read', 'rfq:update',
+      'quotation:read',
     ],
     CUSTOMER: [
       'project:read',
+      'project:milestone:read',
+      'project:task:read',
+      'project:risk:read',
+      'project:document:read',
+      'project:activity:read',
       'quality:read',
       'document:read', 'document:download',
       'service:read',
+      'customer:read', 'contact:read', 'lead:read',
+      'rfq:read',
+      'quotation:read',
     ],
   };
 
@@ -382,6 +506,210 @@ async function seed(dataSource: DataSource) {
     }
   }
   console.log('  ✓ 16 lifecycle transitions seeded');
+
+  // ─── Workflow States for rfq (Sprint 2.1) ─────────────────────────────────
+  const rfqStages = [
+    { stateCode: 'DRAFT',             name: 'Draft',             sortOrder: 1,  isInitial: true,  color: '#6B7280' },
+    { stateCode: 'SUBMITTED',         name: 'Submitted',         sortOrder: 2,  color: '#3B82F6' },
+    { stateCode: 'TECHNICAL_REVIEW',  name: 'Technical Review',  sortOrder: 3,  color: '#8B5CF6' },
+    { stateCode: 'COMMERCIAL_REVIEW', name: 'Commercial Review', sortOrder: 4,  color: '#F59E0B' },
+    { stateCode: 'APPROVED',          name: 'Approved',          sortOrder: 5,  color: '#10B981' },
+    { stateCode: 'QUOTED',            name: 'Quoted',            sortOrder: 6,  color: '#0EA5E9' },
+    { stateCode: 'ACCEPTED',          name: 'Accepted',          sortOrder: 7,  color: '#22C55E' },
+    { stateCode: 'PROJECT_READY',     name: 'Project Ready',     sortOrder: 8,  isFinal: true,   color: '#059669' },
+    { stateCode: 'REJECTED',          name: 'Rejected',          sortOrder: 9,  isFinal: true,   color: '#DC2626' },
+    { stateCode: 'CANCELLED',         name: 'Cancelled',         sortOrder: 10, isFinal: true,   color: '#9CA3AF' },
+  ];
+
+  const savedRfqStates: Record<string, any> = {};
+  for (const s of rfqStages) {
+    let state = await stateRepo.findOne({ where: { stateCode: s.stateCode, workflowType: 'rfq' } });
+    if (!state) {
+      state = await stateRepo.save(
+        stateRepo.create({
+          ...s,
+          workflowType: 'rfq',
+          isInitial: s.isInitial ?? false,
+          isFinal: s.isFinal ?? false,
+          tenantId: defaultTenant.id,
+        }),
+      );
+    }
+    savedRfqStates[s.stateCode] = state;
+  }
+  console.log('  ✓ 10 RFQ workflow states seeded');
+
+  // ─── RFQ Workflow Transitions (config-driven, NOT hardcoded) ───────────────
+  const rfqTransitions: Array<[string, string, string, string[]?]> = [
+    ['DRAFT', 'SUBMITTED', 'Submit RFQ', ['rfq:transition']],
+    ['DRAFT', 'CANCELLED', 'Cancel RFQ', ['rfq:transition']],
+    ['SUBMITTED', 'TECHNICAL_REVIEW', 'Start Technical Review', ['rfq:transition']],
+    ['SUBMITTED', 'REJECTED', 'Reject RFQ', ['rfq:transition']],
+    ['TECHNICAL_REVIEW', 'COMMERCIAL_REVIEW', 'Start Commercial Review', ['rfq:transition']],
+    ['TECHNICAL_REVIEW', 'SUBMITTED', 'Return to Submitter', ['rfq:transition']],
+    ['COMMERCIAL_REVIEW', 'APPROVED', 'Approve RFQ', ['rfq:transition']],
+    ['COMMERCIAL_REVIEW', 'REJECTED', 'Reject RFQ', ['rfq:transition']],
+    ['COMMERCIAL_REVIEW', 'SUBMITTED', 'Return to Submitter', ['rfq:transition']],
+    ['APPROVED', 'QUOTED', 'Create Quotation', ['rfq:transition']],
+    ['QUOTED', 'ACCEPTED', 'Accept Quotation', ['rfq:transition']],
+    ['QUOTED', 'REJECTED', 'Reject Quotation', ['rfq:transition']],
+    ['ACCEPTED', 'PROJECT_READY', 'Create Project', ['rfq:transition']],
+  ];
+
+  for (const [from, to, name, perms] of rfqTransitions) {
+    const fromState = savedRfqStates[from];
+    const toState = savedRfqStates[to];
+    if (!fromState || !toState) continue;
+
+    const exists = await transitionRepo.findOne({
+      where: { fromStateId: fromState.id, toStateId: toState.id, workflowType: 'rfq' },
+    });
+    if (!exists) {
+      await transitionRepo.save(
+        transitionRepo.create({
+          fromStateId: fromState.id, toStateId: toState.id,
+          name, workflowType: 'rfq',
+          requiredPermissions: perms,
+          isActive: true, requiresApproval: false,
+          tenantId: defaultTenant.id,
+        }),
+      );
+    }
+  }
+  console.log('  ✓ 13 RFQ workflow transitions seeded');
+
+  // ─── Workflow States for project_management (Sprint 2.2) ──────────────────
+  const pmStages = [
+    { stateCode: 'DRAFT',           name: 'Draft',            sortOrder: 1,  isInitial: true,  color: '#6B7280' },
+    { stateCode: 'KICKOFF',         name: 'Kickoff',          sortOrder: 2,  color: '#3B82F6' },
+    { stateCode: 'DESIGN',          name: 'Design',           sortOrder: 3,  color: '#8B5CF6' },
+    { stateCode: 'PLANNING',        name: 'Planning',         sortOrder: 4,  color: '#14B8A6' },
+    { stateCode: 'EXECUTION',       name: 'Execution',        sortOrder: 5,  color: '#F59E0B' },
+    { stateCode: 'MONITORING',      name: 'Monitoring',       sortOrder: 6,  color: '#0EA5E9' },
+    { stateCode: 'CLOSING',         name: 'Closing',          sortOrder: 7,  color: '#6366F1' },
+    { stateCode: 'COMPLETED',       name: 'Completed',        sortOrder: 8,  isFinal: true,   color: '#10B981' },
+    { stateCode: 'ARCHIVED',        name: 'Archived',         sortOrder: 9,  isFinal: true,   color: '#9CA3AF' },
+  ];
+
+  const savedPmStates: Record<string, any> = {};
+  for (const s of pmStages) {
+    let state = await stateRepo.findOne({ where: { stateCode: s.stateCode, workflowType: 'project_management' } });
+    if (!state) {
+      state = await stateRepo.save(
+        stateRepo.create({
+          ...s,
+          workflowType: 'project_management',
+          isInitial: s.isInitial ?? false,
+          isFinal: s.isFinal ?? false,
+          tenantId: defaultTenant.id,
+        }),
+      );
+    }
+    savedPmStates[s.stateCode] = state;
+  }
+  console.log('  ✓ 9 project_management workflow states seeded');
+
+  // ─── Project Management Workflow Transitions ──────────────────────────────
+  const pmTransitions: Array<[string, string, string, string[]?]> = [
+    ['DRAFT', 'KICKOFF', 'Start Kickoff', ['project:transition']],
+    ['KICKOFF', 'DESIGN', 'Proceed to Design', ['project:transition']],
+    ['DESIGN', 'PLANNING', 'Proceed to Planning', ['project:transition']],
+    ['PLANNING', 'EXECUTION', 'Start Execution', ['project:transition']],
+    ['EXECUTION', 'MONITORING', 'Move to Monitoring', ['project:transition']],
+    ['MONITORING', 'CLOSING', 'Start Closing', ['project:transition']],
+    ['CLOSING', 'COMPLETED', 'Complete Project', ['project:transition']],
+    ['COMPLETED', 'ARCHIVED', 'Archive Project', ['project:transition']],
+  ];
+
+  for (const [from, to, name, perms] of pmTransitions) {
+    const fromState = savedPmStates[from];
+    const toState = savedPmStates[to];
+    if (!fromState || !toState) continue;
+
+    const exists = await transitionRepo.findOne({
+      where: { fromStateId: fromState.id, toStateId: toState.id, workflowType: 'project_management' },
+    });
+    if (!exists) {
+      await transitionRepo.save(
+        transitionRepo.create({
+          fromStateId: fromState.id, toStateId: toState.id,
+          name, workflowType: 'project_management',
+          requiredPermissions: perms,
+          isActive: true, requiresApproval: false,
+          tenantId: defaultTenant.id,
+        }),
+      );
+    }
+  }
+  console.log('  ✓ 8 project_management workflow transitions seeded');
+
+  // ─── Default Milestone Template (Sprint 2.2) ───────────────────────────────
+  const milestoneTemplateRepo = dataSource.getRepository(MilestoneTemplate);
+  const milestoneItemRepo = dataSource.getRepository(MilestoneTemplateItem);
+
+  let defaultTemplate = await milestoneTemplateRepo.findOne({ where: { code: 'DEFAULT_MOLD' } });
+  if (!defaultTemplate) {
+    defaultTemplate = await milestoneTemplateRepo.save(
+      milestoneTemplateRepo.create({
+        code: 'DEFAULT_MOLD',
+        name: 'Default Mold Project Milestones',
+        description: 'Standard mold development milestone plan',
+        isDefault: true,
+        tenantId: defaultTenant.id,
+      }),
+    );
+    const templateItems = [
+      { milestoneName: 'Kickoff',              milestoneStage: 'KICKOFF',     plannedDaysOffset: 0,  isCriticalPath: true,  requiresApproval: false, dependsOnSequence: null },
+      { milestoneName: 'Design Complete',      milestoneStage: 'DESIGN',      plannedDaysOffset: 14, isCriticalPath: true,  requiresApproval: false, dependsOnSequence: 1 },
+      { milestoneName: 'BOM Finalized',        milestoneStage: 'DESIGN',      plannedDaysOffset: 20, isCriticalPath: false, requiresApproval: false, dependsOnSequence: 2 },
+      { milestoneName: 'Procurement Started',  milestoneStage: 'PLANNING',    plannedDaysOffset: 30, isCriticalPath: false, requiresApproval: false, dependsOnSequence: 3 },
+      { milestoneName: 'Manufacturing Start',  milestoneStage: 'EXECUTION',   plannedDaysOffset: 45, isCriticalPath: true,  requiresApproval: false, dependsOnSequence: 4 },
+      { milestoneName: 'Assembly Complete',    milestoneStage: 'EXECUTION',   plannedDaysOffset: 60, isCriticalPath: true,  requiresApproval: false, dependsOnSequence: 5 },
+      { milestoneName: 'Internal Trial',       milestoneStage: 'MONITORING',  plannedDaysOffset: 75, isCriticalPath: true,  requiresApproval: false, dependsOnSequence: 6 },
+      { milestoneName: 'Inspection Done',      milestoneStage: 'MONITORING',  plannedDaysOffset: 85, isCriticalPath: false, requiresApproval: true,  dependsOnSequence: 7 },
+      { milestoneName: 'Dispatch Ready',       milestoneStage: 'CLOSING',     plannedDaysOffset: 95, isCriticalPath: false, requiresApproval: false, dependsOnSequence: 8 },
+      { milestoneName: 'Customer Acceptance',  milestoneStage: 'COMPLETED',   plannedDaysOffset: 110, isCriticalPath: true, requiresApproval: true,  dependsOnSequence: 9 },
+    ];
+    for (const [idx, item] of templateItems.entries()) {
+      await milestoneItemRepo.save(
+        milestoneItemRepo.create({
+          templateId: defaultTemplate.id,
+          milestoneName: item.milestoneName,
+          milestoneStage: item.milestoneStage,
+          sequenceNumber: idx + 1,
+          plannedDaysOffset: item.plannedDaysOffset,
+          isCriticalPath: item.isCriticalPath,
+          requiresApproval: item.requiresApproval,
+          dependsOnSequence: item.dependsOnSequence,
+          tenantId: defaultTenant.id,
+        }),
+      );
+    }
+    console.log('  ✓ DEFAULT_MOLD milestone template seeded (10 items)');
+  }
+
+  // ─── Departments (Sprint 2.2) ──────────────────────────────────────────────
+  const departmentRepo = dataSource.getRepository(Department);
+  const departmentsData = [
+    { code: 'MANAGEMENT',  name: 'Management',           description: 'Management and leadership' },
+    { code: 'SALES',       name: 'Sales',                description: 'Sales and customer acquisition' },
+    { code: 'DESIGN',      name: 'Design Engineering',   description: 'Mold design and engineering' },
+    { code: 'PLANNING',    name: 'Process Planning',     description: 'Process and machine planning' },
+    { code: 'PROCUREMENT', name: 'Procurement',          description: 'Material and vendor procurement' },
+    { code: 'PRODUCTION',  name: 'Production',           description: 'Manufacturing and assembly' },
+    { code: 'QUALITY',     name: 'Quality',              description: 'Inspection and quality assurance' },
+    { code: 'SERVICE',     name: 'Service',              description: 'Installation and after-sales service' },
+  ];
+  for (const d of departmentsData) {
+    const exists = await departmentRepo.findOne({ where: { code: d.code } });
+    if (!exists) {
+      await departmentRepo.save(
+        departmentRepo.create({ ...d, tenantId: defaultTenant.id }),
+      );
+    }
+  }
+  console.log('  ✓ 8 departments seeded');
+
   console.log('\n🎉 Seed complete!');
   console.log('  Login: admin@mitra.local (password set via SEED_ADMIN_PASSWORD)');
 }

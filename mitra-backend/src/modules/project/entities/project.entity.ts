@@ -38,6 +38,29 @@ export enum MoldType {
   JOB_WORK = 'JOB_WORK',
 }
 
+export enum ProjectType {
+  NEW_DEVELOPMENT = 'NEW_DEVELOPMENT',
+  REVAMP = 'REVAMP',
+  REPAIR = 'REPAIR',
+  RE_ENGINEERING = 'RE_ENGINEERING',
+  JOB_WORK = 'JOB_WORK',
+  OTHER = 'OTHER',
+}
+
+export enum ProjectRiskLevel {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL',
+}
+
+export enum ProjectPriority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  URGENT = 'URGENT',
+}
+
 @Entity('projects')
 @Index(['projectNumber', 'deletedAt'])
 @Index(['customerId', 'stage', 'deletedAt'])
@@ -139,4 +162,51 @@ export class Project extends IndustrialBaseEntity {
 
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, any> | null;
+
+  // ── Sprint 2.2: Project Management Domain ──────────────────────────────
+
+  @Column({
+    name: 'project_type',
+    type: 'varchar',
+    length: 50,
+    default: ProjectType.NEW_DEVELOPMENT,
+  })
+  projectType: ProjectType;
+
+  @Column({ name: 'business_unit', type: 'varchar', length: 100, nullable: true })
+  businessUnit: string | null;
+
+  /** Workflow-driven status — mirrors the current `project_management` workflow state. */
+  @Column({ type: 'varchar', length: 50, default: 'DRAFT' })
+  status: string;
+
+  @Column({ name: 'start_date', type: 'date', nullable: true })
+  startDate: Date | null;
+
+  @Column({ name: 'planned_end_date', type: 'date', nullable: true })
+  plannedEndDate: Date | null;
+
+  @Column({ name: 'actual_end_date', type: 'date', nullable: true })
+  actualEndDate: Date | null;
+
+  @Column({ type: 'decimal', precision: 18, scale: 2, nullable: true })
+  budget: number | null;
+
+  @Column({
+    name: 'risk_level',
+    type: 'varchar',
+    length: 20,
+    default: ProjectRiskLevel.LOW,
+  })
+  riskLevel: ProjectRiskLevel;
+
+  @Column({ name: 'quotation_id', type: 'uuid', nullable: true })
+  @Index()
+  quotationId: string | null;
+
+  @Column({ name: 'quotation_number', type: 'varchar', length: 50, nullable: true })
+  quotationNumber: string | null;
+
+  @Column({ name: 'workflow_instance_id', type: 'uuid', nullable: true })
+  workflowInstanceId: string | null;
 }

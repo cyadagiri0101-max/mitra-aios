@@ -1,7 +1,13 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, HttpCode, ParseUUIDPipe } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, HttpCode, ParseUUIDPipe,
+} from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ProjectService } from '../services/project.service';
-import { CreateProjectDto, UpdateProjectDto, TransitionStageDto } from '../dto/project.dto';
+import {
+  CreateProjectDto, UpdateProjectDto, TransitionStageDto, ProjectQueryDto, WorkflowTransitionDto,
+} from '../dto/project.dto';
+import { ProjectWorkflowService } from '../services/project-workflow.service';
+import { ProjectActivityService } from '../services/project-activity.service';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -14,14 +20,19 @@ import { CurrentUser, AuthUser } from '@common/decorators/current-user.decorator
 @UseGuards(JwtAuthGuard)
 @Controller('project')
 export class ProjectController {
-  constructor(private readonly service: ProjectService) {}
+  constructor(
+    private readonly service: ProjectService,
+    private readonly workflowService: ProjectWorkflowService,
+    private readonly activityService: ProjectActivityService,
+  ) {}
 
   @Get()
+  @ApiOperation({ summary: 'List projects (pagination, filtering, sorting, search)' })
   async findAll(
-    @Query() q: PaginationDto,
+    @Query() q: ProjectQueryDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.service.findAll(user.tenantId ?? undefined, q.page ?? 1, q.limit ?? 20);
+    return this.service.findAllAdvanced(user.tenantId ?? undefined, q);
   }
 
   @Get('dashboard/stats')
@@ -42,11 +53,32 @@ export class ProjectController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthUser,
   ) {
-    // Enforce tenant isolation before computing health — prevents cross-tenant
-    // information disclosure via the /health endpoint (findOne throws 404 if
-    // the project belongs to a different tenant).
     await this.service.findOne(id, user.tenantId ?? undefined);
     return this.service.computeHealth(id);
+  }
+
+  @Get(':id/workflow')
+  @ApiOperation({ summary: 'Get project workflow state, available transitions and history (DB-driven)' })
+  async workflow(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.workflowService.getWorkflow(id, {
+      userId: user.id,
+      userRole: user.role ? [user.role] : [],
+      userPermissions: user.permissions,
+      tenantId: user.tenantId,
+    });
+  }
+
+  @Get(':id/activity')
+  @ApiOperation({ summary: 'Get project activity timeline' })
+  async activity(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() q: PaginationDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.activityService.findByProject(id, user.tenantId ?? undefined, q.page ?? 1, q.limit ?? 50);
   }
 
   @UseGuards(RolesGuard)
@@ -64,6 +96,25 @@ export class ProjectController {
 
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY')
+  @Permissions('project:transition')
+  @Post(':id/workflow/transition')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Execute a database-driven workflow transition' })
+  async workflowTransition(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: WorkflowTransitionDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.workflowService.transition(id, dto.transitionId, {
+      userId: user.id,
+      userRole: user.role ? [user.role] : [],
+      userPermissions: user.permissions,
+      tenantId: user.tenantId,
+    }, dto.remarks);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY')
   @Permissions('project:create')
   @Post()
   async create(
@@ -73,8 +124,6 @@ export class ProjectController {
     return this.service.create(dto, user.id, user.tenantId);
   }
 
-  // FIX H-4: Any authenticated user (incl. CUSTOMER, SERVICE) could update
-  // any project without this guard. Added to match POST guard level.
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY')
   @Permissions('project:update')
@@ -93,8 +142,6 @@ export class ProjectController {
   @Post('admin/refresh-health')
   @HttpCode(200)
   async refreshHealth(@CurrentUser() user: AuthUser) {
-    // ADMIN-only: recalculates health_status for all projects in the caller's tenant.
-    // Super-admins (no tenantId) refresh across all tenants — use with caution.
     return this.service.refreshAllHealthStatuses(user.tenantId ?? undefined);
   }
 
@@ -102,7 +149,7 @@ export class ProjectController {
   @Roles('ADMIN', 'MANAGEMENT')
   @Permissions('project:delete')
   @Delete(':id')
-  @HttpCode(200)
+  @HttpCode(204)
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthUser,

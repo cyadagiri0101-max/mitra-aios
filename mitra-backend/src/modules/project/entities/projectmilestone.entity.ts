@@ -48,4 +48,25 @@ export class ProjectMilestone extends IndustrialBaseEntity {
 
   @Column({ type: 'text', nullable: true })
   remarks: string | null;
+
+  // ── Sprint 2.2: template + dependency + approval support ───────────────
+
+  @Column({ name: 'template_item_id', type: 'uuid', nullable: true })
+  templateItemId: string | null;
+
+  @Column({ name: 'depends_on_milestone_id', type: 'uuid', nullable: true })
+  @Index()
+  dependsOnMilestoneId: string | null;
+
+  @Column({ name: 'requires_approval', type: 'boolean', default: false })
+  requiresApproval: boolean;
+
+  @Column({ name: 'approved_by', type: 'uuid', nullable: true })
+  approvedBy: string | null;
+
+  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true })
+  approvedAt: Date | null;
+
+  @Column({ name: 'delay_days', type: 'int', default: 0 })
+  delayDays: number;
 }
