@@ -12,6 +12,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 
 // ── Shared factory ───────────────────────────────────────────────────────────
 function makeRepo() {
@@ -34,6 +35,7 @@ async function buildService<S>(ServiceClass: new (...a: any[]) => S, EntityClass
     providers: [
       ServiceClass,
       { provide: getRepositoryToken(EntityClass), useValue: repo },
+      { provide: DataSource, useValue: { query: jest.fn().mockResolvedValue([{ id: 'x' }]) } },
     ],
   }).compile();
   return { service: module.get<S>(ServiceClass), repo };

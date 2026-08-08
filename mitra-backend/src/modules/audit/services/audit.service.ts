@@ -19,6 +19,13 @@ export interface AuditLogInput {
   metadata?: Record<string, any>;
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Coerce UUID-typed columns: placeholders like 'system'/'default' become NULL. */
+function toUuidOrNull(value?: string | null): string | null {
+  return value && UUID_RE.test(value) ? value : null;
+}
+
 @Injectable()
 export class AuditService {
   constructor(
@@ -39,9 +46,9 @@ export class AuditService {
       entityId: input.entityId,
       action: input.action,
       eventType: input.eventType ?? AuditEventType.CRUD,
-      userId: input.userId ?? null,
+      userId: toUuidOrNull(input.userId),
       userEmail: input.userEmail ?? null,
-      tenantId: input.tenantId ?? null,
+      tenantId: toUuidOrNull(input.tenantId),
       beforeState: input.beforeState ?? null,
       afterState: input.afterState ?? null,
       reason: input.reason ?? null,

@@ -134,17 +134,32 @@ describe('RoleAssignmentService (C-1 security regression)', () => {
     );
   });
 
-  it('rejects cross-tenant roles at the repository layer', async () => {
+  it('rejects cross-tenant roles at the repository layer (only own tenant OR global)', async () => {
     userRepo.findOne.mockResolvedValue(mockUser());
     roleRepo.findOne.mockResolvedValue(null);
     await expect(
       service.assignRole('target-001', 'role-foreign', adminActor),
     ).rejects.toThrow(NotFoundException);
-    expect(roleRepo.findOne).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({ tenantId: 'tenant-001' }),
-      }),
+    const roleCall = roleRepo.findOne.mock.calls[0]?.[0];
+    const where: any[] = ((roleCall?.where as any) ?? []) as any[];
+    expect(where).toHaveLength(2);
+    expect(where[0]).toEqual(expect.objectContaining({ id: 'role-foreign', tenantId: 'tenant-001' }));
+    expect(where[1]).toEqual(expect.objectContaining({ id: 'role-foreign' }));
+  });
+
+  it('assigns a GLOBAL role (tenantId null) to a tenanted actor', async () => {
+    userRepo.findOne
+      .mockResolvedValueOnce(mockUser())
+      .mockResolvedValueOnce(mockUser({ role: mockRole({ id: 'role-sales', name: 'SALES' }) }));
+    roleRepo.findOne.mockResolvedValue(mockRole({ id: 'role-sales', name: 'SALES' }));
+    userRepo.save.mockImplementation(async (u: any) => u);
+
+    const result = await service.assignRole('target-001', 'role-sales', adminActor, 'Global role');
+
+    expect(userRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'target-001', roleId: 'role-sales', updatedBy: adminActor.id }),
     );
+    expect(result.role).toBeDefined();
   });
 
   it('prevents an administrator from demoting themselves', async () => {

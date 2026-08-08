@@ -47,4 +47,23 @@ export class EngineeringChangeOrder extends IndustrialBaseEntity {
 
   @Column({ type: 'text', nullable: true })
   notes: string | null;
+
+  // ── Sprint 2.3: Engineering Domain — DB-driven workflow + traceability ──
+
+  /** Instance of the `engineering_change` DB-driven workflow. */
+  @Column({ name: 'workflow_instance_id', type: 'uuid', nullable: true })
+  workflowInstanceId: string | null;
+
+  /** Every engineering artifact belongs to a Project — enforced at entity level. */
+  @Column({ name: 'project_id', type: 'uuid', nullable: true })
+  @Index()
+  projectId: string | null;
+
+  @Column({ name: 'drawing_id', type: 'uuid', nullable: true })
+  @Index()
+  drawingId: string | null;
+
+  @Column({ name: 'bom_id', type: 'uuid', nullable: true })
+  @Index()
+  bomId: string | null;
 }

@@ -551,3 +551,19 @@ Migration `1700000000015-ProjectManagementDomain.ts` shipped in v3.3
   (`tenant_id IS NULL` / matching tenant / any) so tenant-seeded copies are
   always found.
 - Rollback `down()` drops the new tables and restores `projects` columns.
+
+## Sprint 2.5 QMS Schema Addendum
+
+Migration `1700000000020-QmsFoundation` adds the Enterprise QMS persistence layer:
+
+- `inspection_plans`
+- `supplier_inspections`
+- `quality_control_plans`
+- `quality_fmeas`
+- `quality_gauges`
+- `quality_msa_studies`
+- `quality_ppap_apqp`
+- `quality_customer_complaints`
+
+It also extends existing `capa_verifications` and `ncr_records` with nullable genealogy anchors. These columns reference Engineering and Manufacturing artifacts by UUID and do not duplicate artifact payloads.
+

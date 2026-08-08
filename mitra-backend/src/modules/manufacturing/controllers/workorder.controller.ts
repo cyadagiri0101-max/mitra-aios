@@ -2,6 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Ht
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { CurrentUser, AuthUser } from '@common/decorators/current-user.decorator';
 import { WorkOrderService } from '../services/workorder.service';
+import { WorkOrderEngineService } from '../services/work-order-engine.service';
 import { CreateWorkOrderDto, UpdateWorkOrderDto } from '../dto/workorder.dto';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
@@ -13,7 +14,10 @@ import { PaginationDto } from '@common/dto/pagination.dto';
 @UseGuards(JwtAuthGuard)
 @Controller('manufacturing/work-orders')
 export class WorkOrderController {
-  constructor(private readonly service: WorkOrderService) {}
+  constructor(
+    private readonly service: WorkOrderService,
+    private readonly engine: WorkOrderEngineService,
+  ) {}
 
   @Get()
   async findAll(
@@ -61,5 +65,58 @@ export class WorkOrderController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.service.remove(id, user.id, user.tenantId);
+  }
+
+  // ── Sprint 2.4 MES engine endpoints (Phase 2) ───────────────────────────
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'PLANNING', 'PRODUCTION')
+  @Post('generate-from-artifacts')
+  async generateFromArtifacts(
+    @Body() dto: Record<string, unknown>,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.engine.generateFromArtifacts(dto, user);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'PLANNING')
+  @Post(':id/release')
+  async release(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.engine.release(id, user);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'PLANNING', 'PRODUCTION')
+  @Post(':id/transition')
+  async transition(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: { transition: string; remarks?: string },
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.engine.transition(id, dto.transition as keyof typeof import('../manufacturing.constants').WORK_ORDER_TRANSITIONS, user, dto.remarks);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'PLANNING', 'PRODUCTION', 'QUALITY')
+  @Get(':id/job-cards')
+  async listJobCards(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser) {
+    return this.engine.listJobCards(id, user.tenantId);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'PLANNING', 'PRODUCTION', 'QUALITY')
+  @Get(':id/reservations')
+  async listReservations(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser) {
+    return this.engine.listReservations(id, user.tenantId);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'PLANNING', 'PRODUCTION', 'QUALITY')
+  @Get(':id/checkpoints')
+  async listCheckpoints(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser) {
+    return this.engine.listCheckpoints(id, user.tenantId);
   }
 }

@@ -1,9 +1,9 @@
 # Acceptance Evidence Report
 
-**Date:** 2026-07-03T11:08:10.314826+00:00
-**Total Checks:** 77
-**Passed:** 50
-**Failed:** 27
+**Date:** 2026-07-06T08:57:37.632178+00:00
+**Total Checks:** 93
+**Passed:** 71
+**Failed:** 22
 
 ## Summary Metrics
 
@@ -13,10 +13,12 @@
 | Database Integrity / Orphans | 14 | 0 | 14 |
 | Engineering Relationships | 0 | 13 | 13 |
 | Duplicate Validation | 5 | 4 | 9 |
+| Database Integrity / NULL FK | 6 | 1 | 7 |
 | Orphan Validation | 6 | 1 | 7 |
-| Search Validation | 4 | 5 | 9 |
-| API Validation | 13 | 1 | 14 |
-| MITRA Integration | 1 | 3 | 4 |
+| Feature Completeness | 9 | 0 | 9 |
+| Search Validation | 6 | 3 | 9 |
+| API Validation | 14 | 0 | 14 |
+| MITRA Integration | 4 | 0 | 4 |
 
 ---
 
@@ -130,9 +132,9 @@ SELECT COUNT(*) AS c FROM bottle_family
 
 **Expected:** >0 bottle families
 
-**Actual:** 1 bottle families
+**Actual:** 61 bottle families
 
-**Record Count:** 1
+**Record Count:** 61
 
 **Root Cause:** Bottle family table has records.
 
@@ -523,11 +525,11 @@ SELECT COUNT(DISTINCT project_id) FROM product_master WHERE project_id IS NOT NU
 
 **Expected:** 281 projects
 
-**Actual:** 1 projects
+**Actual:** 127 projects
 
-**Record Count:** 1
+**Record Count:** 127
 
-**Root Cause:** Project → Bottle Family relationship is missing for 280 projects.
+**Root Cause:** Project → Bottle Family relationship is missing for 154 projects.
 
 **Issue Type:** Importer defect
 
@@ -565,11 +567,11 @@ SELECT COUNT(DISTINCT project_id) FROM cycle_time_history WHERE project_id IS NO
 
 **Expected:** 281 projects
 
-**Actual:** 0 projects
+**Actual:** 6 projects
 
-**Record Count:** 0
+**Record Count:** 6
 
-**Root Cause:** Project → Machine relationship is missing for 281 projects.
+**Root Cause:** Project → Machine relationship is missing for 275 projects.
 
 **Issue Type:** Importer defect
 
@@ -637,11 +639,11 @@ SELECT COUNT(DISTINCT project_id) FROM cycle_time_history WHERE project_id IS NO
 
 **Expected:** 281 projects
 
-**Actual:** 0 projects
+**Actual:** 5 projects
 
-**Record Count:** 0
+**Record Count:** 5
 
-**Root Cause:** Project → Neck Type relationship is missing for 281 projects.
+**Root Cause:** Project → Neck Type relationship is missing for 276 projects.
 
 **Issue Type:** Importer defect
 
@@ -658,11 +660,11 @@ SELECT COUNT(DISTINCT project_id) FROM cycle_time_history WHERE project_id IS NO
 
 **Expected:** 281 projects
 
-**Actual:** 0 projects
+**Actual:** 6 projects
 
-**Record Count:** 0
+**Record Count:** 6
 
-**Root Cause:** Project → Cavitation relationship is missing for 281 projects.
+**Root Cause:** Project → Cavitation relationship is missing for 275 projects.
 
 **Issue Type:** Importer defect
 
@@ -679,11 +681,11 @@ SELECT COUNT(DISTINCT project_id) FROM cycle_time_history WHERE project_id IS NO
 
 **Expected:** 281 projects
 
-**Actual:** 0 projects
+**Actual:** 6 projects
 
-**Record Count:** 0
+**Record Count:** 6
 
-**Root Cause:** Project → Cycle Time relationship is missing for 281 projects.
+**Root Cause:** Project → Cycle Time relationship is missing for 275 projects.
 
 **Issue Type:** Importer defect
 
@@ -1160,6 +1162,209 @@ SELECT material_code FROM material_master GROUP BY material_code HAVING COUNT(*)
 
 ---
 
+### Database Integrity / NULL FK
+
+**Check:** Cycle times without project link
+
+**Status:** ❌ FAIL
+
+**Query / Endpoint:**
+```
+SELECT id, product_name, machine_id, cavitation FROM cycle_time_history WHERE project_id IS NULL
+```
+
+**Expected:** 0 unlinked records
+
+**Actual:** 31 unlinked records
+
+**Record Count:** 31
+
+**Sample Records:**
+```json
+[
+  {
+    "id": 1,
+    "product_name": null,
+    "machine_id": 1,
+    "cavitation": "4+4"
+  },
+  {
+    "id": 2,
+    "product_name": null,
+    "machine_id": 2,
+    "cavitation": "6+6"
+  },
+  {
+    "id": 4,
+    "product_name": null,
+    "machine_id": 1,
+    "cavitation": "4+4"
+  },
+  {
+    "id": 6,
+    "product_name": null,
+    "machine_id": 4,
+    "cavitation": "2+2"
+  },
+  {
+    "id": 7,
+    "product_name": null,
+    "machine_id": 4,
+    "cavitation": "4+4"
+  },
+  {
+    "id": 8,
+    "product_name": null,
+    "machine_id": 5,
+    "cavitation": "8+8"
+  },
+  {
+    "id": 9,
+    "product_name": null,
+    "machine_id": 2,
+    "cavitation": "4+4"
+  },
+  {
+    "id": 10,
+    "product_name": null,
+    "machine_id": 4,
+    "cavitation": "2+2"
+  },
+  {
+    "id": 11,
+    "product_name": null,
+    "machine_id": 4,
+    "cavitation": "1+1"
+  },
+  {
+    "id": 12,
+    "product_name": null,
+    "machine_id": 2,
+    "cavitation": "6+6"
+  }
+]
+```
+
+**Root Cause:** 31 records have NULL foreign keys.
+
+**Issue Type:** Data quality defect
+
+---
+
+**Check:** Cycle times without machine link
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT id, project_id, product_name FROM cycle_time_history WHERE machine_id IS NULL
+```
+
+**Expected:** 0 unlinked records
+
+**Actual:** 0 unlinked records
+
+**Record Count:** 0
+
+**Root Cause:** All expected foreign-key links are present.
+
+---
+
+**Check:** Part lists without project link
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT id, description FROM part_list WHERE project_id IS NULL
+```
+
+**Expected:** 0 unlinked records
+
+**Actual:** 0 unlinked records
+
+**Record Count:** 0
+
+**Root Cause:** All expected foreign-key links are present.
+
+---
+
+**Check:** Component details without project link
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT id, tool_no FROM component_detail WHERE project_id IS NULL
+```
+
+**Expected:** 0 unlinked records
+
+**Actual:** 0 unlinked records
+
+**Record Count:** 0
+
+**Root Cause:** All expected foreign-key links are present.
+
+---
+
+**Check:** Documents without project link
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT id, serial_no FROM document_index WHERE project_id IS NULL
+```
+
+**Expected:** 0 unlinked records
+
+**Actual:** 0 unlinked records
+
+**Record Count:** 0
+
+**Root Cause:** All expected foreign-key links are present.
+
+---
+
+**Check:** Process planning without project link
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT id, step_name FROM process_planning WHERE project_id IS NULL
+```
+
+**Expected:** 0 unlinked records
+
+**Actual:** 0 unlinked records
+
+**Record Count:** 0
+
+**Root Cause:** All expected foreign-key links are present.
+
+---
+
+**Check:** Products without bottle family link
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT id, product_name FROM product_master WHERE bottle_family_id IS NULL
+```
+
+**Expected:** 0 unlinked records
+
+**Actual:** 0 unlinked records
+
+**Record Count:** 0
+
+**Root Cause:** All expected foreign-key links are present.
+
+---
+
 ### Orphan Validation
 
 **Check:** Documents without project
@@ -1192,9 +1397,9 @@ SELECT id, product_name FROM cycle_time_history WHERE project_id IS NULL
 
 **Expected:** 0 orphan records
 
-**Actual:** 41 orphan records
+**Actual:** 31 orphan records
 
-**Record Count:** 41
+**Record Count:** 31
 
 **Sample Records:**
 ```json
@@ -1208,15 +1413,7 @@ SELECT id, product_name FROM cycle_time_history WHERE project_id IS NULL
     "product_name": null
   },
   {
-    "id": 3,
-    "product_name": null
-  },
-  {
     "id": 4,
-    "product_name": null
-  },
-  {
-    "id": 5,
     "product_name": null
   },
   {
@@ -1237,6 +1434,14 @@ SELECT id, product_name FROM cycle_time_history WHERE project_id IS NULL
   },
   {
     "id": 10,
+    "product_name": null
+  },
+  {
+    "id": 11,
+    "product_name": null
+  },
+  {
+    "id": 12,
     "product_name": null
   }
 ]
@@ -1349,6 +1554,179 @@ SELECT id, product_name FROM product_master WHERE project_id IS NULL
 
 ---
 
+### Feature Completeness
+
+**Check:** Products
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT COUNT(*) AS c FROM product_master
+```
+
+**Expected:** >= 1 records
+
+**Actual:** 127 records
+
+**Record Count:** 127
+
+**Root Cause:** Required feature data exists: 127 records.
+
+---
+
+**Check:** Customers
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT COUNT(*) AS c FROM customer_master
+```
+
+**Expected:** >= 1 records
+
+**Actual:** 1 records
+
+**Record Count:** 1
+
+**Root Cause:** Required feature data exists: 1 records.
+
+---
+
+**Check:** Machines
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT COUNT(*) AS c FROM machine_master
+```
+
+**Expected:** >= 1 records
+
+**Actual:** 17 records
+
+**Record Count:** 17
+
+**Root Cause:** Required feature data exists: 17 records.
+
+---
+
+**Check:** Materials
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT COUNT(*) AS c FROM material_master
+```
+
+**Expected:** >= 1 records
+
+**Actual:** 2 records
+
+**Record Count:** 2
+
+**Root Cause:** Required feature data exists: 2 records.
+
+---
+
+**Check:** Documents
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT COUNT(*) AS c FROM document_index
+```
+
+**Expected:** >= 1 records
+
+**Actual:** 86 records
+
+**Record Count:** 86
+
+**Root Cause:** Required feature data exists: 86 records.
+
+---
+
+**Check:** Cycle times
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT COUNT(*) AS c FROM cycle_time_history
+```
+
+**Expected:** >= 1 records
+
+**Actual:** 41 records
+
+**Record Count:** 41
+
+**Root Cause:** Required feature data exists: 41 records.
+
+---
+
+**Check:** Part lists
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT COUNT(*) AS c FROM part_list
+```
+
+**Expected:** >= 1 records
+
+**Actual:** 115 records
+
+**Record Count:** 115
+
+**Root Cause:** Required feature data exists: 115 records.
+
+---
+
+**Check:** Process planning
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT COUNT(*) AS c FROM process_planning
+```
+
+**Expected:** >= 1 records
+
+**Actual:** 227 records
+
+**Record Count:** 227
+
+**Root Cause:** Required feature data exists: 227 records.
+
+---
+
+**Check:** Component details
+
+**Status:** ✅ PASS
+
+**Query / Endpoint:**
+```
+SELECT COUNT(*) AS c FROM component_detail
+```
+
+**Expected:** >= 1 records
+
+**Actual:** 516 records
+
+**Record Count:** 516
+
+**Root Cause:** Required feature data exists: 516 records.
+
+---
+
 ### Search Validation
 
 **Check:** Search by Project Number: 'BM454'
@@ -1372,7 +1750,7 @@ GET http://localhost:8001/api/v1/projects?search=BM454
 
 **Check:** Search by Bottle Family: 'Veedol'
 
-**Status:** ❌ FAIL
+**Status:** ✅ PASS
 
 **Query / Endpoint:**
 ```
@@ -1381,19 +1759,17 @@ GET http://localhost:8001/api/v1/projects?search=Veedol
 
 **Expected:** API supports this dimension
 
-**Actual:** HTTP 200, 0 project matches
+**Actual:** HTTP 200, 1 project matches
 
-**Record Count:** 0
+**Record Count:** 1
 
-**Root Cause:** Search returned no project matches; dimension not supported by /projects?search=.
-
-**Issue Type:** API defect
+**Root Cause:** Search returned 1 project match(es).
 
 ---
 
 **Check:** Search by Customer: 'Veedol'
 
-**Status:** ❌ FAIL
+**Status:** ✅ PASS
 
 **Query / Endpoint:**
 ```
@@ -1402,13 +1778,11 @@ GET http://localhost:8001/api/v1/projects?search=Veedol
 
 **Expected:** API supports this dimension
 
-**Actual:** HTTP 200, 0 project matches
+**Actual:** HTTP 200, 1 project matches
 
-**Record Count:** 0
+**Record Count:** 1
 
-**Root Cause:** Search returned no project matches; dimension not supported by /projects?search=.
-
-**Issue Type:** API defect
+**Root Cause:** Search returned 1 project match(es).
 
 ---
 
@@ -1781,7 +2155,7 @@ GET http://localhost:8001/api/v1/sync/all
 
 **Check:** Dashboard
 
-**Status:** ❌ FAIL
+**Status:** ✅ PASS
 
 **Query / Endpoint:**
 ```
@@ -1790,13 +2164,11 @@ GET http://localhost:8001/api/v1/dashboard/widgets
 
 **Expected:** HTTP 200
 
-**Actual:** HTTP 404
+**Actual:** HTTP 200
 
 **Record Count:** 0
 
-**Root Cause:** Endpoint did not respond as expected (expected 200, got 404).
-
-**Issue Type:** API defect
+**Root Cause:** Endpoint responded as expected.
 
 ---
 
@@ -1804,7 +2176,7 @@ GET http://localhost:8001/api/v1/dashboard/widgets
 
 **Check:** MITRA Search
 
-**Status:** ❌ FAIL
+**Status:** ✅ PASS
 
 **Query / Endpoint:**
 ```
@@ -1813,19 +2185,17 @@ GET http://localhost:8001/api/v1/search?q=BM454
 
 **Expected:** HTTP 200
 
-**Actual:** HTTP 404
+**Actual:** HTTP 200
 
 **Record Count:** 0
 
-**Root Cause:** MITRA calls endpoint that does not exist in EKL (expected 200, got 404).
-
-**Issue Type:** Integration defect
+**Root Cause:** MITRA endpoint mapped correctly.
 
 ---
 
 **Check:** MITRA Documents
 
-**Status:** ❌ FAIL
+**Status:** ✅ PASS
 
 **Query / Endpoint:**
 ```
@@ -1834,19 +2204,17 @@ GET http://localhost:8001/api/v1/documents
 
 **Expected:** HTTP 200
 
-**Actual:** HTTP 404
+**Actual:** HTTP 200
 
 **Record Count:** 0
 
-**Root Cause:** MITRA calls endpoint that does not exist in EKL (expected 200, got 404).
-
-**Issue Type:** Integration defect
+**Root Cause:** MITRA endpoint mapped correctly.
 
 ---
 
 **Check:** MITRA Dashboard
 
-**Status:** ❌ FAIL
+**Status:** ✅ PASS
 
 **Query / Endpoint:**
 ```
@@ -1855,13 +2223,11 @@ GET http://localhost:8001/api/v1/dashboard/widgets
 
 **Expected:** HTTP 200
 
-**Actual:** HTTP 404
+**Actual:** HTTP 200
 
 **Record Count:** 0
 
-**Root Cause:** MITRA calls endpoint that does not exist in EKL (expected 200, got 404).
-
-**Issue Type:** Integration defect
+**Root Cause:** MITRA endpoint mapped correctly.
 
 ---
 

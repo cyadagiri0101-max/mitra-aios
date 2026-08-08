@@ -9,6 +9,7 @@ This report covers the database certification checkpoint for the MITRA v3.2.1 re
 - Foreign key / constraint / index validation: Deferred
 - Optimistic locking validation: Deferred
 - Rollback validation: Deferred
+- Migration logic review: PASS via unit test coverage for migration 0014
 
 ## Evidence
 - The repository does not currently contain a configured PostgreSQL environment or `.env` database settings.
@@ -23,6 +24,7 @@ This report covers the database certification checkpoint for the MITRA v3.2.1 re
 ### Pending validation
 - Migration up/down execution remains pending until a PostgreSQL environment is available.
 - Schema, FK, constraint, index, rollback, and optimistic-lock validation remain pending until the live database environment is available.
+- The migration logic itself was validated through the dedicated migration unit tests, which passed.
 
 ## Observations
 | Severity | Evidence | File | Recommended Action |

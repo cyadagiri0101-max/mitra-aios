@@ -135,6 +135,9 @@ async function seed(dataSource: DataSource) {
     { resource: 'project:document', action: 'update' },
     { resource: 'project:document', action: 'delete' },
     { resource: 'project:activity', action: 'read' },
+    // Analytics permissions (required by the analytics controller)
+    { resource: 'analytics', action: 'read' },
+    { resource: 'analytics', action: 'report:read' },
   ];
 
   const permRepo = dataSource.getRepository(Permission);
@@ -295,6 +298,32 @@ async function seed(dataSource: DataSource) {
     }
   }
   console.log(`  ✓ ${rolePermCount} role↔permission assignments seeded`);
+
+  // ─── ADMIN Full-Access Reconciliation ───────────────────────────────────
+  // Migrations run before the seed, so engineering/analytics/quality
+  // permissions created by migrations (e.g. 0017) are granted to roles that
+  // exist at migration time. The seed's ADMIN matrix only covers its own
+  // permission list; reconcile ADMIN against EVERY permission in the DB so
+  // the platform admin always has full access regardless of migration order.
+  const adminRole = savedRoles['ADMIN'];
+  const allPermissions = await dataSource
+    .getRepository(Permission)
+    .find({ select: ['id'] });
+  if (adminRole) {
+    let adminGrantCount = 0;
+    for (const permission of allPermissions) {
+      const exists = await rolePermRepo.findOne({
+        where: { roleId: adminRole.id, permissionId: permission.id },
+      });
+      if (!exists) {
+        await rolePermRepo.save(
+          rolePermRepo.create({ roleId: adminRole.id, permissionId: permission.id }),
+        );
+        adminGrantCount++;
+      }
+    }
+    console.log(`  ✓ ADMIN full-access reconciliation: ${adminGrantCount} additional assignments`);
+  }
 
   // ─── Default Tenant ──────────────────────────────────────────────────────
   const tenantRepo = dataSource.getRepository(Tenant);
@@ -642,6 +671,139 @@ async function seed(dataSource: DataSource) {
     }
   }
   console.log('  ✓ 8 project_management workflow transitions seeded');
+
+  // ─── Engineering workflows (Sprint 2.3: drawing/change/bom/routing) ─────────
+  // Tenant-scoped like mold_project/rfq. Skip-if-exists per tenant so the
+  // migration (which seeds the DEFAULT tenant) and a fresh-DB seed never clash.
+  const engineeringWorkflows: Array<{
+    workflowType: string;
+    stages: Array<{ stateCode: string; name: string; sortOrder: number; isInitial?: boolean; isFinal?: boolean; color: string }>;
+    transitions: Array<[string, string, string, string[]?, boolean?, string[]?]>;
+  }> = [
+    {
+      workflowType: 'engineering_drawing',
+      stages: [
+        { stateCode: 'DRAFT',            name: 'Draft',            sortOrder: 1,  isInitial: true, color: '#6B7280' },
+        { stateCode: 'IN_DESIGN',        name: 'In Design',        sortOrder: 2,  color: '#3B82F6' },
+        { stateCode: 'PEER_REVIEW',      name: 'Peer Review',      sortOrder: 3,  color: '#8B5CF6' },
+        { stateCode: 'LEAD_APPROVAL',    name: 'Lead Approval',    sortOrder: 4,  color: '#F59E0B' },
+        { stateCode: 'RELEASED',         name: 'Released',         sortOrder: 5,  color: '#10B981' },
+        { stateCode: 'REVISION_REQUIRED', name: 'Revision Required', sortOrder: 6, color: '#F97316' },
+        { stateCode: 'OBSOLETE',         name: 'Obsolete',         sortOrder: 7,  isFinal: true, color: '#9CA3AF' },
+      ],
+      transitions: [
+        ['DRAFT', 'IN_DESIGN', 'Start Design', ['engineering:drawing:update']],
+        ['IN_DESIGN', 'PEER_REVIEW', 'Submit for Peer Review', ['engineering:drawing:update']],
+        ['PEER_REVIEW', 'LEAD_APPROVAL', 'Approve in Peer Review', ['engineering:review:approve']],
+        ['PEER_REVIEW', 'IN_DESIGN', 'Rework after Peer Review', ['engineering:drawing:update']],
+        ['LEAD_APPROVAL', 'RELEASED', 'Release Drawing', ['engineering:drawing:release'], true, ['MANAGEMENT', 'DESIGN']],
+        ['LEAD_APPROVAL', 'IN_DESIGN', 'Send Back to Design', ['engineering:drawing:update']],
+        ['RELEASED', 'REVISION_REQUIRED', 'Require Revision', ['engineering:drawing:update']],
+        ['REVISION_REQUIRED', 'IN_DESIGN', 'Revise Drawing', ['engineering:drawing:update']],
+        ['RELEASED', 'OBSOLETE', 'Mark Obsolete', ['engineering:drawing:update']],
+      ],
+    },
+    {
+      workflowType: 'engineering_change',
+      stages: [
+        { stateCode: 'REQUEST',         name: 'Request',         sortOrder: 1, isInitial: true, color: '#6B7280' },
+        { stateCode: 'REVIEW',          name: 'Review',          sortOrder: 2, color: '#3B82F6' },
+        { stateCode: 'APPROVAL',        name: 'Approval',        sortOrder: 3, color: '#F59E0B' },
+        { stateCode: 'IMPLEMENTATION',  name: 'Implementation',  sortOrder: 4, color: '#8B5CF6' },
+        { stateCode: 'VERIFICATION',    name: 'Verification',    sortOrder: 5, color: '#14B8A6' },
+        { stateCode: 'RELEASE',         name: 'Release',         sortOrder: 6, isFinal: true, color: '#10B981' },
+        { stateCode: 'REJECTED',        name: 'Rejected',        sortOrder: 7, isFinal: true, color: '#EF4444' },
+      ],
+      transitions: [
+        ['REQUEST', 'REVIEW', 'Submit for Review', ['engineering:change:update']],
+        ['REVIEW', 'APPROVAL', 'Proceed to Approval', ['engineering:change:approve']],
+        ['REVIEW', 'REJECTED', 'Reject Change', ['engineering:change:approve']],
+        ['APPROVAL', 'IMPLEMENTATION', 'Approve & Implement', ['engineering:change:approve'], true, ['MANAGEMENT', 'DESIGN']],
+        ['APPROVAL', 'REJECTED', 'Reject at Approval', ['engineering:change:approve']],
+        ['IMPLEMENTATION', 'VERIFICATION', 'Request Verification', ['engineering:change:implement']],
+        ['VERIFICATION', 'RELEASE', 'Release Change', ['engineering:change:release']],
+        ['VERIFICATION', 'IMPLEMENTATION', 'Rework Implementation', ['engineering:change:implement']],
+      ],
+    },
+    {
+      workflowType: 'engineering_bom',
+      stages: [
+        { stateCode: 'DRAFT',        name: 'Draft',        sortOrder: 1, isInitial: true, color: '#6B7280' },
+        { stateCode: 'UNDER_REVIEW', name: 'Under Review', sortOrder: 2, color: '#3B82F6' },
+        { stateCode: 'APPROVED',     name: 'Approved',     sortOrder: 3, color: '#F59E0B' },
+        { stateCode: 'RELEASED',     name: 'Released',     sortOrder: 4, color: '#10B981' },
+        { stateCode: 'OBSOLETE',     name: 'Obsolete',     sortOrder: 5, isFinal: true, color: '#9CA3AF' },
+      ],
+      transitions: [
+        ['DRAFT', 'UNDER_REVIEW', 'Submit for Review', ['engineering:bom:update']],
+        ['UNDER_REVIEW', 'APPROVED', 'Approve BOM', ['engineering:review:approve']],
+        ['UNDER_REVIEW', 'DRAFT', 'Request BOM Changes', ['engineering:bom:update']],
+        ['APPROVED', 'RELEASED', 'Release BOM', ['engineering:bom:release'], true, ['MANAGEMENT', 'DESIGN']],
+        ['APPROVED', 'DRAFT', 'Send BOM Back', ['engineering:bom:update']],
+        ['RELEASED', 'OBSOLETE', 'Mark BOM Obsolete', ['engineering:bom:update']],
+      ],
+    },
+    {
+      workflowType: 'engineering_routing',
+      stages: [
+        { stateCode: 'DRAFT',    name: 'Draft',    sortOrder: 1, isInitial: true, color: '#6B7280' },
+        { stateCode: 'APPROVED', name: 'Approved', sortOrder: 2, color: '#F59E0B' },
+        { stateCode: 'RELEASED', name: 'Released', sortOrder: 3, color: '#10B981' },
+        { stateCode: 'OBSOLETE', name: 'Obsolete', sortOrder: 4, isFinal: true, color: '#9CA3AF' },
+      ],
+      transitions: [
+        ['DRAFT', 'APPROVED', 'Approve Routing', ['engineering:routing:update']],
+        ['APPROVED', 'RELEASED', 'Release Routing', ['engineering:routing:update']],
+        ['RELEASED', 'OBSOLETE', 'Mark Routing Obsolete', ['engineering:routing:update']],
+      ],
+    },
+  ];
+
+  for (const wf of engineeringWorkflows) {
+    const savedEngStates: Record<string, any> = {};
+    for (const s of wf.stages) {
+      let state = await stateRepo.findOne({
+        where: { stateCode: s.stateCode, workflowType: wf.workflowType, tenantId: defaultTenant.id },
+      });
+      if (!state) {
+        state = await stateRepo.save(
+          stateRepo.create({
+            ...s,
+            workflowType: wf.workflowType,
+            isInitial: s.isInitial ?? false,
+            isFinal: s.isFinal ?? false,
+            tenantId: defaultTenant.id,
+          }),
+        );
+      }
+      savedEngStates[s.stateCode] = state;
+    }
+    for (const [from, to, name, perms, requiresApproval, approvalRoles] of wf.transitions) {
+      const fromState = savedEngStates[from];
+      const toState = savedEngStates[to];
+      if (!fromState || !toState) continue;
+      const exists = await transitionRepo.findOne({
+        where: {
+          fromStateId: fromState.id, toStateId: toState.id,
+          workflowType: wf.workflowType, tenantId: defaultTenant.id,
+        },
+      });
+      if (!exists) {
+        await transitionRepo.save(
+          transitionRepo.create({
+            fromStateId: fromState.id, toStateId: toState.id,
+            name, workflowType: wf.workflowType,
+            requiredPermissions: perms,
+            requiresApproval: requiresApproval ?? false,
+            approvalRoles,
+            isActive: true,
+            tenantId: defaultTenant.id,
+          }),
+        );
+      }
+    }
+    console.log(`  ✓ ${wf.stages.length} ${wf.workflowType} states + ${wf.transitions.length} transitions seeded`);
+  }
 
   // ─── Default Milestone Template (Sprint 2.2) ───────────────────────────────
   const milestoneTemplateRepo = dataSource.getRepository(MilestoneTemplate);

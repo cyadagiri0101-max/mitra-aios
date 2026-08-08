@@ -91,6 +91,30 @@ describe('AuditService', () => {
       const saved = repo.save.mock.calls[0][0];
       expect(saved.metadata).toEqual({ trialId: 't-123' });
     });
+
+    it('nulls placeholder values on UUID columns (system/default)', async () => {
+      const saved = await service.log({
+        entityType: 'capas',
+        entityId:   'c-1',
+        action:     'PATCH',
+        userId:     'system',
+        tenantId:   'default',
+      });
+      expect(saved.userId).toBeNull();
+      expect(saved.tenantId).toBeNull();
+    });
+
+    it('preserves valid UUIDs on user_id and tenant_id', async () => {
+      const saved = await service.log({
+        entityType: 'capas',
+        entityId:   'c-1',
+        action:     'PATCH',
+        userId:     '7f9c8e6d-2a4b-4c5d-8e6f-0a1b2c3d4e5f',
+        tenantId:   'a1b2c3d4-e5f6-4789-9abc-def012345678',
+      });
+      expect(saved.userId).toBe('7f9c8e6d-2a4b-4c5d-8e6f-0a1b2c3d4e5f');
+      expect(saved.tenantId).toBe('a1b2c3d4-e5f6-4789-9abc-def012345678');
+    });
   });
 
   // ── eventType classification ───────────────────────────────────────────────

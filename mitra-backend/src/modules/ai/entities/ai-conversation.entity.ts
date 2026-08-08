@@ -22,4 +22,7 @@ export class AiConversation extends IndustrialBaseEntity {
 
   @Column({ name: 'is_pinned', type: 'boolean', default: false })
   isPinned: boolean;
+
+  @Column({ type: 'jsonb', nullable: true })
+  metadata: Record<string, unknown> | null;
 }

@@ -20,6 +20,7 @@ This report covers the automated testing certification for the MITRA v3.2.1 rele
 ### Automated tests
 - All backend automated suites completed successfully.
 - The workflow, migration, and security regression suites were included in the passing test run.
+- Verified result: 48/48 suites passed, 637/637 tests passed.
 
 ### E2E
 - E2E certification was not executed because the required PostgreSQL-backed environment was not available.

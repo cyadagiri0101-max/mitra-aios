@@ -10,6 +10,11 @@ export class CreateWorkOrderDto {
   @ApiProperty() @IsString() partName: string;
   @ApiProperty() @IsString() operationType: string;
   @ApiPropertyOptional() @IsOptional() @IsUUID() partId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() drawingId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() bomId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() bomItemId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() routingId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() processPlanId?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() plannedStartDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() plannedEndDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) estimatedHours?: number;

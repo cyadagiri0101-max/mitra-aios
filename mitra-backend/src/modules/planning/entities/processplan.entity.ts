@@ -18,6 +18,15 @@ export class ProcessPlan extends IndustrialBaseEntity {
   @Index()
   partId: string | null;
 
+  /** Sprint 2.3.1 G-1: artifact traceability links (UUID + index, no relations). */
+  @Column({ name: 'drawing_id', type: 'uuid', nullable: true })
+  @Index()
+  drawingId: string | null;
+
+  @Column({ name: 'bom_id', type: 'uuid', nullable: true })
+  @Index()
+  bomId: string | null;
+
   @Column({ name: 'plan_version', type: 'int', default: 1 })
   planVersion: number;
 

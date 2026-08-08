@@ -49,16 +49,23 @@ export class RoleAssignmentService {
     }
 
     // ── Repository layer: tenant-scoped lookups ────────────────────────────
+    // Targets are strictly tenant-scoped. Roles may be the actor's tenant
+    // role OR a global/system role (tenantId IS NULL) — never another
+    // tenant's role.
     const targetWhere: any = { id: targetUserId, deletedAt: IsNull() };
-    const roleWhere: any = { id: roleId, deletedAt: IsNull() };
-    if (actor.tenantId) {
-      targetWhere.tenantId = actor.tenantId;
-      roleWhere.tenantId = actor.tenantId;
-    }
+    if (actor.tenantId) targetWhere.tenantId = actor.tenantId;
     const target = await this.userRepository.findOne({ where: targetWhere });
     if (!target) throw new NotFoundException('Target user not found');
 
-    const role = await this.roleRepository.findOne({ where: roleWhere });
+    const roleBaseWhere: any = { id: roleId, deletedAt: IsNull() };
+    const role = actor.tenantId
+      ? await this.roleRepository.findOne({
+          where: [
+            { ...roleBaseWhere, tenantId: actor.tenantId },
+            { ...roleBaseWhere, tenantId: IsNull() },
+          ],
+        })
+      : await this.roleRepository.findOne({ where: roleBaseWhere });
     if (!role) throw new NotFoundException('Role not found');
 
     // ── Self-demotion guard: an ADMIN cannot remove their own ADMIN role ──

@@ -67,4 +67,26 @@ export class EngineeringChangeRequest extends IndustrialBaseEntity {
 
   @Column({ type: 'enum', enum: ECRStatus, default: ECRStatus.DRAFT })
   status: ECRStatus;
+
+  // ── Sprint 2.3: Engineering Domain — DB-driven workflow + traceability ──
+
+  /** Instance of the `engineering_change` DB-driven workflow. */
+  @Column({ name: 'workflow_instance_id', type: 'uuid', nullable: true })
+  workflowInstanceId: string | null;
+
+  @Column({ name: 'drawing_id', type: 'uuid', nullable: true })
+  @Index()
+  drawingId: string | null;
+
+  @Column({ name: 'bom_id', type: 'uuid', nullable: true })
+  @Index()
+  bomId: string | null;
+
+  @Column({ name: 'work_order_id', type: 'uuid', nullable: true })
+  @Index()
+  workOrderId: string | null;
+
+  @Column({ name: 'routing_id', type: 'uuid', nullable: true })
+  @Index()
+  routingId: string | null;
 }

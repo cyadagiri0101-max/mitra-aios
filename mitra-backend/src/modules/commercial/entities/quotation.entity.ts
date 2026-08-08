@@ -1,6 +1,11 @@
 import { Entity, Column, VersionColumn, Index  } from 'typeorm';
 import { IndustrialBaseEntity } from '@common/entities/industrial-base.entity';
 
+const decimalTransformer = {
+  to: (value: number | null) => value,
+  from: (value: string | number | null) => (value == null ? value : Number(value)),
+};
+
 export enum QuotationStatus {
   DRAFT = 'DRAFT',
   SENT = 'SENT',
@@ -47,34 +52,34 @@ export class Quotation extends IndustrialBaseEntity {
   @Column({ name: 'customer_name', type: 'varchar', length: 200 })
   customerName: string;
 
-  @Column({ name: 'subtotal', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  @Column({ name: 'subtotal', type: 'decimal', precision: 18, scale: 2, default: 0, transformer: decimalTransformer })
   subtotal: number;
 
-  @Column({ name: 'estimated_cost', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  @Column({ name: 'estimated_cost', type: 'decimal', precision: 18, scale: 2, default: 0, transformer: decimalTransformer })
   estimatedCost: number;
 
-  @Column({ name: 'selling_price', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  @Column({ name: 'selling_price', type: 'decimal', precision: 18, scale: 2, default: 0, transformer: decimalTransformer })
   sellingPrice: number;
 
-  @Column({ name: 'margin_amount', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  @Column({ name: 'margin_amount', type: 'decimal', precision: 18, scale: 2, default: 0, transformer: decimalTransformer })
   marginAmount: number;
 
-  @Column({ name: 'margin_pct', type: 'decimal', precision: 5, scale: 2, default: 0 })
+  @Column({ name: 'margin_pct', type: 'decimal', precision: 5, scale: 2, default: 0, transformer: decimalTransformer })
   marginPct: number;
 
-  @Column({ name: 'discount_pct', type: 'decimal', precision: 5, scale: 2, default: 0 })
+  @Column({ name: 'discount_pct', type: 'decimal', precision: 5, scale: 2, default: 0, transformer: decimalTransformer })
   discountPct: number;
 
-  @Column({ name: 'discount_amount', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  @Column({ name: 'discount_amount', type: 'decimal', precision: 18, scale: 2, default: 0, transformer: decimalTransformer })
   discountAmount: number;
 
-  @Column({ name: 'tax_pct', type: 'decimal', precision: 5, scale: 2, default: 18 })
+  @Column({ name: 'tax_pct', type: 'decimal', precision: 5, scale: 2, default: 18, transformer: decimalTransformer })
   taxPct: number;
 
-  @Column({ name: 'tax_amount', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  @Column({ name: 'tax_amount', type: 'decimal', precision: 18, scale: 2, default: 0, transformer: decimalTransformer })
   taxAmount: number;
 
-  @Column({ name: 'total_amount', type: 'decimal', precision: 18, scale: 2, default: 0 })
+  @Column({ name: 'total_amount', type: 'decimal', precision: 18, scale: 2, default: 0, transformer: decimalTransformer })
   totalAmount: number;
 
   @Column({ type: 'varchar', length: 10, default: 'INR' })

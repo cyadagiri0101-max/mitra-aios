@@ -7,7 +7,7 @@ This report covers the backend production certification for the MITRA v3.2.1 rel
 - Backend production build: PASS
 - TypeScript compilation: PASS
 - Dependency tree inspection: PASS
-- Production dependency audit: PASS with 7 high-severity findings
+- Production dependency audit: PASS with 0 vulnerabilities
 - Unit/regression test suite: PASS
 
 ## Evidence
@@ -26,11 +26,11 @@ This report covers the backend production certification for the MITRA v3.2.1 rel
 
 ### Dependencies
 - The dependency tree resolved successfully and all top-level packages were present.
-- `npm audit --omit=dev` completed successfully after adding dependency overrides for `js-yaml` and `brace-expansion`, and the backend now reports `found 0 vulnerabilities`.
+- `npm audit --omit=dev` completed successfully and the backend now reports `found 0 vulnerabilities`.
 
 ### Tests
-- 38/38 test suites passed.
-- 512/512 tests passed.
+- 48/48 test suites passed.
+- 637/637 tests passed.
 
 ## Observations
 No unresolved production dependency vulnerabilities remain after the package remediation and audit verification.

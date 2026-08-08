@@ -415,31 +415,35 @@ export class ProjectManagementDomain1700000000015 implements MigrationInterface 
     await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_project_activity_logs_project" ON "project_activity_logs" ("project_id", "occurred_at")`);
 
     // ── Seed: project_management workflow (system default, tenant = NULL) ──
+    // Canonical 9-state graph (DRAFT → KICKOFF → DESIGN → PLANNING → EXECUTION
+    // → MONITORING → CLOSING → COMPLETED → ARCHIVED), matching seed.ts and
+    // ADR-009. Migration 0016 realigns databases that already applied an
+    // earlier (ENGINEERING-based) draft of this graph.
     await queryRunner.query(`
       INSERT INTO "workflow_states" ("id", "created_at", "updated_at", "deleted_at", "created_by", "updated_by", "tenant_id",
         "name", "state_code", "description", "category", "workflow_type", "is_initial", "is_final", "sort_order", "color", "icon")
       VALUES
         ('a0000000-0000-4000-8000-000000000001', now(), now(), NULL, NULL, NULL, NULL, 'Draft', 'DRAFT', 'Project drafted', 'PLANNING', 'project_management', TRUE, FALSE, 1, '#6B7280', NULL),
-        ('a0000000-0000-4000-8000-000000000002', now(), now(), NULL, NULL, NULL, NULL, 'Planning', 'PLANNING', 'Project planning phase', 'PLANNING', 'project_management', FALSE, FALSE, 2, '#3B82F6', NULL),
-        ('a0000000-0000-4000-8000-000000000003', now(), now(), NULL, NULL, NULL, NULL, 'Engineering', 'ENGINEERING', 'Design and engineering phase', 'ENGINEERING', 'project_management', FALSE, FALSE, 3, '#8B5CF6', NULL),
-        ('a0000000-0000-4000-8000-000000000004', now(), now(), NULL, NULL, NULL, NULL, 'Manufacturing', 'MANUFACTURING', 'Manufacturing phase', 'MANUFACTURING', 'project_management', FALSE, FALSE, 4, '#EAB308', NULL),
-        ('a0000000-0000-4000-8000-000000000005', now(), now(), NULL, NULL, NULL, NULL, 'Trial', 'TRIAL', 'Trial and validation', 'TRIAL', 'project_management', FALSE, FALSE, 5, '#F97316', NULL),
-        ('a0000000-0000-4000-8000-000000000006', now(), now(), NULL, NULL, NULL, NULL, 'Quality', 'QUALITY', 'Inspection and quality phase', 'QUALITY', 'project_management', FALSE, FALSE, 6, '#EF4444', NULL),
-        ('a0000000-0000-4000-8000-000000000007', now(), now(), NULL, NULL, NULL, NULL, 'Dispatch', 'DISPATCH', 'Dispatch and delivery', 'DISPATCH', 'project_management', FALSE, FALSE, 7, '#059669', NULL),
+        ('a0000000-0000-4000-8000-000000000002', now(), now(), NULL, NULL, NULL, NULL, 'Kickoff', 'KICKOFF', 'Project kickoff', 'PLANNING', 'project_management', FALSE, FALSE, 2, '#3B82F6', NULL),
+        ('a0000000-0000-4000-8000-000000000003', now(), now(), NULL, NULL, NULL, NULL, 'Design', 'DESIGN', 'Design phase', 'DESIGN', 'project_management', FALSE, FALSE, 3, '#8B5CF6', NULL),
+        ('a0000000-0000-4000-8000-000000000004', now(), now(), NULL, NULL, NULL, NULL, 'Planning', 'PLANNING', 'Planning phase', 'PLANNING', 'project_management', FALSE, FALSE, 4, '#14B8A6', NULL),
+        ('a0000000-0000-4000-8000-000000000005', now(), now(), NULL, NULL, NULL, NULL, 'Execution', 'EXECUTION', 'Execution phase', 'EXECUTION', 'project_management', FALSE, FALSE, 5, '#F59E0B', NULL),
+        ('a0000000-0000-4000-8000-000000000006', now(), now(), NULL, NULL, NULL, NULL, 'Monitoring', 'MONITORING', 'Monitoring phase', 'MONITORING', 'project_management', FALSE, FALSE, 6, '#0EA5E9', NULL),
+        ('a0000000-0000-4000-8000-000000000007', now(), now(), NULL, NULL, NULL, NULL, 'Closing', 'CLOSING', 'Closing phase', 'CLOSING', 'project_management', FALSE, FALSE, 7, '#6366F1', NULL),
         ('a0000000-0000-4000-8000-000000000008', now(), now(), NULL, NULL, NULL, NULL, 'Completed', 'COMPLETED', 'Project completed', 'CLOSED', 'project_management', FALSE, TRUE, 8, '#10B981', NULL),
-        ('a0000000-0000-4000-8000-000000000009', now(), now(), NULL, NULL, NULL, NULL, 'Archived', 'ARCHIVED', 'Project archived', 'CLOSED', 'project_management', FALSE, TRUE, 9, '#1F2937', NULL)
+        ('a0000000-0000-4000-8000-000000000009', now(), now(), NULL, NULL, NULL, NULL, 'Archived', 'ARCHIVED', 'Project archived', 'CLOSED', 'project_management', FALSE, TRUE, 9, '#9CA3AF', NULL)
       ON CONFLICT ("id") DO NOTHING
     `);
     await queryRunner.query(`
       INSERT INTO "workflow_transitions" ("id", "created_at", "updated_at", "deleted_at", "created_by", "updated_by", "tenant_id",
         "from_state_id", "to_state_id", "name", "description", "workflow_type", "required_roles", "required_permissions", "conditions", "requires_approval", "approval_roles", "is_active")
       VALUES
-        ('b0000000-0000-4000-8000-000000000001', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000002', 'Start Planning', 'Move project into planning', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
-        ('b0000000-0000-4000-8000-000000000002', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000003', 'Start Engineering', 'Move project into engineering', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
-        ('b0000000-0000-4000-8000-000000000003', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000004', 'Release to Manufacturing', 'Release to manufacturing phase', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
-        ('b0000000-0000-4000-8000-000000000004', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000005', 'Start Trial', 'Move project into trial phase', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
-        ('b0000000-0000-4000-8000-000000000005', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000005', 'a0000000-0000-4000-8000-000000000006', 'Start Quality Inspection', 'Move project into quality phase', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
-        ('b0000000-0000-4000-8000-000000000006', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000006', 'a0000000-0000-4000-8000-000000000007', 'Dispatch Project', 'Dispatch project to customer', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
+        ('b0000000-0000-4000-8000-000000000001', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000002', 'Start Kickoff', 'Move project into kickoff', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
+        ('b0000000-0000-4000-8000-000000000002', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000003', 'Proceed to Design', 'Move project into design', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
+        ('b0000000-0000-4000-8000-000000000003', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000004', 'Proceed to Planning', 'Move project into planning', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
+        ('b0000000-0000-4000-8000-000000000004', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000005', 'Start Execution', 'Move project into execution', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
+        ('b0000000-0000-4000-8000-000000000005', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000005', 'a0000000-0000-4000-8000-000000000006', 'Move to Monitoring', 'Move project into monitoring', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
+        ('b0000000-0000-4000-8000-000000000006', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000006', 'a0000000-0000-4000-8000-000000000007', 'Start Closing', 'Move project into closing', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
         ('b0000000-0000-4000-8000-000000000007', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000007', 'a0000000-0000-4000-8000-000000000008', 'Complete Project', 'Mark project as completed', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE),
         ('b0000000-0000-4000-8000-000000000008', now(), now(), NULL, NULL, NULL, NULL, 'a0000000-0000-4000-8000-000000000008', 'a0000000-0000-4000-8000-000000000009', 'Archive Project', 'Archive completed project', 'project_management', NULL, ARRAY['project:transition'], NULL, FALSE, NULL, TRUE)
       ON CONFLICT ("id") DO NOTHING

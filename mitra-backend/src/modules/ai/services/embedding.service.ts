@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { createHash } from 'crypto';
 import { OllamaProvider } from '../providers/ollama.provider';
 import { KnowledgeEmbedding, EmbeddingEntityType } from '../entities/knowledge-embedding.entity';
@@ -9,7 +9,7 @@ export interface EmbedInput {
   entityType: EmbeddingEntityType;
   entityId:   string;
   content:    string;
-  tenantId:   string;
+  tenantId:   string | null;
   metadata?:  Record<string, any>;
 }
 
@@ -35,7 +35,7 @@ export class EmbeddingService {
     const hash = this.sha256(input.content);
 
     const existing = await this.repo.findOne({
-      where: { entityType: input.entityType, entityId: input.entityId, tenantId: input.tenantId },
+      where: { entityType: input.entityType, entityId: input.entityId, tenantId: input.tenantId ?? IsNull() },
     });
 
     if (existing && existing.contentHash === hash) {

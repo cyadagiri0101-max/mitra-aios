@@ -1,7 +1,7 @@
 import { Entity, Column, Index } from 'typeorm';
 import { IndustrialBaseEntity } from '@common/entities/industrial-base.entity';
 
-export enum WorkOrderStatus { DRAFT='DRAFT', RELEASED='RELEASED', IN_PROGRESS='IN_PROGRESS', ON_HOLD='ON_HOLD', COMPLETED='COMPLETED', CANCELLED='CANCELLED' }
+export enum WorkOrderStatus { DRAFT='DRAFT', RELEASED='RELEASED', IN_PROGRESS='IN_PROGRESS', PAUSED='PAUSED', ON_HOLD='ON_HOLD', REWORK='REWORK', COMPLETED='COMPLETED', CANCELLED='CANCELLED', SCRAPPED='SCRAPPED' }
 export enum WorkOrderPriority { LOW='LOW', NORMAL='NORMAL', HIGH='HIGH', URGENT='URGENT' }
 
 @Entity('work_orders')
@@ -18,6 +18,27 @@ export class WorkOrder extends IndustrialBaseEntity {
   @Column({ name: 'part_id', type: 'uuid', nullable: true })
   @Index()
   partId: string | null;
+
+  /** Sprint 2.3.1 G-1: artifact traceability links (UUID + index, no relations). */
+  @Column({ name: 'drawing_id', type: 'uuid', nullable: true })
+  @Index()
+  drawingId: string | null;
+
+  @Column({ name: 'bom_id', type: 'uuid', nullable: true })
+  @Index()
+  bomId: string | null;
+
+  @Column({ name: 'bom_item_id', type: 'uuid', nullable: true })
+  @Index()
+  bomItemId: string | null;
+
+  @Column({ name: 'routing_id', type: 'uuid', nullable: true })
+  @Index()
+  routingId: string | null;
+
+  @Column({ name: 'process_plan_id', type: 'uuid', nullable: true })
+  @Index()
+  processPlanId: string | null;
 
   @Column({ name: 'part_name', type: 'varchar', length: 200 })
   partName: string;
@@ -45,6 +66,26 @@ export class WorkOrder extends IndustrialBaseEntity {
 
   @Column({ name: 'rejected_qty', type: 'decimal', precision: 10, scale: 3, default: 0 })
   rejectedQty: number;
+
+  /** Sprint 2.4 MES: rework / scrap quantity tracking (Phase 5). */
+  @Column({ name: 'rework_qty', type: 'decimal', precision: 10, scale: 3, default: 0 })
+  reworkQty: number;
+
+  @Column({ name: 'scrap_qty', type: 'decimal', precision: 10, scale: 3, default: 0 })
+  scrapQty: number;
+
+  /** Sprint 2.4 MES: immutable release snapshot (drawing/BOM/routing/process-plan revisions + cost baseline). */
+  @Column({ type: 'jsonb', nullable: true })
+  snapshot: Record<string, any> | null;
+
+  @Column({ name: 'cost_baseline', type: 'decimal', precision: 18, scale: 2, nullable: true })
+  costBaseline: number | null;
+
+  @Column({ name: 'released_by', type: 'uuid', nullable: true })
+  releasedBy: string | null;
+
+  @Column({ name: 'released_at', type: 'timestamptz', nullable: true })
+  releasedAt: Date | null;
 
   @Column({ name: 'machine_id', type: 'uuid', nullable: true })
   @Index()

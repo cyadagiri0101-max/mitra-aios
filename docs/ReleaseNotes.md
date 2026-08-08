@@ -1,5 +1,91 @@
 # MITRA AIOS Release Notes
 
+## Version 1.4.0 (MES Core — Sprint 2.4)
+
+**Release Date:** 2026-08-03
+
+### Overview
+
+Sprint 2.4 delivers the Manufacturing Execution System (MES) core: DB-driven work-order and job-card workflows, immutable release snapshots, shop-floor execution with automatic work-order roll-up, machine master + scheduling, material reservations/issues with shortage tracking, inspection checkpoints driving NCRs, production dashboards, and a transactional outbox event stream — plus a consolidated MES frontend console.
+
+### What's New
+
+#### Work-Order Engine
+- `generateFromArtifacts` + `release` create a draft WO with job cards, material reservations and inspection checkpoints from released drawings/BOMs/routings/process plans, frozen in an immutable `snapshot` (revisions + cost baseline)
+- DB-driven lifecycle workflows (work_order_lifecycle, job_card_lifecycle) seeded with 24 transitions; transition keys in `manufacturing.constants.ts`
+
+#### Shop Floor
+- Job start / production logging (`operation_logs` with quantities, duration, downtime, setup, shift) / job transitions with hold reasons
+- Automatic WO completion/scrap roll-up when all job cards are terminal; material reservations auto-released on completion
+
+#### Machines & Scheduling
+- Machine master CRUD, maintenance flag, calendars, bookings (soft overlap advisory), raw-SQL queue and utilization, next-available slot
+- Batch scheduling to least-loaded compatible machine + explicit assignment (booking + `SCHEDULE_ASSIGNED`)
+
+#### Materials
+- Reservations with planned/reserved/issued quantities; issue (partial → shortage event, full → issue slip `MI-`), release-unused (variance), consumption summary, shortage list
+
+#### Inspection & NCR
+- Checkpoint plans per WO with PASS/FAIL recording (critical → CRITICAL NCR); NCR lifecycle OPEN→INVESTIGATION→ACTION→VERIFIED→CLOSED with `closed_at` stamping
+
+#### Production Tracking & Events
+- Dashboard (status counts, quantities incl. rework/scrap, hours), board, per-WO history timeline
+- 23 transactional `manufacturing.*` outbox events (WORK_ORDER_*, JOB_*, MATERIAL_*, MACHINE_*, INSPECTION_*, SCHEDULE_ASSIGNED) + NCR_RAISED/NCR_CLOSED
+
+#### Frontend
+- `/manufacturing` MES console with 6 tabs: Dashboard, Work Orders (release + transitions + snapshot detail), Shop Floor (start/log/transition), Machines (maintenance, queue, bookings), Materials (issue/release, shortage banner), Inspection & NCR
+
+### Verification
+
+- Backend: `tsc --noEmit` clean; 61 test suites / 713 tests passing (10 new MES suites, 61 tests)
+- Frontend: `tsc --noEmit` clean; `vite build` succeeds
+- Docs: `Manufacturing_Architecture.md`, `MES_Workflow.md`, `Traceability_Model.md`, `Manufacturing_Completion_Report_2.4.md`
+
+---
+
+## Version 1.3.0 (Engineering Completion — Sprint 2.3.1)
+
+**Release Date:** 2026-08-03
+
+### Overview
+
+Sprint 2.3.1 delivers the Engineering Completion package: full traceability between engineering, manufacturing, and quality; BOM item effectivity + substitutions; routing revision snapshots; multi-reviewer reviews; unit conversions; a transactional outbox with AI-ready event hooks; and a new consolidated Engineering frontend page.
+
+### What's New
+
+#### Engineering Traceability (G-1)
+- New `engineering_trace_edges` generic graph + migration columns on `work_orders`, `process_plans`, `trial_observations`, `inspection_reports`, `retrials` linking to drawings/BOMs/routings
+- Work order artifact links (`drawing_id`/`bom_id`/`bom_item_id`/`routing_id`/`process_plan_id`) validated to exist and be RELEASED
+- Trial observation links validated for existence (trials are part of the release process)
+
+#### BOMs (G-2, G-3)
+- Item effectivity windows (`effective_from`/`effective_to`) with point-in-time selection (`asOf`/`effectiveOn`)
+- Substitutions (`engineering_bom_substitutions`) with status/priority/effectivity, guarded against RELEASED BOMs
+
+#### Process Planning (G-4)
+- Immutable routing revision snapshots (jsonb) + `createRevision`/`listRevisions`/`compareRevisions`
+- Predecessor operation sequencing with cycle detection
+
+#### Reviews (G-5)
+- Multi-reviewer assignments (`engineering_review_assignments`) with role, idempotent assignment, decision rollup to review status, and `REVIEW_ASSIGNED` events
+
+#### Unit Conversions (G-8)
+- `uom_conversions` table + 16 global seed conversions, tenant overrides, `/engineering/uoms/convert` endpoint
+
+#### Transactional Outbox (G-13) + AI hooks
+- `domain_outbox` + `OutboxService` (transactional append, relay, retry) + relay/retry endpoints
+- 3 new disabled AI hooks: substitute suggestion, routing comparison, review capacity balancing
+
+#### Frontend
+- New `/engineering` page with 6 tabs (BOMs & substitutions, Routings & revisions, Reviews & assignments, Unit conversions, Traceability, Outbox relay)
+
+### Verification
+
+- Backend: `tsc --noEmit` clean; 51 test suites / 657 tests passing
+- Frontend: `tsc --noEmit` clean
+
+---
+
 ## Version 1.2.0rc2 (Release Candidate 2) — Latest
 
 **Release Date:** 2026-07-20

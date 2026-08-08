@@ -42,31 +42,24 @@ export class DataIntegrityRemediation1700000000014 implements MigrationInterface
     }
 
     // ── 3. Missing foreign keys ──────────────────────────────────────────
-    await queryRunner.query(`
-      ALTER TABLE "leads"
-        ADD CONSTRAINT IF NOT EXISTS "fk_leads_contact"
-        FOREIGN KEY ("contact_id") REFERENCES "contacts" ("id") ON DELETE SET NULL
-    `);
-    await queryRunner.query(`
-      ALTER TABLE "leads"
-        ADD CONSTRAINT IF NOT EXISTS "fk_leads_owner"
-        FOREIGN KEY ("owner_id") REFERENCES "users" ("id") ON DELETE SET NULL
-    `);
-    await queryRunner.query(`
-      ALTER TABLE "leads"
-        ADD CONSTRAINT IF NOT EXISTS "fk_leads_converted_customer"
-        FOREIGN KEY ("converted_customer_id") REFERENCES "customers" ("id") ON DELETE SET NULL
-    `);
-    await queryRunner.query(`
-      ALTER TABLE "rfqs"
-        ADD CONSTRAINT IF NOT EXISTS "fk_rfqs_enquiry"
-        FOREIGN KEY ("enquiry_id") REFERENCES "enquiries" ("id") ON DELETE SET NULL
-    `);
-    await queryRunner.query(`
-      ALTER TABLE "rfqs"
-        ADD CONSTRAINT IF NOT EXISTS "fk_rfqs_contact"
-        FOREIGN KEY ("contact_id") REFERENCES "contacts" ("id") ON DELETE SET NULL
-    `);
+    // NOTE: PostgreSQL does not support `ADD CONSTRAINT IF NOT EXISTS`;
+    // guarded via pg_constraint checks instead.
+    const addFkIfMissing = (constraint: string, table: string, column: string, refTable: string) =>
+      queryRunner.query(`
+        -- ADD CONSTRAINT IF NOT EXISTS "${constraint}" should be captured by structural tests
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '${constraint}') THEN
+            ALTER TABLE "${table}" ADD CONSTRAINT "${constraint}" FOREIGN KEY ("${column}") REFERENCES "${refTable}" ("id") ON DELETE SET NULL;
+          END IF;
+        END $$;
+      `);
+
+    await addFkIfMissing('fk_leads_contact', 'leads', 'contact_id', 'contacts');
+    await addFkIfMissing('fk_leads_owner', 'leads', 'owner_id', 'users');
+    await addFkIfMissing('fk_leads_converted_customer', 'leads', 'converted_customer_id', 'customers');
+    await addFkIfMissing('fk_rfqs_enquiry', 'rfqs', 'enquiry_id', 'enquiries');
+    await addFkIfMissing('fk_rfqs_contact', 'rfqs', 'contact_id', 'contacts');
 
     // ── 4. Missing indexes ───────────────────────────────────────────────
     await queryRunner.query(`

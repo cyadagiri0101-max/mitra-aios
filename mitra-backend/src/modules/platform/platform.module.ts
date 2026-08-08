@@ -27,6 +27,9 @@ import { Company } from './entities/company.entity';
 import { NotificationTemplate } from './entities/notification-template.entity';
 import { NotificationQueue } from './entities/notification-queue.entity';
 import { SystemSettings } from './entities/system-settings.entity';
+import { DomainOutboxMessage } from './entities/domain-outbox.entity';
+
+import { OutboxService } from './services/outbox.service';
 
 import { JwtStrategy } from '@common/strategies/jwt.strategy';
 
@@ -49,10 +52,11 @@ import { JwtStrategy } from '@common/strategies/jwt.strategy';
     TypeOrmModule.forFeature([
       User, Role, Permission, RolePermission,
       Tenant, Company, NotificationTemplate, NotificationQueue, SystemSettings,
+      DomainOutboxMessage,
     ]),
   ],
   controllers: [AuthController, UserController, RoleController, TenantController],
-  providers: [AuthService, UserService, RoleService, RoleAssignmentService, NotificationService, TenantService, JwtStrategy],
-  exports: [AuthService, UserService, RoleService, RoleAssignmentService, NotificationService, TenantService, JwtModule, TypeOrmModule],
+  providers: [AuthService, UserService, RoleService, RoleAssignmentService, NotificationService, TenantService, JwtStrategy, OutboxService],
+  exports: [AuthService, UserService, RoleService, RoleAssignmentService, NotificationService, TenantService, JwtModule, TypeOrmModule, OutboxService],
 })
 export class PlatformModule {}

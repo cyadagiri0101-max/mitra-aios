@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { join } from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -34,6 +35,7 @@ import { FolderIntelligenceModule } from './modules/folder-intelligence/folder-i
 import { EcrEcoModule } from './modules/ecr-eco/ecr-eco.module';
 import { DispatchModule } from './modules/dispatch/dispatch.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { StorageModule } from './modules/storage/storage.module';
 // import { CacheModule } from './modules/cache/cache.module';  // TEMP: disabled for local dev without Redis
@@ -46,6 +48,7 @@ import { ProductModule } from './modules/product/product.module';
 import { ToolMasterModule } from './modules/tool-master/tool-master.module';
 import { EngineeringFileIndexerModule } from './modules/engineering-file-indexer/engineering-file-indexer.module';
 import { EngineeringLibraryModule } from './modules/engineering-library/engineering-library.module';
+import { EngineeringModule } from './modules/engineering/engineering.module';
 import { SchemaIntegrityService } from './common/services/schema-integrity.service';
 import { OptimisticLockFilter } from './common/filters/optimistic-lock.filter';
 
@@ -63,6 +66,8 @@ import { OptimisticLockFilter } from './common/filters/optimistic-lock.filter';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME', 'mitra_v2'),
         autoLoadEntities: true,
+        migrations: [join(__dirname, 'database/migrations/*{.ts,.js}')],
+        migrationsTableName: 'typeorm_migrations',
         synchronize: configService.get('NODE_ENV') === 'production'
           ? false
           : configService.get('DB_SYNC', 'false') === 'true',
@@ -106,6 +111,7 @@ import { OptimisticLockFilter } from './common/filters/optimistic-lock.filter';
     DispatchModule,
     AuditModule,
     MetricsModule,
+    AnalyticsModule,
     StorageModule,
     // CacheModule,  // TEMP: disabled for local dev without Redis
     BomAnalysisModule,
@@ -117,6 +123,7 @@ import { OptimisticLockFilter } from './common/filters/optimistic-lock.filter';
     ToolMasterModule,
     EngineeringFileIndexerModule,
     EngineeringLibraryModule,
+    EngineeringModule,
   ],
   providers: [
     IndustrialSubscriber,

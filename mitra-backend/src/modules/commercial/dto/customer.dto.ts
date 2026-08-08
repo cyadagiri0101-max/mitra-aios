@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsObject, IsUUID, ValidateNested, MinLength, MaxLength, IsEmail, IsBoolean, IsEnum, IsArray, IsNumber, Min, Max } from 'class-validator';
+import { IsString, IsOptional, IsObject, IsUUID, ValidateNested, MinLength, MaxLength, IsEmail, IsBoolean, IsEnum, IsArray, IsNumber, IsInt, Min, Max } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType, OmitType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { CreateContactDto } from './contact.dto';
@@ -161,6 +161,27 @@ export class CustomerFilterDto {
   @IsOptional()
   @IsString()
   includeArchived?: string;
+
+  @ApiPropertyOptional({ default: 1, minimum: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @ApiPropertyOptional({ default: 20, maximum: 100 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  search?: string;
 }
 
 export class CustomerResponseDto {
