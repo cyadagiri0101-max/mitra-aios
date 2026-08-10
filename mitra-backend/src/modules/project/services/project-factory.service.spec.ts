@@ -95,6 +95,13 @@ describe('ProjectFactoryService', () => {
     expect(dataSource.transaction).not.toHaveBeenCalled();
   });
 
+  it('rejects blank customer or product names before creating anything', async () => {
+    await expect(
+      service.createFromQuotation({ ...snapshot, customerName: '   ', productName: '   ' }, 'u-1', 't-1'),
+    ).rejects.toThrow(BadRequestException);
+    expect(dataSource.transaction).not.toHaveBeenCalled();
+  });
+
   it('creates project with generated PRJ number inside a single transaction', async () => {
     projectRepo.save.mockImplementation((p: any) => Promise.resolve({ ...p, id: 'proj-1' }));
     projectRepo.count.mockResolvedValue(0);

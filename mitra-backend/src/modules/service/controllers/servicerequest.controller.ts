@@ -33,7 +33,7 @@ export class ServiceRequestController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY')
+  @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY', 'SERVICE')
   @Permissions('service:create')
   @Post()
   async create(
@@ -44,7 +44,7 @@ export class ServiceRequestController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY')
+  @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY', 'SERVICE')
   @Permissions('service:update')
   @Patch(':id')
   async update(
@@ -53,6 +53,17 @@ export class ServiceRequestController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.service.update(id, dto as unknown as Record<string, unknown>, user.id, user.tenantId);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'SERVICE')
+  @Permissions('service:update')
+  @Patch(':id/close')
+  async close(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.update(id, { status: 'CLOSED' } as Record<string, unknown>, user.id, user.tenantId);
   }
 
   @UseGuards(RolesGuard)

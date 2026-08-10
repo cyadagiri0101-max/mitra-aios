@@ -7,19 +7,22 @@ import { ProjectDocumentVersion } from '../entities/projectdocumentversion.entit
 import { ProjectActivityLog } from '../entities/projectactivitylog.entity';
 import { DomainEventBus } from './domain-event-bus.service';
 import { ProjectDomainEventType } from '../events/project.events';
-import * as crypto from 'crypto';
+import { MinioService } from '../../storage/minio.service';
 
 export interface StoredFile {
   fileName: string;
   filePath: string;
   mimeType?: string | null;
   fileSize?: number;
+  /** Content SHA-256, computed by the storage layer (MinIO) — integrity anchor. */
+  checksum?: string | null;
 }
 
 /**
  * Project Document Center: folder structure + versioned documents.
  * Every upload creates a new immutable version; the document row tracks
- * the current version and release status.
+ * the current version and release status. Physical files live in MinIO
+ * (`mitra-documents` bucket); the DB stores the object key + content hash.
  */
 @Injectable()
 export class ProjectDocumentService {
@@ -28,6 +31,7 @@ export class ProjectDocumentService {
     @InjectRepository(ProjectDocument) private readonly documentRepo: Repository<ProjectDocument>,
     @InjectRepository(ProjectDocumentVersion) private readonly versionRepo: Repository<ProjectDocumentVersion>,
     @InjectRepository(ProjectActivityLog) private readonly activityRepo: Repository<ProjectActivityLog>,
+    private readonly minio: MinioService,
     private readonly eventBus: DomainEventBus,
   ) {}
 
@@ -50,18 +54,40 @@ export class ProjectDocumentService {
   }
 
   async createFolder(projectId: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const parentPath = '';
+    let parentPath = '';
+    if (data.parentFolderId) {
+      const whereParent: any = { id: data.parentFolderId, projectId, deletedAt: IsNull() };
+      if (tenantId) whereParent.tenantId = tenantId;
+      const parent = await this.folderRepo.findOne({ where: whereParent });
+      if (!parent) throw new BadRequestException('Parent folder does not exist in this project');
+      parentPath = parent.folderPath;
+    }
+    const name = String(data.folderName).trim();
+    const existing = await this.folderRepo.findOne({
+      where: { projectId, folderPath: `${parentPath}/${name}`, deletedAt: IsNull() },
+    });
+    if (existing) throw new BadRequestException(`A folder named "${name}" already exists here`);
     const folder = this.folderRepo.create({
       projectId,
-      folderName: data.folderName,
-      folderPath: `${parentPath}/${data.folderName}`,
+      folderName: name,
+      folderPath: `${parentPath}/${name}`,
+      folderType: 'CUSTOM',
+      parentFolderId: data.parentFolderId ?? null,
       sequence: data.sequence ?? 0,
       isDefault: false,
       createdBy: userId,
       updatedBy: userId,
       tenantId: tenantId ?? undefined,
     });
-    return this.folderRepo.save(folder);
+    const saved = await this.folderRepo.save(folder);
+    await this.logActivity(
+      { projectId, tenantId: tenantId ?? undefined } as ProjectDocument,
+      'document.folder_created',
+      `Folder created: ${saved.folderName}`,
+      userId,
+      tenantId,
+    );
+    return saved;
   }
 
   async removeFolder(id: string, userId: string, tenantId?: string | null) {
@@ -106,7 +132,9 @@ export class ProjectDocumentService {
 
   /**
    * Register a document with its first version (v1). The physical file
-   * location is provided by the caller (storage layer / multer).
+   * location is provided by the caller (storage layer / MinIO upload);
+   * `file.checksum` is the content SHA-256 and is stored as the integrity
+   * anchor — the filePath is NEVER hashed (path strings are not content).
    */
   async create(
     projectId: string,
@@ -121,7 +149,7 @@ export class ProjectDocumentService {
       if (!folder) throw new BadRequestException('Folder not found for this project');
     }
 
-    const checksum = crypto.createHash('sha256').update(file.filePath).digest('hex').slice(0, 64);
+    const checksum = file.checksum ?? null;
 
     const document = this.documentRepo.create({
       projectId,
@@ -186,7 +214,8 @@ export class ProjectDocumentService {
   /**
    * Upload a new version of an existing document. Immutable versioning:
    * the previous current version stays untouched; document.currentVersion
-   * advances and the document's file metadata is updated.
+   * advances and the document's file metadata is updated. Uploading onto a
+   * RELEASED document opens a new review cycle (back to DRAFT).
    */
   async uploadVersion(
     id: string,
@@ -197,8 +226,9 @@ export class ProjectDocumentService {
   ) {
     const document = await this.findOne(id, tenantId);
     const nextVersion = document.currentVersion + 1;
+    const previousStatus = document.status;
 
-    const checksum = crypto.createHash('sha256').update(file.filePath).digest('hex').slice(0, 64);
+    const checksum = file.checksum ?? null;
     await this.versionRepo.save(
       this.versionRepo.create({
         documentId: document.id,
@@ -220,19 +250,28 @@ export class ProjectDocumentService {
     document.fileName = file.fileName;
     document.mimeType = file.mimeType ?? document.mimeType;
     document.fileSize = file.fileSize ?? document.fileSize;
-    if (document.status === ProjectDocumentStatus.SUPERSEDED) {
+    if (document.status !== ProjectDocumentStatus.DRAFT) {
       document.status = ProjectDocumentStatus.DRAFT;
     }
     document.updatedBy = userId;
     const saved = await this.documentRepo.save(document);
 
-    await this.logActivity(saved, 'document.uploaded', `Document version ${nextVersion}: ${saved.title}`, userId, tenantId);
+    await this.logActivity(saved, 'document.uploaded', `Document version ${nextVersion}: ${saved.title}`, userId, tenantId, {
+      previousStatus,
+      checksum,
+    });
     return this.findOne(saved.id, tenantId);
   }
 
   /** Release a document (final approval of current version). */
   async release(id: string, remarks: string | null, userId: string, tenantId?: string | null) {
     const document = await this.findOne(id, tenantId);
+    if (document.status === ProjectDocumentStatus.ARCHIVED) {
+      throw new BadRequestException('Archived documents cannot be released');
+    }
+    if (document.status === ProjectDocumentStatus.RELEASED) {
+      throw new BadRequestException(`Document is already released (v${document.currentVersion})`);
+    }
     document.status = ProjectDocumentStatus.RELEASED;
     document.releasedBy = userId ?? null;
     document.releasedAt = new Date();
@@ -267,6 +306,39 @@ export class ProjectDocumentService {
     const where: any = { documentId, deletedAt: IsNull() };
     if (tenantId) where.tenantId = tenantId;
     return this.versionRepo.find({ where, order: { versionNumber: 'DESC' } as any, take: 200 });
+  }
+
+  /**
+   * Resolve a download link for a specific version (defaults to the current
+   * version). Physical files live in MinIO; the version's stored object key
+   * is signed for a limited window (1 day).
+   */
+  async download(id: string, versionNumber?: number, tenantId?: string | null) {
+    const document = await this.findOne(id, tenantId);
+    const where: any = { documentId: id, deletedAt: IsNull() };
+    if (tenantId) where.tenantId = tenantId;
+    if (versionNumber) where.versionNumber = versionNumber;
+    const version = await this.versionRepo.findOne({
+      where,
+      order: { versionNumber: 'DESC' } as any,
+    });
+    if (!version) throw new NotFoundException(`Version ${versionNumber ?? document.currentVersion} not found for this document`);
+
+    const presigned = await this.minio.generatePresignedGetUrl(
+      this.minio.getDefaultBucket(),
+      version.filePath,
+      86400,
+    );
+    return {
+      documentId: id,
+      versionNumber: version.versionNumber,
+      fileName: version.fileName,
+      mimeType: version.mimeType,
+      sizeBytes: version.fileSize,
+      checksumSha256: version.checksum ?? null,
+      url: presigned.url,
+      expiresInSeconds: 86400,
+    };
   }
 
   async remove(id: string, userId: string, tenantId?: string | null) {

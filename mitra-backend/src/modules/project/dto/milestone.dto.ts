@@ -25,16 +25,24 @@ export class CreateMilestoneTemplateItemDto {
 
 export class UpdateMilestoneTemplateItemDto extends PartialType(CreateMilestoneTemplateItemDto) {}
 
-export class UpdateMilestoneDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) milestoneName?: string;
+export class CreateMilestoneDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) @MaxLength(200) milestoneName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(1) @MaxLength(50) milestoneStage?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) @MaxLength(200) title?: string;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) @Type(() => Number) sequenceNumber?: number;
   @ApiPropertyOptional() @IsOptional() @IsDateString() plannedDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() revisedDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsUUID() ownerId?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(100) @Type(() => Number) completionPct?: number;
-  @ApiPropertyOptional() @IsOptional() @IsEnum(MilestoneStatus) status?: MilestoneStatus;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) delayReason?: string;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() dependsOnMilestoneId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() requiresApproval?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isCriticalPath?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) remarks?: string;
+}
+
+export class UpdateMilestoneDto extends PartialType(CreateMilestoneDto) {
+  @ApiPropertyOptional({ enum: MilestoneStatus }) @IsOptional() @IsEnum(MilestoneStatus) status?: MilestoneStatus;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) delayReason?: string;
 }
 
 export class CompleteMilestoneDto {

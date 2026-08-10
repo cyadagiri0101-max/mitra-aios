@@ -1,4 +1,5 @@
 import { Entity, Column, Index, ManyToOne, JoinColumn } from 'typeorm';
+import { Expose } from 'class-transformer';
 import { IndustrialBaseEntity } from '@common/entities/industrial-base.entity';
 import { ProjectTeam } from './projectteam.entity';
 
@@ -39,6 +40,11 @@ export class ProjectTeamMember extends IndustrialBaseEntity {
 
   @Column({ type: 'jsonb', nullable: true })
   skills: string[] | null;
+
+  @Expose()
+  get name(): string {
+    return this.userName;
+  }
 
   @Column({ name: 'capacity_pct', type: 'int', default: 100 })
   capacityPct: number;

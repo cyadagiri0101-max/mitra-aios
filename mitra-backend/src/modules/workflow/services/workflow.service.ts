@@ -166,10 +166,23 @@ export class WorkflowService {
       id: transitionId, fromStateId: instance.currentStateId, deletedAt: IsNull(),
     };
     if (context.tenantId) transitionWhere.tenantId = context.tenantId;
-    const transition = await transitionRepo.findOne({
+    let transition = await transitionRepo.findOne({
       where: transitionWhere,
       relations: ['fromState', 'toState'],
     });
+    // M-4 style fallback: tenant-scoped definitions are preferred, but a
+    // system default (tenant_id IS NULL) definition is valid for any tenant.
+    if (!transition && context.tenantId) {
+      transition = await transitionRepo.findOne({
+        where: {
+          id: transitionId,
+          fromStateId: instance.currentStateId,
+          tenantId: IsNull(),
+          deletedAt: IsNull(),
+        },
+        relations: ['fromState', 'toState'],
+      });
+    }
     if (!transition) {
       throw new BadRequestException(
         `Invalid transition from state '${instance.currentState.stateCode}'`,

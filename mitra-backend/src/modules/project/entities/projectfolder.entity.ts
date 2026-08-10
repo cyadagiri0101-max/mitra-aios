@@ -20,7 +20,10 @@ export class ProjectFolder extends IndustrialBaseEntity {
   @Column({ name: 'folder_path', type: 'varchar', length: 500 })
   folderPath: string;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ name: 'folder_type', type: 'varchar', length: 50, default: 'DEFAULT' })
+  folderType: string;
+
+  @Column({ name: 'sequence', type: 'int', default: 0 })
   sequence: number;
 
   @Column({ name: 'is_default', type: 'boolean', default: false })

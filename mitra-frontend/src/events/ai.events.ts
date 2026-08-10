@@ -1,4 +1,4 @@
-import { ChatMessage, AiResponse } from '../types/ai.types';
+import { ChatMessage, AiResponse, CopilotChatResponse } from '../types/ai.types';
 
 export type AiEventType =
   | 'ai:message'
@@ -10,7 +10,7 @@ export type AiEventType =
 
 export interface AiEventPayload {
   message?: ChatMessage;
-  response?: AiResponse;
+  response?: AiResponse | CopilotChatResponse;
   loading?: boolean;
   error?: string;
   suggestion?: string;

@@ -129,4 +129,14 @@ describe('TimelineService', () => {
     expect(result.rows).toHaveLength(1);
     expect(result.summary.milestones).toBe(0);
   });
+
+  it('scopes dependency loading to the project tasks (no cross-project edges)', async () => {
+    projectRepo.findOne.mockResolvedValue(project);
+    taskRepo.find.mockResolvedValue([taskA, taskB]);
+    milestoneRepo.find.mockResolvedValue([]);
+    dependencyRepo.find.mockResolvedValue([]);
+    await service.build('p-1', {}, 't-1');
+    const where = dependencyRepo.find.mock.calls[0][0].where;
+    expect(where.taskId._value).toEqual(['t-a', 't-b']);
+  });
 });

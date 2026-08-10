@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, Brackets } from 'typeorm';
 import { ProjectRisk, RiskStatus } from '../entities/projectrisk.entity';
@@ -89,6 +89,9 @@ export class RiskService {
   }
 
   async create(projectId: string, data: Record<string, any>, userId: string, userName: string | null, tenantId?: string | null) {
+    if (data.status === RiskStatus.CLOSED) {
+      throw new BadRequestException('A risk cannot be created as CLOSED — raise it, then close it via the close endpoint');
+    }
     const impact = Math.round(Number(data.impact ?? 1));
     const probability = Math.round(Number(data.probability ?? 1));
     const risk = this.riskRepo.create({
@@ -120,6 +123,9 @@ export class RiskService {
 
   async update(id: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
     const risk = await this.findOne(id, tenantId);
+    if (data.status !== undefined && data.status !== risk.status) {
+      throw new BadRequestException('Status changes are only allowed via POST /:id/close or POST /:id/reopen');
+    }
     Object.assign(risk, data, { updatedBy: userId });
     if (data.impact !== undefined || data.probability !== undefined) {
       risk.exposure = this.computeExposure(
@@ -132,8 +138,12 @@ export class RiskService {
     return saved;
   }
 
+  /** Close an open/mitigating risk with an optional resolution note. */
   async close(id: string, resolution: string | null, userId: string, tenantId?: string | null) {
     const risk = await this.findOne(id, tenantId);
+    if (risk.status === RiskStatus.CLOSED) {
+      throw new BadRequestException('Risk is already closed');
+    }
     risk.status = RiskStatus.CLOSED;
     risk.closedAt = new Date();
     risk.updatedBy = userId;
@@ -149,6 +159,23 @@ export class RiskService {
       tenantId: tenantId ?? null,
       actorId: userId ?? null,
       payload: { riskId: saved.id, title: saved.title, resolution },
+    });
+    return saved;
+  }
+
+  /** Reopen a closed risk (returns it to OPEN with a fresh review window). */
+  async reopen(id: string, reason: string | null, userId: string, tenantId?: string | null) {
+    const risk = await this.findOne(id, tenantId);
+    if (risk.status !== RiskStatus.CLOSED) {
+      throw new BadRequestException('Only closed risks can be reopened');
+    }
+    risk.status = RiskStatus.OPEN;
+    risk.closedAt = null;
+    risk.updatedBy = userId;
+    const saved = await this.riskRepo.save(risk);
+
+    await this.logActivity(saved, 'risk.reopened', `Risk reopened: ${saved.title}`, userId, tenantId, {
+      reason,
     });
     return saved;
   }

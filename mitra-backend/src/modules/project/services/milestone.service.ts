@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, NotFoundException, ForbiddenException 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, In } from 'typeorm';
 import { ProjectMilestone, MilestoneStatus } from '../entities/projectmilestone.entity';
+import { ProjectTask } from '../entities/projecttask.entity';
 import { MilestoneTemplate } from '../entities/milestone-template.entity';
 import { MilestoneTemplateItem } from '../entities/milestone-template-item.entity';
 import { ProjectActivityLog } from '../entities/projectactivitylog.entity';
@@ -16,6 +17,7 @@ import { ProjectDomainEventType } from '../events/project.events';
 export class MilestoneService {
   constructor(
     @InjectRepository(ProjectMilestone) private readonly milestoneRepo: Repository<ProjectMilestone>,
+    @InjectRepository(ProjectTask) private readonly taskRepo: Repository<ProjectTask>,
     @InjectRepository(MilestoneTemplate) private readonly templateRepo: Repository<MilestoneTemplate>,
     @InjectRepository(MilestoneTemplateItem) private readonly itemRepo: Repository<MilestoneTemplateItem>,
     @InjectRepository(ProjectActivityLog) private readonly activityRepo: Repository<ProjectActivityLog>,
@@ -48,6 +50,35 @@ export class MilestoneService {
     const milestone = await this.milestoneRepo.findOne({ where });
     if (!milestone) throw new NotFoundException('Milestone not found');
     return milestone;
+  }
+
+  /** Create a milestone manually (or bound to a template item). */
+  async create(projectId: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
+    if (data.dependsOnMilestoneId) {
+      const dep = await this.milestoneRepo.findOne({
+        where: { id: data.dependsOnMilestoneId, projectId, deletedAt: IsNull() },
+      });
+      if (!dep) throw new BadRequestException('Dependency milestone does not exist in this project');
+    }
+    const existingCount = await this.milestoneRepo.count({ where: { projectId, deletedAt: IsNull() } });
+    const milestoneName = data.milestoneName ?? data.title ?? 'Milestone';
+    const milestoneStage = data.milestoneStage ?? 'KICKOFF';
+    const payload = {
+      ...data,
+      milestoneName,
+      milestoneStage,
+      projectId,
+      status: MilestoneStatus.PENDING,
+      completionPct: data.completionPct ?? 0,
+      sequenceNumber: data.sequenceNumber ?? existingCount + 1,
+      createdBy: userId,
+      updatedBy: userId,
+      tenantId: tenantId ?? undefined,
+    };
+    const milestone = this.milestoneRepo.create(payload);
+    const saved = await this.milestoneRepo.save(milestone);
+    await this.logActivity(saved, 'milestone.created', `Milestone created: ${saved.milestoneName}`, userId);
+    return saved;
   }
 
   async update(id: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
@@ -226,6 +257,20 @@ export class MilestoneService {
 
   async remove(id: string, userId: string, tenantId?: string | null) {
     const milestone = await this.findOne(id, tenantId);
+
+    const dependent = await this.milestoneRepo.findOne({
+      where: { dependsOnMilestoneId: id, deletedAt: IsNull() },
+    });
+    if (dependent) {
+      throw new BadRequestException(
+        `Cannot delete "${milestone.milestoneName}": "${dependent.milestoneName}" depends on it`,
+      );
+    }
+    const taskCount = await this.taskRepo.count({ where: { milestoneId: id, deletedAt: IsNull() } });
+    if (taskCount > 0) {
+      throw new BadRequestException('Cannot delete milestone: tasks are still assigned to it');
+    }
+
     milestone.deletedAt = new Date();
     milestone.updatedBy = userId;
     const saved = await this.milestoneRepo.save(milestone);
@@ -233,7 +278,12 @@ export class MilestoneService {
     return saved;
   }
 
-  /** Re-sync the delay status of all milestones of a project (health refresh). */  async refreshDelays(projectId: string, tenantId?: string | null): Promise<{ updated: number; delayed: number }> {
+  /**
+   * Re-sync the delay status of all milestones of a project (health refresh).
+   * Overdue, non-closed milestones are flagged DELAYED with a consistent
+   * day count (same rounding as completion tracking).
+   */
+  async refreshDelays(projectId: string, userId: string, tenantId?: string | null): Promise<{ updated: number; delayed: number }> {
     const milestones = await this.milestoneRepo.find({
       where: { projectId, deletedAt: IsNull() },
       take: 500,
@@ -247,14 +297,22 @@ export class MilestoneService {
       const nowOverdue = planned && planned < today;
       if (nowOverdue && m.status !== MilestoneStatus.DELAYED) {
         const diffMs = today.getTime() - planned!.getTime();
-        const delayDays = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+        const delayDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
         m.status = MilestoneStatus.DELAYED;
         m.delayDays = delayDays;
-        m.updatedBy = null;
+        m.updatedBy = userId ?? null;
         await this.milestoneRepo.save(m);
         updated++;
         delayed++;
       }
+    }
+    if (updated > 0) {
+      await this.logActivity(
+        milestones[0],
+        'milestone.delay_refresh',
+        `Delay re-sync: ${updated} milestone(s) marked delayed`,
+        userId,
+      );
     }
     return { updated, delayed };
   }

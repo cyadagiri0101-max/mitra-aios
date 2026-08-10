@@ -19,6 +19,50 @@ export class CapaVerification extends IndustrialBaseEntity {
   @Index()
   trialId: string | null;
 
+
+  @Column({ name: 'drawing_id', type: 'uuid', nullable: true })
+  @Index()
+  drawingId: string | null;
+
+  @Column({ name: 'bom_id', type: 'uuid', nullable: true })
+  @Index()
+  bomId: string | null;
+
+  @Column({ name: 'routing_id', type: 'uuid', nullable: true })
+  @Index()
+  routingId: string | null;
+
+  @Column({ name: 'work_order_id', type: 'uuid', nullable: true })
+  @Index()
+  workOrderId: string | null;
+
+  @Column({ name: 'job_card_id', type: 'uuid', nullable: true })
+  @Index()
+  jobCardId: string | null;
+
+  @Column({ name: 'machine_id', type: 'uuid', nullable: true })
+  @Index()
+  machineId: string | null;
+
+  @Column({ name: 'operator_id', type: 'uuid', nullable: true })
+  @Index()
+  operatorId: string | null;
+
+  @Column({ name: 'ncr_id', type: 'uuid', nullable: true })
+  @Index()
+  ncrId: string | null;
+
+  @Column({ name: 'inspection_plan_id', type: 'uuid', nullable: true })
+  @Index()
+  inspectionPlanId: string | null;
+
+  @Column({ name: 'material_lot', type: 'varchar', length: 80, nullable: true })
+  materialLot: string | null;
+
+  @Column({ name: 'supplier_id', type: 'uuid', nullable: true })
+  @Index()
+  supplierId: string | null;
+
   @Column({ name: 'capa_type', type: 'enum', enum: CapaType, default: CapaType.CORRECTIVE })
   capaType: CapaType;
 

@@ -22,10 +22,29 @@ export class TeamService {
 
   // ── Teams ──────────────────────────────────────────────────────────────────
 
-  async findByProject(projectId: string, tenantId?: string | null) {
+  /**
+   * List teams with members. `skill` (case-insensitive) filters members by
+   * a skill tag stored in their JSONB `skills` array.
+   */
+  async findByProject(projectId: string, tenantId?: string | null, skill?: string) {
     const where: any = { projectId, deletedAt: IsNull() };
     if (tenantId) where.tenantId = tenantId;
     const teams = await this.teamRepo.find({ where, order: { createdAt: 'ASC' } as any, take: 100 });
+
+    if (skill?.trim()) {
+      const members = await this.memberRepo
+        .createQueryBuilder('member')
+        .where('member.project_id = :projectId', { projectId })
+        .andWhere('member.deleted_at IS NULL')
+        .andWhere('LOWER(member.skills::text) LIKE :skillPattern', {
+          skillPattern: `%${skill.trim().toLowerCase()}%`,
+        })
+        .orderBy('member.is_lead', 'DESC')
+        .limit(200)
+        .getMany();
+      return { data: this.serializeMembers(members) };
+    }
+
     const withMembers: any[] = [];
     for (const team of teams) {
       const members = await this.memberRepo.find({
@@ -33,9 +52,16 @@ export class TeamService {
         order: { isLead: 'DESC' } as any,
         take: 200,
       });
-      withMembers.push({ ...team, members });
+      withMembers.push({ ...team, members: this.serializeMembers(members) });
     }
-    return withMembers;
+    return { data: withMembers };
+  }
+
+  private serializeMembers(members: ProjectTeamMember[]) {
+    return members.map((member) => ({
+      ...member,
+      name: member.userName,
+    }));
   }
 
   async findOne(id: string, tenantId?: string | null): Promise<ProjectTeam> {
@@ -47,9 +73,11 @@ export class TeamService {
   }
 
   async create(projectId: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
+    const { name, role, ...rest } = data;
     const team = this.teamRepo.create({
-      ...data,
+      ...rest,
       projectId,
+      teamName: name,
       createdBy: userId,
       updatedBy: userId,
       tenantId: tenantId ?? undefined,
@@ -90,18 +118,29 @@ export class TeamService {
       if (dup) throw new BadRequestException('User is already a member of this team');
     }
 
+    const { name, email, ...rest } = data;
+
+    const isLead = data.isLead ?? false;
+    if (isLead) {
+      await this.memberRepo.update({ teamId, isLead: true, deletedAt: IsNull() }, { isLead: false });
+    }
+
     const member = this.memberRepo.create({
-      ...data,
+      ...rest,
       teamId,
       projectId: team.projectId,
-      isLead: data.isLead ?? false,
+      userName: name ?? rest.userName,
+      isLead,
       capacityPct: data.capacityPct ?? 100,
-      skills: data.skills ?? [],
+      skills: this.sanitizeSkills(data.skills),
       createdBy: userId,
       updatedBy: userId,
       tenantId: tenantId ?? undefined,
     });
     const saved = await this.memberRepo.save(member);
+    if (isLead) {
+      await this.syncTeamLead(team, saved);
+    }
     await this.logActivity(team.projectId, 'team.member_added', `Member added: ${saved.userName} → ${team.teamName}`, userId, tenantId);
     return saved;
   }
@@ -111,8 +150,54 @@ export class TeamService {
     if (tenantId) where.tenantId = tenantId;
     const member = await this.memberRepo.findOne({ where });
     if (!member) throw new NotFoundException('Team member not found');
+
+    const becomingLead = data.isLead === true && !member.isLead;
+    if (becomingLead) {
+      await this.memberRepo.update({ teamId: member.teamId, isLead: true, deletedAt: IsNull() }, { isLead: false });
+    }
+
+    if (data.skills !== undefined) {
+      data = { ...data, skills: this.sanitizeSkills(data.skills) };
+    }
+
     Object.assign(member, data, { updatedBy: userId });
-    return this.memberRepo.save(member);
+    const saved = await this.memberRepo.save(member);
+
+    if (becomingLead) {
+      const team = await this.teamRepo.findOne({ where: { id: member.teamId, deletedAt: IsNull() } });
+      if (team) await this.syncTeamLead(team, saved);
+    }
+    await this.logActivity(member.projectId, 'team.member_updated', `Member updated: ${saved.userName}`, userId, tenantId);
+    return saved;
+  }
+
+  /** Keeps `team.leadUserId` in sync with the sole isLead member. */
+  private async syncTeamLead(team: ProjectTeam, leadMember: ProjectTeamMember): Promise<void> {
+    if (team.leadUserId !== leadMember.userId) {
+      team.leadUserId = leadMember.userId ?? null;
+      team.leadUserName = leadMember.userName;
+      await this.teamRepo.save(team);
+    }
+  }
+
+  /**
+   * Normalize a skills array: trim, drop empties, dedupe (case-insensitive),
+   * cap at 30 tags of max 50 chars each. Keeps the JSONB field clean.
+   */
+  private sanitizeSkills(skills: unknown): string[] | null {
+    if (!Array.isArray(skills)) return null;
+    const seen = new Set<string>();
+    const clean: string[] = [];
+    for (const s of skills) {
+      const tag = String(s).trim().slice(0, 50);
+      if (!tag) continue;
+      const key = tag.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      clean.push(tag);
+      if (clean.length >= 30) break;
+    }
+    return clean.length ? clean : null;
   }
 
   async removeMember(memberId: string, userId: string, tenantId?: string | null) {
@@ -122,7 +207,15 @@ export class TeamService {
     if (!member) throw new NotFoundException('Team member not found');
     member.deletedAt = new Date();
     member.updatedBy = userId;
-    await this.memberRepo.save(member);
+    const saved = await this.memberRepo.save(member);
+    const team = await this.teamRepo.findOne({ where: { id: member.teamId, deletedAt: IsNull() } });
+    await this.logActivity(
+      team?.projectId ?? member.projectId,
+      'team.member_removed',
+      `Member removed: ${saved.userName}`,
+      userId,
+      tenantId,
+    );
     return { deleted: true, id: memberId };
   }
 

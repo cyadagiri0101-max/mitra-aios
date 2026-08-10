@@ -15,6 +15,8 @@ import { Permissions } from '@common/decorators/permissions.decorator';
 import { PaginationDto } from '@common/dto/pagination.dto';
 import { CurrentUser, AuthUser } from '@common/decorators/current-user.decorator';
 
+const PROJECT_READ_ROLES = ['ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY', 'CUSTOMER'];
+
 @ApiTags('project')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -27,6 +29,9 @@ export class ProjectController {
   ) {}
 
   @Get()
+  @UseGuards(RolesGuard)
+  @Roles(...PROJECT_READ_ROLES)
+  @Permissions('project:read')
   @ApiOperation({ summary: 'List projects (pagination, filtering, sorting, search)' })
   async findAll(
     @Query() q: ProjectQueryDto,
@@ -36,11 +41,17 @@ export class ProjectController {
   }
 
   @Get('dashboard/stats')
+  @UseGuards(RolesGuard)
+  @Roles(...PROJECT_READ_ROLES)
+  @Permissions('project:read')
   async stats(@CurrentUser() user: AuthUser) {
     return this.service.getDashboardStats(user.tenantId ?? undefined);
   }
 
   @Get(':id')
+  @UseGuards(RolesGuard)
+  @Roles(...PROJECT_READ_ROLES)
+  @Permissions('project:read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthUser,
@@ -49,15 +60,21 @@ export class ProjectController {
   }
 
   @Get(':id/health')
+  @UseGuards(RolesGuard)
+  @Roles(...PROJECT_READ_ROLES)
+  @Permissions('project:read')
   async health(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthUser,
   ) {
     await this.service.findOne(id, user.tenantId ?? undefined);
-    return this.service.computeHealth(id);
+    return this.service.computeHealth(id, user.tenantId ?? undefined);
   }
 
   @Get(':id/workflow')
+  @UseGuards(RolesGuard)
+  @Roles(...PROJECT_READ_ROLES)
+  @Permissions('project:read')
   @ApiOperation({ summary: 'Get project workflow state, available transitions and history (DB-driven)' })
   async workflow(
     @Param('id', ParseUUIDPipe) id: string,
@@ -72,6 +89,9 @@ export class ProjectController {
   }
 
   @Get(':id/activity')
+  @UseGuards(RolesGuard)
+  @Roles(...PROJECT_READ_ROLES)
+  @Permissions('project:activity:read')
   @ApiOperation({ summary: 'Get project activity timeline' })
   async activity(
     @Param('id', ParseUUIDPipe) id: string,
@@ -91,7 +111,7 @@ export class ProjectController {
     @Body() dto: TransitionStageDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.service.transitionStage(id, dto.toStage, user.id, dto.remarks);
+    return this.service.transitionStage(id, dto.toStage, user.id, user.tenantId, dto.remarks);
   }
 
   @UseGuards(RolesGuard)
@@ -137,8 +157,8 @@ export class ProjectController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles('ADMIN')
-  @Permissions('project:delete')
+  @Roles('ADMIN', 'MANAGEMENT')
+  @Permissions('project:update')
   @Post('admin/refresh-health')
   @HttpCode(200)
   async refreshHealth(@CurrentUser() user: AuthUser) {
@@ -149,7 +169,7 @@ export class ProjectController {
   @Roles('ADMIN', 'MANAGEMENT')
   @Permissions('project:delete')
   @Delete(':id')
-  @HttpCode(204)
+  @HttpCode(200)
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthUser,

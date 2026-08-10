@@ -1,7 +1,7 @@
 import { IsString, IsOptional, IsUUID, IsDateString, IsEnum, IsInt, IsNumber, Min, Max, MinLength, MaxLength, IsArray } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ProjectType, ProjectRiskLevel, ProjectPriority } from '../entities/project.entity';
+import { ProjectType, ProjectRiskLevel, ProjectPriority, ProjectStage } from '../entities/project.entity';
 
 export enum MoldType { INJECTION='INJECTION', BLOW='BLOW', THIN_WALL='THIN_WALL', IBM='IBM', MOLD_BASE='MOLD_BASE', FIXTURE='FIXTURE', PRODUCT_DESIGN='PRODUCT_DESIGN', JOB_WORK='JOB_WORK' }
 
@@ -14,7 +14,7 @@ export class CreateProjectDto {
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) @Max(128) @Type(() => Number) cavitation?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() materialType?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() targetDeliveryDate?: string;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) projectValue?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Type(() => Number) projectValue?: number;
   @ApiPropertyOptional() @IsOptional() @IsUUID() projectManagerId?: string;
   @ApiPropertyOptional() @IsOptional() @IsUUID() customerId?: string;
 
@@ -62,7 +62,8 @@ export class ProjectQueryDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) search?: string;
   @ApiPropertyOptional({ enum: ProjectType }) @IsOptional() @IsEnum(ProjectType) projectType?: ProjectType;
   @ApiPropertyOptional({ enum: ProjectRiskLevel }) @IsOptional() @IsEnum(ProjectRiskLevel) riskLevel?: ProjectRiskLevel;
-  @ApiPropertyOptional({ description: 'Workflow status (DRAFT, PLANNING, …)' }) @IsOptional() @IsString() status?: string;
+  @ApiPropertyOptional({ description: 'Workflow status (DRAFT, KICKOFF, …)' }) @IsOptional() @IsString() status?: string;
+  @ApiPropertyOptional({ enum: ProjectStage, description: 'Legacy mold-lifecycle stage (ENQUIRY, …)' }) @IsOptional() @IsEnum(ProjectStage) stage?: ProjectStage;
   @ApiPropertyOptional({ enum: ProjectPriority }) @IsOptional() @IsEnum(ProjectPriority) priority?: ProjectPriority;
   @ApiPropertyOptional() @IsOptional() @IsUUID() customerId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) businessUnit?: string;

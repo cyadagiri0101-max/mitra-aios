@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, HttpCode, ParseUUIDPipe,
+  Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, HttpCode, ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { TeamService } from '../services/team.service';
@@ -13,6 +13,8 @@ import { Roles } from '@common/decorators/roles.decorator';
 import { Permissions } from '@common/decorators/permissions.decorator';
 import { CurrentUser, AuthUser } from '@common/decorators/current-user.decorator';
 
+const TEAM_READ_ROLES = ['ADMIN', 'MANAGEMENT', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY'];
+
 @ApiTags('project-teams')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -21,15 +23,22 @@ export class TeamController {
   constructor(private readonly service: TeamService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List teams of a project (with members)' })
+  @UseGuards(RolesGuard)
+  @Roles(...TEAM_READ_ROLES)
+  @Permissions('project:team:read')
+  @ApiOperation({ summary: 'List teams of a project (with members, optional skill filter)' })
   async findByProject(
     @Param('projectId', ParseUUIDPipe) projectId: string,
     @CurrentUser() user: AuthUser,
+    @Query('skill') skill?: string,
   ) {
-    return this.service.findByProject(projectId, user.tenantId ?? undefined);
+    return this.service.findByProject(projectId, user.tenantId ?? undefined, skill);
   }
 
   @Get('/availability')
+  @UseGuards(RolesGuard)
+  @Roles(...TEAM_READ_ROLES)
+  @Permissions('project:team:read')
   @ApiOperation({ summary: 'Member capacity & availability across project teams' })
   async availability(
     @Param('projectId', ParseUUIDPipe) projectId: string,
@@ -39,6 +48,9 @@ export class TeamController {
   }
 
   @Get('/departments')
+  @UseGuards(RolesGuard)
+  @Roles(...TEAM_READ_ROLES)
+  @Permissions('project:team:read')
   @ApiOperation({ summary: 'List departments' })
   async departments(@CurrentUser() user: AuthUser) {
     return this.service.findDepartments(user.tenantId ?? undefined);
@@ -82,6 +94,9 @@ export class TeamController {
   }
 
   @Get(':teamId')
+  @UseGuards(RolesGuard)
+  @Roles(...TEAM_READ_ROLES)
+  @Permissions('project:team:read')
   async findOne(
     @Param('teamId', ParseUUIDPipe) teamId: string,
     @CurrentUser() user: AuthUser,

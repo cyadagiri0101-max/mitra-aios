@@ -5,13 +5,15 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { MilestoneService } from '../services/milestone.service';
 import {
   CreateMilestoneTemplateDto, UpdateMilestoneTemplateDto, CreateMilestoneTemplateItemDto,
-  UpdateMilestoneTemplateItemDto, UpdateMilestoneDto, CompleteMilestoneDto, ApproveMilestoneDto,
+  UpdateMilestoneTemplateItemDto, CreateMilestoneDto, UpdateMilestoneDto, CompleteMilestoneDto, ApproveMilestoneDto,
 } from '../dto/milestone.dto';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
 import { Permissions } from '@common/decorators/permissions.decorator';
 import { CurrentUser, AuthUser } from '@common/decorators/current-user.decorator';
+
+const MILESTONE_READ_ROLES = ['ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY', 'CUSTOMER'];
 
 @ApiTags('project-milestones')
 @ApiBearerAuth()
@@ -21,6 +23,9 @@ export class MilestoneController {
   constructor(private readonly service: MilestoneService) {}
 
   @Get()
+  @UseGuards(RolesGuard)
+  @Roles(...MILESTONE_READ_ROLES)
+  @Permissions('project:milestone:read')
   @ApiOperation({ summary: 'List milestones of a project (with dependency names)' })
   async findByProject(
     @Param('projectId', ParseUUIDPipe) projectId: string,
@@ -32,12 +37,18 @@ export class MilestoneController {
   // ── Templates (declared before :id so they are not captured by it) ─────────
 
   @Get('/templates/all')
+  @UseGuards(RolesGuard)
+  @Roles(...MILESTONE_READ_ROLES)
+  @Permissions('project:milestone:read')
   @ApiOperation({ summary: 'List milestone templates' })
   async listTemplates(@CurrentUser() user: AuthUser) {
     return this.service.findAllTemplates(user.tenantId ?? undefined);
   }
 
   @Get('/templates/:templateId')
+  @UseGuards(RolesGuard)
+  @Roles(...MILESTONE_READ_ROLES)
+  @Permissions('project:milestone:read')
   @ApiOperation({ summary: 'Get milestone template with ordered items' })
   async getTemplate(
     @Param('templateId', ParseUUIDPipe) templateId: string,
@@ -120,11 +131,41 @@ export class MilestoneController {
   }
 
   @Get(':id')
+  @UseGuards(RolesGuard)
+  @Roles(...MILESTONE_READ_ROLES)
+  @Permissions('project:milestone:read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthUser,
   ) {
     return this.service.findOne(id, user.tenantId ?? undefined);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT')
+  @Permissions('project:milestone:create')
+  @Post()
+  @HttpCode(201)
+  @ApiOperation({ summary: 'Create a milestone manually (or from a template item)' })
+  async create(
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Body() dto: CreateMilestoneDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.create(projectId, dto, user.id, user.tenantId);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY')
+  @Permissions('project:milestone:update')
+  @Post('/refresh-delays')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Re-sync milestone delay status (marks overdue milestones DELAYED)' })
+  async refreshDelays(
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.refreshDelays(projectId, user.id, user.tenantId);
   }
 
   @UseGuards(RolesGuard)

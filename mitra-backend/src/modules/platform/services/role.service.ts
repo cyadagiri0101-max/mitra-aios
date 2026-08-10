@@ -14,9 +14,25 @@ export class RoleService {
   ) {}
 
   async findAll(tenantId?: string) {
-    const where: any = { deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    return this.roleRepository.find({ where, relations: ['permissions'], order: { name: 'ASC' }, take: 500 });
+    // Tenant callers see their own tenant roles PLUS global/system roles
+    // (tenantId IS NULL). Another tenant's roles are never visible.
+    if (tenantId) {
+      return this.roleRepository.find({
+        where: [
+          { deletedAt: IsNull(), tenantId },
+          { deletedAt: IsNull(), tenantId: IsNull() },
+        ],
+        relations: ['permissions'],
+        order: { name: 'ASC' },
+        take: 500,
+      });
+    }
+    return this.roleRepository.find({
+      where: { deletedAt: IsNull() },
+      relations: ['permissions'],
+      order: { name: 'ASC' },
+      take: 500,
+    });
   }
 
   async findOne(id: string, tenantId?: string) {

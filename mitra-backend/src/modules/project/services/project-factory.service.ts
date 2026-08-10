@@ -73,8 +73,18 @@ export class ProjectFactoryService {
     userId: string,
     tenantId?: string | null,
   ): Promise<CreateFromQuotationResult> {
-    if (!snapshot.projectName || snapshot.projectName.trim().length < 3) {
+    const projectName = snapshot.projectName?.trim();
+    const customerName = snapshot.customerName?.trim();
+    const productName = snapshot.productName?.trim();
+
+    if (!projectName || projectName.length < 3) {
       throw new BadRequestException('Project name must be at least 3 characters');
+    }
+    if (!customerName) {
+      throw new BadRequestException('Customer name is required');
+    }
+    if (!productName) {
+      throw new BadRequestException('Product name is required');
     }
 
     const result = await this.dataSource.transaction(async (em) => {
@@ -141,6 +151,9 @@ export class ProjectFactoryService {
     const projectRepo = em.getRepository(Project);
     const startDate = new Date();
     const plannedEnd = snapshot.targetDeliveryDate;
+    const projectName = (snapshot.projectName ?? '').trim();
+    const customerName = (snapshot.customerName ?? '').trim();
+    const productName = (snapshot.productName ?? '').trim();
 
     let project: Project | null = null;
     let lastErr: unknown;
@@ -149,10 +162,10 @@ export class ProjectFactoryService {
       const projectNumber = await this.nextProjectNumber(tenantId, em, attempt);
       project = projectRepo.create({
         projectNumber,
-        name: snapshot.projectName,
+        name: projectName,
         customerId: snapshot.customerId,
-        customerName: snapshot.customerName,
-        productName: snapshot.productName,
+        customerName,
+        productName,
         projectValue: snapshot.projectValue,
         targetDeliveryDate: plannedEnd,
         rfqNumber: undefined,
@@ -276,6 +289,7 @@ export class ProjectFactoryService {
         projectId: project.id,
         folderName: name,
         folderPath: `/${name}`,
+        folderType: 'DEFAULT',
         sequence: idx + 1,
         isDefault: true,
         createdBy: userId,

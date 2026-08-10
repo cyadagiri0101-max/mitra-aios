@@ -27,6 +27,21 @@ export class ReleaseProjectDocumentDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) remarks?: string;
 }
 
+/** Multipart document upload: metadata fields arrive as form fields. */
+export class UploadProjectDocumentDto {
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(300) title: string;
+  @ApiPropertyOptional({ enum: ProjectDocumentType, default: ProjectDocumentType.OTHER })
+  @IsOptional() @IsEnum(ProjectDocumentType) documentType?: ProjectDocumentType;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() folderId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(3000) description?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) notes?: string;
+}
+
+/** Multipart version upload. */
+export class UploadProjectDocumentVersionDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) notes?: string;
+}
+
 export class DocumentQueryDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number = 1;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number = 20;

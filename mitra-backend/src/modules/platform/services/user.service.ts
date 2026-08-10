@@ -62,12 +62,19 @@ export class UserService {
     });
     if (existing) throw new BadRequestException('Email already registered');
 
-    // Defense in depth: the role must exist and belong to the caller's tenant
-    // (or be a system role) — an ADMIN can never assign a foreign-tenant role.
+    // Defense in depth: the role must exist in the caller's tenant
+    // (or be a global/system role, tenantId IS NULL) — an ADMIN can never
+    // assign a foreign-tenant role.
     if (dto.roleId) {
-      const roleWhere: any = { id: dto.roleId, deletedAt: IsNull() };
-      if (tenantId) roleWhere.tenantId = tenantId;
-      const role = await this.roleRepository.findOne({ where: roleWhere });
+      const baseWhere: any = { id: dto.roleId, deletedAt: IsNull() };
+      const role = tenantId
+        ? await this.roleRepository.findOne({
+            where: [
+              { ...baseWhere, tenantId },
+              { ...baseWhere, tenantId: IsNull() },
+            ],
+          })
+        : await this.roleRepository.findOne({ where: baseWhere });
       if (!role) throw new BadRequestException('Role not found in this tenant');
     }
 

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TrialObservationService } from './trialobservation.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { TrialObservation } from '../entities/trialobservation.entity';
+import { DataSource } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
 
 const makeRepo = () => ({
@@ -22,6 +23,7 @@ describe('TrialObservationService', () => {
       providers: [
         TrialObservationService,
         { provide: getRepositoryToken(TrialObservation), useValue: repo },
+        { provide: DataSource, useValue: { query: jest.fn().mockResolvedValue([{ id: 'x' }]) } },
       ],
     }).compile();
     service = module.get<TrialObservationService>(TrialObservationService);

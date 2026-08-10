@@ -1,6 +1,6 @@
 ﻿import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { RiskService } from './risk.service';
 import { ProjectRisk, RiskStatus } from '../entities/projectrisk.entity';
 import { ProjectActivityLog } from '../entities/projectactivitylog.entity';
@@ -144,6 +144,50 @@ describe('RiskService', () => {
       riskRepo.save.mockImplementation((r: any) => Promise.resolve(r));
       const result = await service.remove('r-1', 'u-1', 't-1');
       expect(result.deleted).toBe(true);
+    });
+  });
+
+  describe('lifecycle guards', () => {
+    it('rejects creating a risk as CLOSED', async () => {
+      await expect(
+        service.create('p-1', { title: 'X', status: RiskStatus.CLOSED }, 'u-1', 'User', 't-1'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects status changes through update — close/reopen endpoints only', async () => {
+      riskRepo.findOne.mockResolvedValue({ ...risk });
+      await expect(
+        service.update('r-1', { status: RiskStatus.CLOSED }, 'u-1', 't-1'),
+      ).rejects.toThrow(/close.*reopen/i);
+    });
+
+    it('allows same-status updates through update', async () => {
+      riskRepo.findOne.mockResolvedValue({ ...risk });
+      riskRepo.save.mockImplementation((r: any) => Promise.resolve({ ...r }));
+      const saved = await service.update('r-1', { status: RiskStatus.OPEN, title: 'Renamed' }, 'u-1', 't-1');
+      expect(saved.title).toBe('Renamed');
+      expect(saved.status).toBe(RiskStatus.OPEN);
+    });
+
+    it('rejects closing an already-closed risk', async () => {
+      riskRepo.findOne.mockResolvedValue({ ...risk, status: RiskStatus.CLOSED });
+      await expect(service.close('r-1', 'done', 'u-1', 't-1')).rejects.toThrow(/already closed/i);
+    });
+
+    it('reopens a closed risk and clears closedAt', async () => {
+      riskRepo.findOne.mockResolvedValue({ ...risk, status: RiskStatus.CLOSED, closedAt: new Date() });
+      riskRepo.save.mockImplementation((r: any) => Promise.resolve({ ...r }));
+      const reopened = await service.reopen('r-1', 'supplier committed again', 'u-1', 't-1');
+      expect(reopened.status).toBe(RiskStatus.OPEN);
+      expect(reopened.closedAt).toBeNull();
+      expect(activityRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ activityType: 'risk.reopened' }),
+      );
+    });
+
+    it('rejects reopening a risk that is not closed', async () => {
+      riskRepo.findOne.mockResolvedValue({ ...risk });
+      await expect(service.reopen('r-1', 'why', 'u-1', 't-1')).rejects.toThrow(/closed/i);
     });
   });
 });

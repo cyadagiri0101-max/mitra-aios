@@ -9,6 +9,10 @@ export class CreateTrialObservationDto {
   @ApiProperty() @IsUUID() projectId: string;
   @ApiProperty() @IsDateString() trialDate: string;
   @ApiPropertyOptional({ enum: TrialType }) @IsOptional() @IsEnum(TrialType) trialType?: TrialType;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() partId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() drawingId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() bomItemId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsUUID() routingId?: string;
   @ApiPropertyOptional() @IsOptional() @IsUUID() machineId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() shift?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) moldTemperatureC?: number;

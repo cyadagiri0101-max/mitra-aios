@@ -5,13 +5,16 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { TaskService } from '../services/task.service';
 import {
   CreateTaskDto, UpdateTaskDto, UpdateTaskStatusDto, AddTaskDependencyDto,
-  AddTaskCommentDto, TaskQueryDto,
+  AddTaskCommentDto, TaskQueryDto, LogTaskTimeDto,
 } from '../dto/task.dto';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
 import { Permissions } from '@common/decorators/permissions.decorator';
 import { CurrentUser, AuthUser } from '@common/decorators/current-user.decorator';
+import { DependencyType } from '../entities/taskdependency.entity';
+
+const TASK_READ_ROLES = ['ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY', 'CUSTOMER'];
 
 @ApiTags('project-tasks')
 @ApiBearerAuth()
@@ -21,6 +24,9 @@ export class TaskController {
   constructor(private readonly service: TaskService) {}
 
   @Get()
+  @UseGuards(RolesGuard)
+  @Roles(...TASK_READ_ROLES)
+  @Permissions('project:task:read')
   @ApiOperation({ summary: 'List tasks of a project (pagination, filters, subtasks, dependencies)' })
   async findByProject(
     @Param('projectId', ParseUUIDPipe) projectId: string,
@@ -31,6 +37,9 @@ export class TaskController {
   }
 
   @Get(':id')
+  @UseGuards(RolesGuard)
+  @Roles(...TASK_READ_ROLES)
+  @Permissions('project:task:read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthUser,
@@ -39,6 +48,9 @@ export class TaskController {
   }
 
   @Get(':id/comments')
+  @UseGuards(RolesGuard)
+  @Roles(...TASK_READ_ROLES)
+  @Permissions('project:task:read')
   @ApiOperation({ summary: 'Task comments' })
   async comments(
     @Param('id', ParseUUIDPipe) id: string,
@@ -48,6 +60,9 @@ export class TaskController {
   }
 
   @Get(':id/attachments')
+  @UseGuards(RolesGuard)
+  @Roles(...TASK_READ_ROLES)
+  @Permissions('project:task:read')
   @ApiOperation({ summary: 'Task attachments' })
   async attachments(
     @Param('id', ParseUUIDPipe) id: string,
@@ -107,7 +122,7 @@ export class TaskController {
     @Body() dto: AddTaskDependencyDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.service.addDependency(id, dto.dependsOnTaskId, user.id, user.tenantId);
+    return this.service.addDependency(id, dto.dependsOnTaskId, dto.dependencyType ?? DependencyType.FINISH_TO_START, user.id, user.tenantId);
   }
 
   @UseGuards(RolesGuard)
@@ -122,6 +137,20 @@ export class TaskController {
     @CurrentUser() user: AuthUser,
   ) {
     await this.service.removeDependency(id, dependsOnTaskId, user.id, user.tenantId);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY', 'SALES')
+  @Permissions('project:task:update')
+  @Post(':id/time')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Log time against a task (adds to actualHours)' })
+  async logTime(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: LogTaskTimeDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.logTime(id, dto.hours, dto.note ?? null, user.id, user.tenantId);
   }
 
   @UseGuards(RolesGuard)

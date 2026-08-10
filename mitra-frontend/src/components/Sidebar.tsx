@@ -5,7 +5,7 @@ import {
   LayoutDashboard, FolderKanban, Mail, FileText, PenTool, Calendar,
   Factory, ShieldCheck, FlaskConical, AlertTriangle, Truck, Wrench, Bot,
   BarChart3, FileStack, Users, GitPullRequest, Workflow, Search, Settings,
-  ChevronLeft, ChevronRight, Boxes, Layers, Ruler, Target, ClipboardList,
+  ChevronLeft, ChevronRight, Boxes, Layers, Ruler, Target, ClipboardList, Cog,
 } from 'lucide-react';
 
 type NavItem = { path: string; label: string; icon: React.ElementType; roles: string[]; badge?: string };
@@ -31,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/analytics',     label: 'Analytics',     icon: BarChart3,       roles: ['ADMIN','MANAGEMENT'] },
   { path: '/documents',     label: 'Documents',     icon: FileStack,       roles: ['all'] },
   { path: '/engineering-library', label: 'Engineering Library', icon: Layers, roles: ['all'], badge: 'EKL' },
+  { path: '/engineering', label: 'Engineering', icon: Cog, roles: ['DESIGN','PLANNING','QUALITY','PRODUCTION','ADMIN','MANAGEMENT'], badge: '2.3.1' },
   { path: '/suppliers',     label: 'Suppliers',     icon: Truck,           roles: ['ADMIN','MANAGEMENT','SALES','DESIGN','PLANNING','PRODUCTION','QUALITY'] },
   { path: '/products',      label: 'Products',      icon: Boxes,           roles: ['ADMIN','MANAGEMENT','SALES','DESIGN','PLANNING','PRODUCTION','QUALITY'] },
   { path: '/tool-master',   label: 'Tool Master',   icon: Layers,          roles: ['ADMIN','MANAGEMENT','SALES','DESIGN','PLANNING','PRODUCTION','QUALITY'] },

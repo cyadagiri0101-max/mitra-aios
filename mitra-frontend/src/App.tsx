@@ -37,6 +37,7 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ de
 const BomAnalysisPage = lazy(() => import('./pages/BomAnalysisPage').then((m) => ({ default: m.BomAnalysisPage })));
 const DrawingAnalysisPage = lazy(() => import('./pages/DrawingAnalysisPage').then((m) => ({ default: m.DrawingAnalysisPage })));
 const EngineeringLibraryPage = lazy(() => import('./pages/EngineeringLibraryPage').then((m) => ({ default: m.EngineeringLibraryPage })));
+const EngineeringPage = lazy(() => import('./pages/EngineeringPage').then((m) => ({ default: m.EngineeringPage })));
 const ProjectDetailsPage = lazy(() => import('./pages/ProjectDetailsPage').then((m) => ({ default: m.ProjectDetailsPage })));
 const ProjectMilestonesPage = lazy(() => import('./pages/ProjectMilestonesPage').then((m) => ({ default: m.ProjectMilestonesPage })));
 const ProjectTasksPage = lazy(() => import('./pages/ProjectTasksPage').then((m) => ({ default: m.ProjectTasksPage })));
@@ -97,6 +98,7 @@ function App() {
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/engineering-library" element={<EngineeringLibraryPage />} />
+              <Route path="/engineering" element={<EngineeringPage />} />
               <Route path="/customers" element={<CustomersPage />} />
               <Route path="/customers/:id" element={<CustomerDetailPage />} />
               <Route path="/leads" element={<LeadsPage />} />

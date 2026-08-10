@@ -16,12 +16,19 @@ export class CreateTaskDto {
   @ApiPropertyOptional() @IsOptional() @IsDateString() startDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() dueDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Type(() => Number) estimatedHours?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Type(() => Number) actualHours?: number;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(100) @Type(() => Number) progressPct?: number;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Type(() => Number) sortOrder?: number;
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsUUID('4', { each: true }) dependencies?: string[];
 }
 
 export class UpdateTaskDto extends PartialType(CreateTaskDto) {}
+
+export class LogTaskTimeDto {
+  @ApiProperty({ description: 'Hours to add to the task total (positive)' })
+  @IsNumber() @Min(0.01) @Type(() => Number) hours: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) note?: string;
+}
 
 export class UpdateTaskStatusDto {
   @ApiProperty({ enum: TaskStatus }) @IsEnum(TaskStatus) status: TaskStatus;
@@ -41,10 +48,11 @@ export class AddTaskCommentDto {
 export class TaskQueryDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number = 1;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number = 50;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) search?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(1) @MaxLength(200) search?: string;
   @ApiPropertyOptional({ enum: TaskStatus }) @IsOptional() @IsEnum(TaskStatus) status?: TaskStatus;
   @ApiPropertyOptional({ enum: TaskPriority }) @IsOptional() @IsEnum(TaskPriority) priority?: TaskPriority;
   @ApiPropertyOptional() @IsOptional() @IsUUID() assigneeId?: string;
   @ApiPropertyOptional() @IsOptional() @IsUUID() milestoneId?: string;
+  @ApiPropertyOptional({ description: 'Filter to direct subtasks of a parent task' }) @IsOptional() @IsUUID() parentTaskId?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() @Type(() => Boolean) subtasks?: boolean;
 }

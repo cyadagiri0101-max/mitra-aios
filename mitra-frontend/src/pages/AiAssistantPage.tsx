@@ -1,153 +1,277 @@
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { api } from '../utils/api';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/Card';
-import { Send, Bot, User, BookOpen, Sparkles, Activity } from 'lucide-react';
-import toast from 'react-hot-toast';
-
 import DOMPurify from 'dompurify';
+import {
+  Activity,
+  BadgeCheck,
+  Bot,
+  BookOpen,
+  BrainCircuit,
+  Building2,
+  Factory,
+  FileText,
+  Gauge,
+  History,
+  Lightbulb,
+  MessageSquare,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  User,
+  Wrench,
+} from 'lucide-react';
+import { api } from '../utils/api';
+import {
+  fetchCopilotCapabilities, fetchCopilotSuggestions, sendCopilotChat,
+} from '../services/ai.service';
+import { CopilotCapability, CopilotChatResponse, CopilotDomain } from '../types/ai.types';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/Card';
 
-interface Message { role: 'user' | 'assistant'; content: string }
+type Message = { role: 'user' | 'assistant'; content: string; response?: CopilotChatResponse };
+type Conversation = { id: string; title?: string; messageCount?: number; updatedAt?: string };
 
-const ASSISTANTS = [
-  { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },
-  { id: 'design', label: 'Design', icon: Sparkles },
-  { id: 'planning', label: 'Planning', icon: Sparkles },
-  { id: 'manufacturing', label: 'Manufacturing', icon: Sparkles },
-  { id: 'quality', label: 'Quality', icon: Sparkles },
-  { id: 'management', label: 'Management', icon: Sparkles },
+const DOMAINS: Array<{ id: CopilotDomain; label: string; icon: React.ElementType }> = [
+  { id: 'engineering', label: 'Engineering', icon: FileText },
+  { id: 'manufacturing', label: 'Manufacturing', icon: Factory },
+  { id: 'quality', label: 'Quality', icon: ShieldCheck },
+  { id: 'service', label: 'Service', icon: Wrench },
+  { id: 'executive', label: 'Executive', icon: Building2 },
+  { id: 'commercial', label: 'Commercial', icon: Gauge },
+  { id: 'project', label: 'Project', icon: BookOpen },
 ];
 
-/** Sanitize AI content — strip all HTML tags for plain-text display */
 function sanitizeText(raw: string): string {
   return DOMPurify.sanitize(raw, { ALLOWED_TAGS: [], ALLOWED_ATTR: [], KEEP_CONTENT: true });
 }
 
+function confidenceTone(confidence?: number) {
+  if ((confidence ?? 0) >= 0.8) return 'text-emerald-200 border-emerald-400/30 bg-emerald-400/10';
+  if ((confidence ?? 0) >= 0.55) return 'text-amber-100 border-amber-400/30 bg-amber-400/10';
+  return 'text-rose-100 border-rose-400/30 bg-rose-400/10';
+}
+
+function capabilityFromResponse(response: CopilotChatResponse): CopilotCapability {
+  return {
+    key: response.capability.key,
+    title: response.capability.title,
+    description: response.capability.description,
+    promptKey: response.capability.promptKey,
+    tools: response.toolsExecuted?.map((tool) => tool.tool) ?? [],
+    suggestedActions: response.suggestedActions ?? [],
+    followUpQuestions: response.followUpQuestions ?? [],
+  };
+}
+
 export function AiAssistantPage() {
-  const [activeAssistant, setActiveAssistant] = useState('knowledge');
+  const [domain, setDomain] = useState<CopilotDomain>('engineering');
   const [input, setInput] = useState('');
+  const [conversationId, setConversationId] = useState<string | undefined>();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedCapability, setSelectedCapability] = useState<CopilotCapability | undefined>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: health } = useQuery({
     queryKey: ['ai-health'],
-    queryFn: () => api.get('/ai/health').then(r => r.data),
+    queryFn: () => api.get('/ai/health').then((r) => r.data),
     refetchInterval: 30_000,
     retry: false,
   });
 
+  const { data: capabilities = [] } = useQuery({
+    queryKey: ['copilot-capabilities', domain],
+    queryFn: () => fetchCopilotCapabilities(domain),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: suggestions = [] } = useQuery({
+    queryKey: ['copilot-suggestions', domain],
+    queryFn: () => fetchCopilotSuggestions(domain),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: conversations = [] } = useQuery({
+    queryKey: ['copilot-conversations'],
+    queryFn: () => api.get('/ai/copilot/conversations', { params: { limit: 10 } }).then((r) => r.data as Conversation[]),
+    staleTime: 60_000,
+  });
+
+  const activeDomain = DOMAINS.find((item) => item.id === domain) ?? DOMAINS[0];
+  const ActiveDomainIcon = activeDomain.icon;
+  const references = useMemo(() => [...messages].reverse().find((message) => message.response?.references?.length)?.response?.references ?? [], [messages]);
+
   const sendMessage = useMutation({
-    mutationFn: async (content: string) => {
-      const res = await api.post('/ai/chat', {
+    mutationFn: async ({ content, capability }: { content: string; capability?: CopilotCapability }) => {
+      const history: any[] = messages.slice(-10).map((message) => ({ role: message.role, content: message.content }));
+      return sendCopilotChat({
+        domain,
         message: content,
-        context: activeAssistant,
-        history: messages.slice(-10).map(m => ({ role: m.role, content: m.content })),
-        projectId: null,
-        conversationId: null,
+        conversationId,
+        capability: capability?.key,
+        history,
       });
-      return res.data as { answer: string; intent: string; modelUsed: string };
     },
     onSuccess: (data, variables) => {
-      setMessages(prev => [
+      setConversationId(data.conversationId);
+      setMessages((prev) => [
         ...prev,
-        { role: 'user', content: sanitizeText(variables) },
-        { role: 'assistant', content: sanitizeText(data.answer) },
+        { role: 'user', content: sanitizeText(variables.content) },
+        { role: 'assistant', content: sanitizeText(data.answer), response: data },
       ]);
       setInput('');
     },
-    onError: (err: any) => {
-      const status = err?.response?.status;
-      if (status === 429) toast.error('Rate limit exceeded. Please wait a moment.');
-      else toast.error(err?.response?.data?.message ?? 'AI request failed');
-      setMessages(prev => [...prev, { role: 'assistant', content: sanitizeText('⚠️ Sorry, I encountered an error. Please try again.') }]);
+    onError: () => {
+      setMessages((prev) => [...prev, { role: 'assistant', content: 'The Copilot request failed. Check your connection and permissions, then retry.' }]);
     },
   });
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = input.trim();
+  const submit = (content = input, capability?: CopilotCapability) => {
+    const trimmed = content.trim();
     if (!trimmed || sendMessage.isPending) return;
-    sendMessage.mutate(trimmed);
+    sendMessage.mutate({ content: trimmed, capability });
   };
 
-  const handleAssistantChange = (id: string) => { setActiveAssistant(id); setMessages([]); };
   const isAiAvailable = health?.enabled && health?.available;
 
   return (
-    <div className="space-y-6 h-[calc(100vh-120px)] flex flex-col">
-      <div className="flex items-center justify-between flex-shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">AI Assistant</h1>
-        <div className="flex items-center gap-2 text-sm">
-          <Activity className={`w-4 h-4 ${isAiAvailable ? 'text-green-500' : 'text-gray-400'}`} />
-          <span className={isAiAvailable ? 'text-green-600' : 'text-gray-500'}>
-            {health === undefined ? 'Checking…' : isAiAvailable ? `Online (${health.model})` : 'AI Offline'}
-          </span>
+    <div className="space-y-5 h-[calc(100vh-120px)] flex flex-col">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Enterprise AI Copilot</h1>
+          <p className="mt-1 text-sm text-slate-400">Seven domain copilots with capability-aware prompts, auto tools, citations, confidence, and recommended actions.</p>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-sm">
+          <Activity className={`h-4 w-4 ${isAiAvailable ? 'text-emerald-300' : 'text-slate-500'}`} />
+          <span className={isAiAvailable ? 'text-emerald-200' : 'text-slate-400'}>{health === undefined ? 'Checking' : isAiAvailable ? `Online (${health.model})` : 'Advisory fallback'}</span>
         </div>
       </div>
-      <div className="flex gap-6 flex-1 min-h-0">
-        <div className="w-56 flex-shrink-0">
-          <Card className="h-full">
-            <CardHeader><CardTitle className="text-sm">Assistants</CardTitle></CardHeader>
-            <CardContent className="p-2">
-              {ASSISTANTS.map(({ id, label, icon: Icon }) => (
-                <button key={id} onClick={() => handleAssistantChange(id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeAssistant === id ? 'bg-mitra-50 text-mitra-700' : 'text-gray-600 hover:bg-gray-50'}`}>
-                  <Icon className="w-4 h-4" />{label}
+
+      <div className="grid flex-1 min-h-0 gap-5 xl:grid-cols-[260px_minmax(0,1fr)_340px]">
+        <Card className="rounded-lg min-h-0">
+          <CardHeader><CardTitle className="flex items-center gap-2 text-sm"><BrainCircuit className="h-4 w-4 text-cyan-200" /> Copilots</CardTitle></CardHeader>
+          <CardContent className="space-y-2 p-3">
+            {DOMAINS.map(({ id, label, icon: Icon }) => (
+              <button key={id} onClick={() => { setDomain(id); setMessages([]); setConversationId(undefined); setSelectedCapability(undefined); }} className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left text-sm transition ${domain === id ? 'border-cyan-300/60 bg-cyan-400/10 text-cyan-100' : 'border-white/10 bg-slate-950/40 text-slate-300 hover:border-white/20'}`}>
+                <Icon className="h-4 w-4" /> <span className="truncate">{label}</span>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-lg flex min-h-0 flex-col">
+          <CardHeader className="flex-shrink-0">
+            <CardTitle className="flex items-center gap-2"><ActiveDomainIcon className="h-5 w-5 text-cyan-200" /> {activeDomain.label} Copilot</CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 min-h-0 overflow-y-auto space-y-4 p-4">
+            {messages.length === 0 && (
+              <div className="flex h-full flex-col items-center justify-center text-center text-slate-400">
+                <Bot className="mb-4 h-12 w-12 text-cyan-200/70" />
+                <p className="text-lg font-semibold text-white">Ask for an advisory, source-grounded answer.</p>
+                <p className="mt-1 max-w-md text-sm">Capabilities are detected from your question and route to the right prompt and tools. Responses include references, confidence, and recommended actions.</p>
+                <div className="mt-5 flex flex-wrap justify-center gap-2">
+                  {(selectedCapability ? [selectedCapability.title, ...selectedCapability.followUpQuestions] : suggestions.slice(0, 8)).map((suggestion) => (
+                    <button key={suggestion} onClick={() => submit(suggestion, selectedCapability)} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200 hover:border-cyan-300/40">
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {messages.map((message, index) => (
+              <div key={index} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[84%] rounded-lg border px-4 py-3 ${message.role === 'user' ? 'border-cyan-300/30 bg-cyan-500/15 text-white' : 'border-white/10 bg-slate-950/70 text-slate-100'}`}>
+                  <div className="mb-2 flex items-center gap-2 text-xs text-slate-400">
+                    {message.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4 text-cyan-200" />}
+                    <span>{message.role === 'user' ? 'You' : `MITRA ${activeDomain.label} Copilot`}</span>
+                    {message.response?.capability && <span className="rounded-full border border-cyan-300/30 bg-cyan-400/10 px-2 py-0.5 text-cyan-200">{message.response.capability.title}</span>}
+                    {message.response?.confidence !== undefined && <span className={`ml-auto rounded-full border px-2 py-0.5 ${confidenceTone(message.response.confidence)}`}>{Math.round(message.response.confidence * 100)}%</span>}
+                  </div>
+                  <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p>
+                  {message.response && (
+                    <div className="mt-3 space-y-2 border-t border-white/10 pt-2">
+                      <div className="text-xs text-slate-500">Prompt: {message.response.promptTemplate}@{message.response.promptVersion} · Model: {message.response.modelUsed ?? 'advisory'} · {message.response.toolsExecuted?.length ?? 0} tool(s)</div>
+                      {message.response.injectionFlagged && <div className="text-xs text-rose-300">Prompt-injection patterns detected; the request was not sent to a model.</div>}
+                      {message.response.fallbackUsed && <div className="text-xs text-amber-200">Model fallback used for this answer.</div>}
+                      {message.response.suggestedActions?.length > 0 && (
+                        <div>
+                          <div className="mb-1 flex items-center gap-1 text-xs text-cyan-200"><Lightbulb className="h-3 w-3" /> Recommended actions</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {message.response.suggestedActions.map((action) => (
+                              <button key={action} onClick={() => submit(action, capabilityFromResponse(message.response!))} className="rounded-lg border border-cyan-300/30 bg-cyan-400/10 px-2 py-1 text-xs text-cyan-100 hover:border-cyan-300/60">
+                                {action}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {message.response.followUpQuestions?.length > 0 && (
+                        <div>
+                          <div className="mb-1 text-xs text-slate-500">Follow-up questions</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {message.response.followUpQuestions.map((question) => (
+                              <button key={question} onClick={() => submit(question)} className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-slate-200 hover:border-white/30">
+                                {question}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            {sendMessage.isPending && <div className="text-sm text-slate-400"><Bot className="mr-2 inline h-4 w-4 animate-pulse text-cyan-200" /> Gathering context and sources...</div>}
+            <div ref={messagesEndRef} />
+          </CardContent>
+          <div className="flex-shrink-0 border-t border-white/10 p-4">
+            <form onSubmit={(event) => { event.preventDefault(); submit(); }} className="flex gap-2">
+              <input value={input} onChange={(event) => setInput(event.target.value)} placeholder={`Ask the ${activeDomain.label} Copilot...`} className="input-field flex-1" disabled={sendMessage.isPending} maxLength={4000} />
+              <button type="submit" disabled={sendMessage.isPending || !input.trim()} className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"><Send className="h-4 w-4" /></button>
+            </form>
+          </div>
+        </Card>
+
+        <div className="space-y-5 min-h-0 overflow-y-auto">
+          <Card className="rounded-lg">
+            <CardHeader><CardTitle className="flex items-center gap-2 text-sm"><Sparkles className="h-4 w-4 text-cyan-200" /> {activeDomain.label} Capabilities</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+              {capabilities.length === 0 && <p className="text-sm text-slate-500">Capabilities appear here.</p>}
+              {capabilities.slice(0, 10).map((capability) => (
+                <button key={capability.key} onClick={() => { setSelectedCapability(capability); submit(capability.title, capability); }} title={capability.description} className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition ${selectedCapability?.key === capability.key ? 'border-cyan-300/50 bg-cyan-400/10' : 'border-white/10 bg-slate-950/50 hover:border-white/20'}`}>
+                  <div className="text-slate-100">{capability.title}</div>
+                  <div className="mt-0.5 text-xs text-slate-500">{capability.tools.join(', ')}</div>
                 </button>
               ))}
             </CardContent>
           </Card>
-        </div>
-        <div className="flex-1 flex flex-col min-h-0">
-          <Card className="flex-1 flex flex-col min-h-0">
-            <CardHeader className="border-b flex-shrink-0">
-              <CardTitle className="flex items-center gap-2">
-                <Bot className="w-5 h-5 text-mitra-600" />
-                {ASSISTANTS.find(a => a.id === activeAssistant)?.label} Assistant
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                  <Bot className="w-12 h-12 mb-4 opacity-50" />
-                  <p className="text-lg font-medium">How can I help you today?</p>
-                  <p className="text-sm">Ask about {activeAssistant} processes, standards, or best practices.</p>
-                  {!isAiAvailable && health !== undefined && (
-                    <p className="text-xs mt-3 text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">AI is currently disabled. Set AI_ENABLED=true in .env to activate.</p>
-                  )}
-                </div>
-              )}
-              {messages.map((msg, idx) => (
-                <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-lg px-4 py-3 ${msg.role === 'user' ? 'bg-mitra-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
-                    <div className="flex items-center gap-2 mb-1">
-                      {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4 text-mitra-600" />}
-                      <span className="text-xs font-medium opacity-70">{msg.role === 'user' ? 'You' : 'AI'}</span>
-                    </div>
-                    <p className="text-sm whitespace-pre-wrap">{sanitizeText(msg.content)}</p>
-                  </div>
+
+          <Card className="rounded-lg">
+            <CardHeader><CardTitle className="flex items-center gap-2 text-sm"><BadgeCheck className="h-4 w-4 text-emerald-200" /> Knowledge References</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              {references.length === 0 && <p className="text-sm text-slate-500">Citations appear here after a source-backed answer.</p>}
+              {references.map((ref) => (
+                <div key={`${ref.entityType}:${ref.entityId}`} className="rounded-lg border border-white/10 bg-slate-950/50 p-3 text-sm">
+                  <div className="font-medium text-white">{ref.title}</div>
+                  <div className="mt-1 text-xs text-slate-400">{ref.sourceDomain} / {ref.entityType}</div>
+                  <div className="mt-2 text-xs text-cyan-200">Similarity {Math.round((ref.similarity ?? 0) * 100)}%</div>
                 </div>
               ))}
-              {sendMessage.isPending && (
-                <div className="flex gap-3 justify-start">
-                  <div className="bg-gray-100 rounded-lg px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Bot className="w-4 h-4 animate-pulse text-mitra-600" />
-                      <span className="text-sm text-gray-500">Thinking…</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
             </CardContent>
-            <div className="p-4 border-t flex-shrink-0">
-              <form onSubmit={handleSubmit} className="flex gap-2">
-                <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={`Ask the ${activeAssistant} assistant…`} className="flex-1 input-field" disabled={sendMessage.isPending} maxLength={2000} />
-                <button type="submit" disabled={sendMessage.isPending || !input.trim()} className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"><Send className="w-4 h-4" /></button>
-              </form>
-            </div>
+          </Card>
+
+          <Card className="rounded-lg">
+            <CardHeader><CardTitle className="flex items-center gap-2 text-sm"><History className="h-4 w-4 text-cyan-200" /> Conversation History</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+              {conversations.length === 0 && <p className="text-sm text-slate-500">Scoped conversations will appear here.</p>}
+              {conversations.map((conversation) => (
+                <button key={conversation.id} onClick={() => setConversationId(conversation.id)} className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${conversation.id === conversationId ? 'border-cyan-300/50 bg-cyan-400/10' : 'border-white/10 bg-slate-950/50'}`}>
+                  <div className="flex items-center gap-2 text-slate-100"><MessageSquare className="h-4 w-4" /> <span className="truncate">{conversation.title ?? 'Conversation'}</span></div>
+                  <div className="mt-1 text-xs text-slate-500">{conversation.messageCount ?? 0} messages</div>
+                </button>
+              ))}
+            </CardContent>
           </Card>
         </div>
       </div>

@@ -2,6 +2,9 @@ import { Controller, Get, Param, UseGuards, ParseUUIDPipe } from '@nestjs/common
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AiProjectionService } from '../services/ai-projection.service';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
+import { RolesGuard } from '@common/guards/roles.guard';
+import { Roles } from '@common/decorators/roles.decorator';
+import { Permissions } from '@common/decorators/permissions.decorator';
 import { CurrentUser, AuthUser } from '@common/decorators/current-user.decorator';
 
 /**
@@ -12,6 +15,8 @@ import { CurrentUser, AuthUser } from '@common/decorators/current-user.decorator
 @ApiTags('project-ai')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@Roles('ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY', 'CUSTOMER')
+@Permissions('project:read')
 @Controller('project/:projectId/ai')
 export class AiProjectionController {
   constructor(private readonly service: AiProjectionService) {}

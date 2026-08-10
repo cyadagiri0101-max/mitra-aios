@@ -59,10 +59,30 @@ export class ProjectTask extends IndustrialBaseEntity {
   @Column({ name: 'due_date', type: 'date', nullable: true })
   dueDate: Date | null;
 
-  @Column({ name: 'estimated_hours', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'estimated_hours',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string | number) => (value == null ? value : Number(value)),
+    },
+  })
   estimatedHours: number;
 
-  @Column({ name: 'actual_hours', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'actual_hours',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string | number) => (value == null ? value : Number(value)),
+    },
+  })
   actualHours: number;
 
   @Column({ name: 'progress_pct', type: 'int', default: 0 })

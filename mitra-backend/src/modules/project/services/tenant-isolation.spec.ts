@@ -11,14 +11,20 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Project } from '../entities/project.entity';
 import { ProjectMilestone } from '../entities/projectmilestone.entity';
 import { ProjectBudget } from '../entities/projectbudget.entity';
+import { ProjectActivityLog } from '../entities/projectactivitylog.entity';
 import { WorkflowService } from '../../workflow/services/workflow.service';
+import { AuditService } from '../../audit/services/audit.service';
+import { DomainEventBus } from './domain-event-bus.service';
+import { DataSource } from 'typeorm';
 
 const makeRepo = () => ({
   findOne:      jest.fn().mockResolvedValue(null),
+  find:         jest.fn().mockResolvedValue([]),
   findAndCount: jest.fn().mockResolvedValue([[], 0]),
   count:        jest.fn().mockResolvedValue(0),
   create:       jest.fn((d: any) => d),
   save:         jest.fn((e: any) => Promise.resolve({ id: 'new-id', ...e })),
+  update:       jest.fn().mockResolvedValue({ affected: 0 }),
   createQueryBuilder: jest.fn().mockReturnValue({
     where:       jest.fn().mockReturnThis(),
     andWhere:    jest.fn().mockReturnThis(),
@@ -48,7 +54,11 @@ describe('ProjectService — tenant isolation', () => {
         { provide: getRepositoryToken(Project),          useValue: projectRepo },
         { provide: getRepositoryToken(ProjectMilestone), useValue: makeRepo() },
         { provide: getRepositoryToken(ProjectBudget),    useValue: makeRepo() },
+        { provide: getRepositoryToken(ProjectActivityLog), useValue: makeRepo() },
         { provide: WorkflowService,                      useValue: makeWorkflow() },
+        { provide: DataSource, useValue: { transaction: jest.fn((cb: any) => cb({ getRepository: () => makeRepo(), save: jest.fn() })) } },
+        { provide: AuditService, useValue: { logBusinessEvent: jest.fn().mockResolvedValue({}) } },
+        { provide: DomainEventBus, useValue: { publish: jest.fn() } },
       ],
     }).compile();
 

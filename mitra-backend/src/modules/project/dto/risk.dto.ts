@@ -20,7 +20,11 @@ export class CreateRiskDto {
 export class UpdateRiskDto extends PartialType(CreateRiskDto) {}
 
 export class CloseRiskDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(3000) resolution?: string;
+  @ApiPropertyOptional({ description: 'Resolution (close) or reason (reopen)' }) @IsOptional() @IsString() @MaxLength(3000) resolution?: string;
+}
+
+export class ReopenRiskDto {
+  @ApiPropertyOptional({ description: 'Reason for reopening' }) @IsOptional() @IsString() @MaxLength(3000) reason?: string;
 }
 
 export class RiskQueryDto {

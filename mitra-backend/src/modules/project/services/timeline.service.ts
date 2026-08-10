@@ -56,17 +56,15 @@ export class TimelineService {
     const includeTasks = options.includeTasks !== false;
     const includeMilestones = options.includeMilestones !== false;
 
-    const [tasks, milestones, dependencies] = await Promise.all([
-      includeTasks
-        ? this.taskRepo.find({ where: { projectId, deletedAt: IsNull() }, order: { sortOrder: 'ASC' } as any, take: 2000 })
-        : [],
-      includeMilestones
-        ? this.milestoneRepo.find({ where: { projectId, deletedAt: IsNull() }, order: { sequenceNumber: 'ASC' } as any, take: 500 })
-        : [],
-      includeTasks
-        ? this.dependencyRepo.find({ where: { deletedAt: IsNull() } , take: 5000 })
-        : [],
-    ]);
+    const tasks = includeTasks
+      ? await this.taskRepo.find({ where: { projectId, deletedAt: IsNull() }, order: { sortOrder: 'ASC' } as any, take: 2000 })
+      : [];
+    const milestones = includeMilestones
+      ? await this.milestoneRepo.find({ where: { projectId, deletedAt: IsNull() }, order: { sequenceNumber: 'ASC' } as any, take: 500 })
+      : [];
+    const dependencies = includeTasks && tasks.length
+      ? await this.dependencyRepo.find({ where: { taskId: In(tasks.map((t) => t.id)), deletedAt: IsNull() }, take: 5000 })
+      : [];
 
     const depsByTask = new Map<string, string[]>();
     for (const d of dependencies) {

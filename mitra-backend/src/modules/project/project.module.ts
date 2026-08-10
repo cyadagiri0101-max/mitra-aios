@@ -43,6 +43,7 @@ import { AiProjectionController } from './controllers/ai-projection.controller';
 
 import { WorkflowModule } from '../workflow/workflow.module';
 import { AuditModule } from '../audit/audit.module';
+import { PlatformModule } from '../platform/platform.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { AuditModule } from '../audit/audit.module';
     ]),
     WorkflowModule,
     AuditModule,
+    PlatformModule,
   ],
   controllers: [
     ProjectController,

@@ -131,7 +131,17 @@ export class Project extends IndustrialBaseEntity {
   @Column({ name: 'po_number', type: 'varchar', length: 50, nullable: true })
   poNumber: string | null;
 
-  @Column({ name: 'project_value', type: 'decimal', precision: 18, scale: 2, nullable: true })
+  @Column({
+    name: 'project_value',
+    type: 'decimal',
+    precision: 18,
+    scale: 2,
+    nullable: true,
+    transformer: {
+      to: (value: number | null) => value,
+      from: (value: string | number | null) => (value == null ? value : Number(value)),
+    },
+  })
   projectValue: number | null;
 
   @Column({ type: 'varchar', length: 10, default: 'INR' })
@@ -157,8 +167,13 @@ export class Project extends IndustrialBaseEntity {
   @Column({ type: 'text', array: true, nullable: true })
   tags: string[] | null;
 
-  @Column({ name: 'priority', type: 'int', default: 5 })
-  priority: number;
+  @Column({
+    name: 'priority',
+    type: 'varchar',
+    length: 10,
+    default: ProjectPriority.MEDIUM,
+  })
+  priority: ProjectPriority;
 
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, any> | null;

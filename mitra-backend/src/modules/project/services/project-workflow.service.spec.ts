@@ -8,6 +8,8 @@ import { WorkflowService } from '../../workflow/services/workflow.service';
 import { AuditService } from '../../audit/services/audit.service';
 import { DomainEventBus } from './domain-event-bus.service';
 import { ProjectDomainEventType } from '../events/project.events';
+import { NotificationService } from '../../platform/services/notification.service';
+import { DataSource } from 'typeorm';
 
 describe('ProjectWorkflowService', () => {
   let service: ProjectWorkflowService;
@@ -16,6 +18,9 @@ describe('ProjectWorkflowService', () => {
   let workflowService: any;
   let auditService: any;
   let eventBus: any;
+  let notificationService: any;
+  let dataSource: any;
+  let fakeEm: any;
 
   const actor = { userId: 'u-1', userRole: ['MANAGEMENT'], userPermissions: ['project:transition'], tenantId: 't-1' };
   const project = { id: 'p-1', status: 'DRAFT', workflowInstanceId: null, tenantId: 't-1', updatedBy: null };
@@ -50,6 +55,15 @@ describe('ProjectWorkflowService', () => {
     };
     auditService = { logBusinessEvent: jest.fn().mockResolvedValue({}) };
     eventBus = { publish: jest.fn() };
+    notificationService = { enqueue: jest.fn().mockResolvedValue({}) };
+    fakeEm = {
+      getRepository: (e: any) => {
+        if (e === Project) return projectRepo;
+        if (e === ProjectActivityLog) return activityRepo;
+        return { findOne: jest.fn(), save: jest.fn() };
+      },
+    };
+    dataSource = { transaction: jest.fn((cb: any) => cb(fakeEm)) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -59,6 +73,8 @@ describe('ProjectWorkflowService', () => {
         { provide: WorkflowService, useValue: workflowService },
         { provide: AuditService, useValue: auditService },
         { provide: DomainEventBus, useValue: eventBus },
+        { provide: NotificationService, useValue: notificationService },
+        { provide: DataSource, useValue: dataSource },
       ],
     }).compile();
 
@@ -86,7 +102,7 @@ describe('ProjectWorkflowService', () => {
   it('lazily initializes the workflow instance when missing', async () => {
     await service.getWorkflow('p-1', actor);
     expect(workflowService.createInstance).toHaveBeenCalledWith(
-      PROJECT_WORKFLOW_TYPE, 'project', 'p-1', expect.objectContaining({ userId: 'u-1' }),
+      PROJECT_WORKFLOW_TYPE, 'project', 'p-1', expect.objectContaining({ userId: 'u-1' }), undefined,
     );
     expect(projectRepo.save).toHaveBeenCalled();
   });
@@ -99,7 +115,7 @@ describe('ProjectWorkflowService', () => {
   it('executes a transition and syncs project status', async () => {
     const result = await service.transition('p-1', 'tr-1', actor, 'Let us begin');
     expect(workflowService.executeTransition).toHaveBeenCalledWith(
-      'wf-1', 'tr-1', expect.objectContaining({ remarks: 'Let us begin' }),
+      'wf-1', 'tr-1', expect.objectContaining({ remarks: 'Let us begin' }), fakeEm,
     );
     expect(projectRepo.save).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'KICKOFF', updatedBy: 'u-1' }),
@@ -119,19 +135,48 @@ describe('ProjectWorkflowService', () => {
     expect(projectRepo.save).toHaveBeenCalledWith(expect.objectContaining({ status: 'COMPLETED', actualEndDate: expect.any(Date) }));
   });
 
+  it('syncs the legacy stage column with the workflow state (W-3)', async () => {
+    await service.transition('p-1', 'tr-1', actor);
+    expect(projectRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'KICKOFF', stage: 'PROJECT_CREATED', stageEnteredAt: expect.any(Date) }),
+    );
+  });
+
   it('writes activity + audit + publishes domain event', async () => {
     await service.transition('p-1', 'tr-1', actor);
     expect(activityRepo.save).toHaveBeenCalled();
     expect(auditService.logBusinessEvent).toHaveBeenCalledWith(
-      'project.workflow.transition', 'Project', 'p-1', 'u-1', expect.objectContaining({ fromState: 'DRAFT', toState: 'KICKOFF' }),
+      'project.workflow.transition', 'Project', 'p-1', 'u-1', expect.objectContaining({ fromState: 'DRAFT', toState: 'KICKOFF' }), fakeEm,
     );
     expect(eventBus.publish).toHaveBeenCalledWith(
       expect.objectContaining({ eventType: ProjectDomainEventType.PROJECT_STATUS_CHANGED, projectId: 'p-1' }),
     );
   });
 
-  it('propagates engine rejections (role/permission gates)', async () => {
+  it('notifies the project manager in the same transaction', async () => {
+    projectRepo.findOne.mockResolvedValue({
+      ...project, projectManagerId: 'pm-1', projectNumber: 'PRJ-2026-0001',
+    });
+    await service.transition('p-1', 'tr-1', actor, 'Let us begin');
+    expect(notificationService.enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channel: 'inapp',
+        recipient: 'pm-1',
+        subject: expect.stringContaining('PRJ-2026-0001'),
+      }),
+      fakeEm,
+    );
+  });
+
+  it('skips the notification when the project has no project manager', async () => {
+    await service.transition('p-1', 'tr-1', actor);
+    expect(notificationService.enqueue).not.toHaveBeenCalled();
+  });
+
+  it('rolls back the whole transaction when the engine rejects', async () => {
     workflowService.executeTransition.mockRejectedValue(new ForbiddenException('Requires permission: project:admin'));
     await expect(service.transition('p-1', 'tr-1', actor)).rejects.toThrow(ForbiddenException);
+    expect(notificationService.enqueue).not.toHaveBeenCalled();
+    expect(auditService.logBusinessEvent).not.toHaveBeenCalled();
   });
 });

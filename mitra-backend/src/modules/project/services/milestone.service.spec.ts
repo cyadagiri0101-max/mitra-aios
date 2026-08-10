@@ -6,6 +6,7 @@ import { ProjectMilestone, MilestoneStatus } from '../entities/projectmilestone.
 import { MilestoneTemplate } from '../entities/milestone-template.entity';
 import { MilestoneTemplateItem } from '../entities/milestone-template-item.entity';
 import { ProjectActivityLog } from '../entities/projectactivitylog.entity';
+import { ProjectTask } from '../entities/projecttask.entity';
 import { DomainEventBus } from './domain-event-bus.service';
 import { ProjectDomainEventType } from '../events/project.events';
 
@@ -15,6 +16,7 @@ describe('MilestoneService', () => {
   let templateRepo: any;
   let itemRepo: any;
   let activityRepo: any;
+  let taskRepo: any;
   let eventBus: any;
 
   const baseMilestone = {
@@ -29,6 +31,7 @@ describe('MilestoneService', () => {
       findOne: jest.fn(),
       find: jest.fn().mockResolvedValue([]),
       findAndCount: jest.fn().mockResolvedValue([[], 0]),
+      count: jest.fn().mockResolvedValue(0),
       save: jest.fn((m) => Promise.resolve({ ...m, id: m.id ?? 'new-id' })),
       create: jest.fn((m) => ({ ...m })),
       findOneBy: jest.fn(),
@@ -36,6 +39,7 @@ describe('MilestoneService', () => {
     templateRepo = { findOne: jest.fn(), find: jest.fn().mockResolvedValue([]), save: jest.fn((t) => Promise.resolve({ ...t, id: 'tpl-1' })), create: jest.fn((t) => ({ ...t })) };
     itemRepo = { findOne: jest.fn(), find: jest.fn().mockResolvedValue([]), save: jest.fn((i) => Promise.resolve({ ...i, id: 'it-1' })), create: jest.fn((i) => ({ ...i })) };
     activityRepo = { create: jest.fn((a) => ({ ...a })), save: jest.fn((a) => Promise.resolve(a)), findAndCount: jest.fn().mockResolvedValue([[], 0]) };
+    taskRepo = { findOne: jest.fn(), find: jest.fn().mockResolvedValue([]), save: jest.fn((t) => Promise.resolve({ ...t })), create: jest.fn((t) => ({ ...t })), count: jest.fn().mockResolvedValue(0) };
     eventBus = { publish: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -45,6 +49,7 @@ describe('MilestoneService', () => {
         { provide: getRepositoryToken(MilestoneTemplate), useValue: templateRepo },
         { provide: getRepositoryToken(MilestoneTemplateItem), useValue: itemRepo },
         { provide: getRepositoryToken(ProjectActivityLog), useValue: activityRepo },
+        { provide: getRepositoryToken(ProjectTask), useValue: taskRepo },
         { provide: DomainEventBus, useValue: eventBus },
       ],
     }).compile();
@@ -152,6 +157,26 @@ describe('MilestoneService', () => {
     });
   });
 
+  describe('create', () => {
+    it('creates a milestone with auto sequence, PENDING status and activity', async () => {
+      milestoneRepo.count.mockResolvedValue(3);
+      const saved = await service.create('p-1', { milestoneName: 'New Step', milestoneStage: 'EXECUTION' }, 'u-1', 't-1');
+      expect(saved.sequenceNumber).toBe(4);
+      expect(saved.status).toBe(MilestoneStatus.PENDING);
+      expect(saved.completionPct).toBe(0);
+      expect(activityRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ activityType: 'milestone.created' }),
+      );
+    });
+
+    it('rejects a dependency milestone from another project', async () => {
+      milestoneRepo.findOne.mockResolvedValue(null);
+      await expect(
+        service.create('p-1', { milestoneName: 'X', dependsOnMilestoneId: 'm-x' }, 'u-1', 't-1'),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
   describe('templates', () => {
     it('creates template and rejects duplicate codes', async () => {
       templateRepo.findOne.mockResolvedValue(null);
@@ -170,9 +195,27 @@ describe('MilestoneService', () => {
 
   describe('remove', () => {
     it('soft-deletes a milestone', async () => {
-      milestoneRepo.findOne.mockResolvedValue({ ...baseMilestone });
+      milestoneRepo.findOne.mockImplementation((arg: any) =>
+        (arg?.id ?? arg?.where?.id) ? { ...baseMilestone } : null,
+      );
       const saved = await service.remove('m-1', 'u-1', 't-1');
       expect(saved.deletedAt).toBeInstanceOf(Date);
+    });
+
+    it('rejects deletion when another milestone depends on it', async () => {
+      milestoneRepo.findOne.mockImplementation((arg: any) => {
+        if (arg?.where?.dependsOnMilestoneId === 'm-1') return { ...baseMilestone, id: 'm-2', milestoneName: 'Next' };
+        return { ...baseMilestone };
+      });
+      await expect(service.remove('m-1', 'u-1', 't-1')).rejects.toThrow(/depends on it/i);
+    });
+
+    it('rejects deletion while tasks are assigned to it', async () => {
+      milestoneRepo.findOne.mockImplementation((arg: any) =>
+        (arg?.id ?? arg?.where?.id) ? { ...baseMilestone } : null,
+      );
+      taskRepo.count.mockResolvedValue(2);
+      await expect(service.remove('m-1', 'u-1', 't-1')).rejects.toThrow(/tasks are still assigned/i);
     });
   });
 });

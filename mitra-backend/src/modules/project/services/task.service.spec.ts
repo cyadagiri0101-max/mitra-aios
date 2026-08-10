@@ -3,7 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { ProjectTask, TaskStatus, TaskPriority } from '../entities/projecttask.entity';
-import { TaskDependency } from '../entities/taskdependency.entity';
+import { TaskDependency, DependencyType } from '../entities/taskdependency.entity';
 import { TaskComment } from '../entities/taskcomment.entity';
 import { TaskAttachment } from '../entities/taskattachment.entity';
 import { ProjectActivityLog } from '../entities/projectactivitylog.entity';
@@ -44,6 +44,7 @@ describe('TaskService', () => {
       find: jest.fn(),
       save: jest.fn((t) => Promise.resolve({ ...t, id: t.id ?? 'new-id' })),
       create: jest.fn((t) => ({ ...t })),
+      update: jest.fn().mockResolvedValue({ affected: 1 }),
     };
     dependencyRepo = {
       findOne: jest.fn().mockResolvedValue(null),
@@ -70,6 +71,31 @@ describe('TaskService', () => {
     }).compile();
 
     service = module.get(TaskService);
+  });
+
+  describe('logTime', () => {
+    it('accumulates hours onto actualHours with an activity entry', async () => {
+      taskRepo.findOne.mockResolvedValue({ ...task, actualHours: 4 });
+      const saved = await service.logTime('t-1', 2.5, 'machining', 'u-1', 't-1');
+      expect(saved.actualHours).toBe(6.5);
+      expect(activityRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ activityType: 'task.time_logged', metadata: expect.objectContaining({ hours: 2.5, note: 'machining' }) }),
+      );
+    });
+
+    it('rejects non-positive hours', async () => {
+      taskRepo.findOne.mockResolvedValue({ ...task, actualHours: 0 });
+      await expect(service.logTime('t-1', 0, null, 'u-1', 't-1')).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('addDependency', () => {
+    it('rejects dependency on a task from another project', async () => {
+      dependencyRepo.findOne.mockResolvedValue(null);
+      taskRepo.findOne.mockResolvedValueOnce({ ...task, id: 't-1' });
+      taskRepo.findOne.mockResolvedValueOnce({ ...task, id: 't-2', projectId: 'other-project' });
+      await expect(service.addDependency('t-1', 't-2', DependencyType.FINISH_TO_START, 'u-1', 't-1')).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('findByProject', () => {
@@ -131,14 +157,14 @@ describe('TaskService', () => {
     it('adds a dependency edge', async () => {
       taskRepo.findOne.mockResolvedValue({ ...task });
       dependencyRepo.findOne.mockResolvedValue(null);
-      const result = await service.addDependency('t-1', 't-0', 'u-1', 't-1');
+      const result = await service.addDependency('t-1', 't-0', DependencyType.FINISH_TO_START, 'u-1', 't-1');
       expect(result.added).toBe(true);
       expect(dependencyRepo.save).toHaveBeenCalled();
     });
 
     it('rejects self-dependency', async () => {
       taskRepo.findOne.mockResolvedValue({ ...task });
-      await expect(service.addDependency('t-1', 't-1', 'u-1', 't-1')).rejects.toThrow(BadRequestException);
+      await expect(service.addDependency('t-1', 't-1', DependencyType.FINISH_TO_START, 'u-1', 't-1')).rejects.toThrow(BadRequestException);
     });
 
     it('rejects cycles via DFS', async () => {
@@ -147,7 +173,7 @@ describe('TaskService', () => {
         if (where.taskId === 't-0') return [{ taskId: 't-0', dependsOnTaskId: 't-1' }];
         return [];
       });
-      await expect(service.addDependency('t-1', 't-0', 'u-1', 't-1')).rejects.toThrow(/cycle/i);
+      await expect(service.addDependency('t-1', 't-0', DependencyType.FINISH_TO_START, 'u-1', 't-1')).rejects.toThrow(/cycle/i);
     });
 
     it('removes a dependency edge (soft delete)', async () => {
@@ -180,6 +206,48 @@ describe('TaskService', () => {
       dependencyRepo.findOne.mockResolvedValue(null);
       const result = await service.remove('t-1', 'u-1', 't-1');
       expect(result.deleted).toBe(true);
+    });
+
+    it('detaches orphaned subtasks instead of deleting them', async () => {
+      taskRepo.findOne.mockResolvedValue({ ...task });
+      dependencyRepo.findOne.mockResolvedValue(null);
+      const result = await service.remove('t-1', 'u-1', 't-1');
+      expect(result.deleted).toBe(true);
+      expect(taskRepo.update).toHaveBeenCalledWith(
+        expect.objectContaining({ parentTaskId: 't-1' }),
+        expect.objectContaining({ parentTaskId: null, updatedBy: 'u-1' }),
+      );
+    });
+  });
+
+  describe('parent hierarchy guards', () => {
+    it('rejects moving a task under itself', async () => {
+      taskRepo.findOne.mockResolvedValue({ ...task, parentTaskId: null });
+      await expect(
+        service.update('t-1', { parentTaskId: 't-1' }, 'u-1', 't-1'),
+      ).rejects.toThrow(/own parent/i);
+    });
+
+    it('rejects moving a task under its own descendant (cycle)', async () => {
+      taskRepo.findOne.mockImplementation(async ({ where }: any) => {
+        const id = where?.id ?? where;
+        if (id === 't-1') return { ...task, parentTaskId: null };
+        return { ...task, id, parentTaskId: 't-1', projectId: 'p-1' };
+      });
+      await expect(
+        service.update('t-1', { parentTaskId: 't-2' }, 'u-1', 't-1'),
+      ).rejects.toThrow(/cycle/i);
+    });
+
+    it('rejects moving a task into another project', async () => {
+      taskRepo.findOne.mockImplementation(async ({ where }: any) => {
+        const id = where?.id ?? where;
+        if (id === 't-1') return { ...task, parentTaskId: null, projectId: 'p-1' };
+        return { ...task, id, parentTaskId: null, projectId: 'p-2' };
+      });
+      await expect(
+        service.update('t-1', { parentTaskId: 't-x' }, 'u-1', 't-1'),
+      ).rejects.toThrow(/does not belong/i);
     });
   });
 

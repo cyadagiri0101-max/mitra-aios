@@ -14,6 +14,23 @@ export class InspectionReport extends IndustrialBaseEntity {
   @Index()
   projectId: string | null;
 
+  /** Sprint 2.3.1 G-1: artifact traceability links (UUID + index, no relations). */
+  @Column({ name: 'part_id', type: 'uuid', nullable: true })
+  @Index()
+  partId: string | null;
+
+  @Column({ name: 'drawing_id', type: 'uuid', nullable: true })
+  @Index()
+  drawingId: string | null;
+
+  @Column({ name: 'bom_item_id', type: 'uuid', nullable: true })
+  @Index()
+  bomItemId: string | null;
+
+  @Column({ name: 'routing_id', type: 'uuid', nullable: true })
+  @Index()
+  routingId: string | null;
+
   @Column({ name: 'work_order_id', type: 'uuid', nullable: true })
   @Index()
   workOrderId: string | null;

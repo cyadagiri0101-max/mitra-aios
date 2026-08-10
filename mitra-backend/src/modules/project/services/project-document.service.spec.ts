@@ -8,6 +8,7 @@ import { ProjectDocumentVersion } from '../entities/projectdocumentversion.entit
 import { ProjectActivityLog } from '../entities/projectactivitylog.entity';
 import { DomainEventBus } from './domain-event-bus.service';
 import { ProjectDomainEventType } from '../events/project.events';
+import { MinioService } from '../../storage/minio.service';
 
 describe('ProjectDocumentService', () => {
   let service: ProjectDocumentService;
@@ -16,6 +17,7 @@ describe('ProjectDocumentService', () => {
   let versionRepo: any;
   let activityRepo: any;
   let eventBus: any;
+  let minio: any;
 
   const doc = {
     id: 'doc-1', projectId: 'p-1', folderId: null, title: 'Mold Drawing', fileName: 'drawing.pdf',
@@ -61,6 +63,11 @@ describe('ProjectDocumentService', () => {
     };
     activityRepo = { create: jest.fn((a) => ({ ...a })), save: jest.fn((a) => Promise.resolve(a)) };
     eventBus = { publish: jest.fn() };
+    minio = {
+      uploadFile: jest.fn(),
+      generatePresignedGetUrl: jest.fn().mockResolvedValue({ url: 'https://signed/url' }),
+      getDefaultBucket: jest.fn().mockReturnValue('mitra-documents'),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -70,6 +77,7 @@ describe('ProjectDocumentService', () => {
         { provide: getRepositoryToken(ProjectDocumentVersion), useValue: versionRepo },
         { provide: getRepositoryToken(ProjectActivityLog), useValue: activityRepo },
         { provide: DomainEventBus, useValue: eventBus },
+        { provide: MinioService, useValue: minio },
       ],
     }).compile();
 
@@ -103,12 +111,13 @@ describe('ProjectDocumentService', () => {
     it('creates a document with v1 version, checksum and domain event', async () => {
       documentRepo.save.mockImplementation((d: any) => Promise.resolve({ ...d, id: 'doc-9' }));
       const saved = await service.create(
-        'p-1', { title: 'Drawing' }, { fileName: 'd.pdf', filePath: '/projects/p-1/d.pdf', mimeType: 'application/pdf', fileSize: 10 },
+        'p-1', { title: 'Drawing' },
+        { fileName: 'd.pdf', filePath: '/projects/p-1/d.pdf', mimeType: 'application/pdf', fileSize: 10, checksum: 'abc123' },
         'u-1', 'User', 't-1',
       );
       expect(saved.currentVersion).toBe(1);
       expect(versionRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ documentId: 'doc-9', versionNumber: 1, checksum: expect.any(String) }),
+        expect.objectContaining({ documentId: 'doc-9', versionNumber: 1, checksum: 'abc123' }),
       );
       expect(eventBus.publish).toHaveBeenCalledWith(
         expect.objectContaining({ eventType: ProjectDomainEventType.DOCUMENT_UPLOADED }),
@@ -155,6 +164,55 @@ describe('ProjectDocumentService', () => {
     it('throws NotFound for missing document', async () => {
       documentRepo.findOne.mockImplementation(async () => null);
       await expect(service.findOne('nope', 't-1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('uploads onto a RELEASED document open a new review cycle (back to DRAFT)', async () => {
+      documentRepo.findOne.mockImplementation(async () => ({ ...doc, status: ProjectDocumentStatus.RELEASED, versions: [] }));
+      documentRepo.save.mockImplementation((d: any) => Promise.resolve(d));
+      await service.uploadVersion('doc-1', { fileName: 'v2.pdf', filePath: '/x/v2.pdf' }, 'u-1', 'revision 2', 't-1');
+      expect(documentRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ currentVersion: 2, status: ProjectDocumentStatus.DRAFT }),
+      );
+    });
+
+    it('rejects releasing an archived or already-released document', async () => {
+      documentRepo.findOne.mockImplementation(async () => ({ ...doc, status: ProjectDocumentStatus.ARCHIVED }));
+      await expect(service.release('doc-1', null, 'u-1', 't-1')).rejects.toThrow(/archived/i);
+      documentRepo.findOne.mockImplementation(async () => ({ ...doc, status: ProjectDocumentStatus.RELEASED }));
+      await expect(service.release('doc-1', null, 'u-1', 't-1')).rejects.toThrow(/already released/i);
+    });
+
+    it('returns a signed download URL for the current or specific version', async () => {
+      documentRepo.findOne.mockImplementation(async () => ({ ...doc, versions: [] }));
+      versionRepo.findOne.mockResolvedValue({
+        versionNumber: 1, fileName: 'drawing.pdf', filePath: '/projects/p-1/drawing.pdf', mimeType: 'application/pdf', fileSize: 10, checksum: 'abc123',
+      });
+      const result = await service.download('doc-1', undefined, 't-1');
+      expect(result.url).toBe('https://signed/url');
+      expect(result.checksumSha256).toBe('abc123');
+      expect(minio.generatePresignedGetUrl).toHaveBeenCalledWith('mitra-documents', '/projects/p-1/drawing.pdf', 86400);
+
+      versionRepo.findOne.mockResolvedValue(null);
+      await expect(service.download('doc-1', 99, 't-1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('rejects creating a folder under a folder of another project', async () => {
+      folderRepo.findOne.mockResolvedValue(null);
+      await expect(
+        service.createFolder('p-1', { folderName: 'Sub', parentFolderId: 'f-x' }, 'u-1', 't-1'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('builds nested folder paths and rejects duplicate sibling names', async () => {
+      folderRepo.findOne
+        .mockResolvedValueOnce({ id: 'f-1', folderPath: '/Drawings', projectId: 'p-1' })
+        .mockResolvedValueOnce(null);
+      const saved = await service.createFolder('p-1', { folderName: 'RevA', parentFolderId: 'f-1' }, 'u-1', 't-1');
+      expect(saved.folderPath).toBe('/Drawings/RevA');
+      folderRepo.findOne.mockResolvedValue({ id: 'f-2' });
+      await expect(
+        service.createFolder('p-1', { folderName: 'RevA', parentFolderId: 'f-1' }, 'u-1', 't-1'),
+      ).rejects.toThrow(/already exists/i);
     });
   });
 });
