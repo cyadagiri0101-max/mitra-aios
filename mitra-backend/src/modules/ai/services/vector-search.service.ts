@@ -54,7 +54,7 @@ export class VectorSearchService {
   ): Promise<SearchResult[]> {
     const queryVector = await this.embedding.generateEmbedding(query);
     if (queryVector) {
-      return this.vectorSearch(queryVector, tenantId, types, topK);
+      return this.vectorSearch(queryVector, tenantId, types, topK, query);
     }
     return this.textSearch(query, tenantId, types, topK);
   }
@@ -177,6 +177,7 @@ export class VectorSearchService {
     tenantId: string,
     types?:   EmbeddingEntityType[],
     topK = 5,
+    query = '',
   ): Promise<SearchResult[]> {
     // pgvector requires the <=> operator which TypeORM's QueryBuilder doesn't support natively.
     // We use a parameterized query to avoid any injection risk — the vector string is
@@ -205,7 +206,10 @@ export class VectorSearchService {
       return this.mapSearchResults(rows);
     } catch (err: any) {
       this.logger.warn(`Vector search failed, falling back to text search: ${err.message}`);
-      return this.textSearch('', tenantId, types, topK);
+      // Genuine-defect fix (P0 verification, v4.1): the fallback previously
+      // passed an empty query, so pg_trgm search never matched anything on
+      // servers without pgvector. The real query must be preserved.
+      return this.textSearch(query, tenantId, types, topK);
     }
   }
 
