@@ -138,6 +138,24 @@ async function seed(dataSource: DataSource) {
     // Analytics permissions (required by the analytics controller)
     { resource: 'analytics', action: 'read' },
     { resource: 'analytics', action: 'report:read' },
+    // Commercial lifecycle permissions (sales orders, invoices, payments, credit notes)
+    { resource: 'salesOrder', action: 'read' },
+    { resource: 'salesOrder', action: 'create' },
+    { resource: 'salesOrder', action: 'update' },
+    { resource: 'salesOrder', action: 'delete' },
+    { resource: 'salesOrder', action: 'approve' },
+    { resource: 'invoice', action: 'read' },
+    { resource: 'invoice', action: 'create' },
+    { resource: 'invoice', action: 'update' },
+    { resource: 'invoice', action: 'delete' },
+    { resource: 'invoice', action: 'approve' },
+    { resource: 'payment', action: 'read' },
+    { resource: 'payment', action: 'create' },
+    { resource: 'payment', action: 'verify' },
+    { resource: 'creditNote', action: 'read' },
+    { resource: 'creditNote', action: 'create' },
+    { resource: 'creditNote', action: 'apply' },
+    { resource: 'creditNote', action: 'cancel' },
   ];
 
   const permRepo = dataSource.getRepository(Permission);
@@ -178,6 +196,10 @@ async function seed(dataSource: DataSource) {
       'lead:read', 'lead:create', 'lead:update', 'lead:delete', 'lead:convert',
       'rfq:read', 'rfq:create', 'rfq:update', 'rfq:delete', 'rfq:transition',
       'quotation:read', 'quotation:create', 'quotation:update', 'quotation:delete', 'quotation:approve',
+      'salesOrder:read', 'salesOrder:create', 'salesOrder:update', 'salesOrder:delete', 'salesOrder:approve',
+      'invoice:read', 'invoice:create', 'invoice:update', 'invoice:delete', 'invoice:approve',
+      'payment:read', 'payment:create', 'payment:verify',
+      'creditNote:read', 'creditNote:create', 'creditNote:apply', 'creditNote:cancel',
     ],
     SALES: [
       'project:read', 'project:create', 'project:update', 'project:transition',
@@ -193,6 +215,10 @@ async function seed(dataSource: DataSource) {
       'lead:read', 'lead:create', 'lead:update', 'lead:convert',
       'rfq:read', 'rfq:create', 'rfq:update', 'rfq:transition',
       'quotation:read', 'quotation:create', 'quotation:update',
+      'salesOrder:read', 'salesOrder:create', 'salesOrder:update',
+      'invoice:read', 'invoice:create',
+      'payment:read', 'payment:create',
+      'creditNote:read', 'creditNote:create',
     ],
     DESIGN: [
       'project:read', 'project:update',

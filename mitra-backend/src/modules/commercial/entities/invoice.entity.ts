@@ -13,6 +13,10 @@ export class Invoice extends IndustrialBaseEntity {
   @Index()
   quotationId: string | null;
 
+  @Column({ name: 'sales_order_id', type: 'uuid', nullable: true })
+  @Index()
+  salesOrderId: string | null;
+
   @Column({ name: 'project_id', type: 'uuid', nullable: true })
   @Index()
   projectId: string | null;

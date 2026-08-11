@@ -4,8 +4,11 @@ import { Enquiry } from './entities/enquiry.entity';
 import { Quotation } from './entities/quotation.entity';
 import { QuotationItem } from './entities/quotationitem.entity';
 import { Invoice } from './entities/invoice.entity';
+import { InvoiceLine } from './entities/invoice-line.entity';
 import { Payment } from './entities/payment.entity';
 import { CreditNote } from './entities/creditnote.entity';
+import { SalesOrder } from './entities/sales-order.entity';
+import { SalesOrderLine } from './entities/sales-order-line.entity';
 import { Customer } from './entities/customer.entity';
 import { Contact } from './entities/contact.entity';
 import { CustomerType } from './entities/customer-type.entity';
@@ -37,12 +40,20 @@ import { QuotationMarginService } from './services/quotation-margin.service';
 import { QuotationApprovalService } from './services/quotation-approval.service';
 import { QuotationRevisionService } from './services/quotation-revision.service';
 import { QuotationAcceptanceService } from './services/quotation-acceptance.service';
+import { SalesOrderService } from './services/sales-order.service';
+import { InvoiceService } from './services/invoice.service';
+import { PaymentService } from './services/payment.service';
+import { CreditNoteService } from './services/credit-note.service';
 import { EnquiryController } from './controllers/enquiry.controller';
 import { CustomerController } from './controllers/customer.controller';
 import { QuotationController } from './controllers/quotation.controller';
 import { ContactController } from './controllers/contact.controller';
 import { LeadController } from './controllers/lead.controller';
 import { RfqController } from './controllers/rfq.controller';
+import { SalesOrderController } from './controllers/sales-order.controller';
+import { InvoiceController } from './controllers/invoice.controller';
+import { PaymentController } from './controllers/payment.controller';
+import { CreditNoteController } from './controllers/credit-note.controller';
 import { CommercialAiController } from './controllers/commercial-ai.controller';
 import { ProjectModule } from '../project/project.module';
 import { WorkflowModule } from '../workflow/workflow.module';
@@ -52,7 +63,8 @@ import { PlatformModule } from '../platform/platform.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      Enquiry, Quotation, QuotationItem, Invoice, Payment, CreditNote,
+      Enquiry, Quotation, QuotationItem, Invoice, InvoiceLine, Payment, CreditNote,
+      SalesOrder, SalesOrderLine,
       Customer, Contact, CustomerType, CustomerCategory, CustomerAddress,
       CustomerNote, CustomerAttachment, CustomerActivity,
       Lead, Rfq, RfqProduct, RfqRevision, AiDocumentMetadata,
@@ -65,6 +77,7 @@ import { PlatformModule } from '../platform/platform.module';
   controllers: [
     EnquiryController, CustomerController, QuotationController,
     ContactController, LeadController, RfqController, CommercialAiController,
+    SalesOrderController, InvoiceController, PaymentController, CreditNoteController,
   ],
   providers: [
     EnquiryService, CustomerService, QuotationService,
@@ -73,6 +86,7 @@ import { PlatformModule } from '../platform/platform.module';
     CustomerActivityService, CustomerImportService,
     QuotationPricingService, QuotationItemService, QuotationMarginService,
     QuotationApprovalService, QuotationRevisionService, QuotationAcceptanceService,
+    SalesOrderService, InvoiceService, PaymentService, CreditNoteService,
   ],
   exports: [
     EnquiryService, CustomerService, QuotationService,
@@ -81,6 +95,7 @@ import { PlatformModule } from '../platform/platform.module';
     CustomerActivityService, CustomerImportService,
     QuotationPricingService, QuotationItemService, QuotationMarginService,
     QuotationApprovalService, QuotationRevisionService, QuotationAcceptanceService,
+    SalesOrderService, InvoiceService, PaymentService, CreditNoteService,
     TypeOrmModule,
   ],
 })
