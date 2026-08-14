@@ -23,7 +23,7 @@ export class WorkOrderService extends TenantAwareService<WorkOrder> {
   }
 
   async create(data: Record<string, unknown>, userId?: string, tenantId?: string | null) {
-    await this.validateArtifactLinks(data);
+    await this.validateArtifactLinks(data, tenantId);
     const withNumber = { ...data, woNumber: data.woNumber ?? this.nextNumber('WO') };
     return super.create(withNumber, userId, tenantId);
   }
@@ -33,35 +33,36 @@ export class WorkOrderService extends TenantAwareService<WorkOrder> {
   }
 
   async update(id: string, data: Record<string, unknown>, userId?: string, tenantId?: string | null) {
-    await this.validateArtifactLinks(data);
+    await this.validateArtifactLinks(data, tenantId);
     return super.update(id, data, userId, tenantId);
   }
 
-  private async validateArtifactLinks(data: Record<string, unknown>): Promise<void> {
-    if (data.drawingId) await this.assertReleased('engineering_drawings', data.drawingId, 'Drawing');
-    if (data.bomId) await this.assertReleased('engineering_boms', data.bomId, 'BOM');
+  private async validateArtifactLinks(data: Record<string, unknown>, tenantId?: string | null): Promise<void> {
+    const scopeTenant = this.requireTenant(tenantId);
+    if (data.drawingId) await this.assertReleased('engineering_drawings', data.drawingId, 'Drawing', scopeTenant);
+    if (data.bomId) await this.assertReleased('engineering_boms', data.bomId, 'BOM', scopeTenant);
     if (data.bomItemId) {
-      const item = await this.assertExists('engineering_bom_items', data.bomItemId, 'BOM item', 'id, bom_id, status');
+      const item = await this.assertExists('engineering_bom_items', data.bomItemId, 'BOM item', 'id, bom_id, status', scopeTenant);
       if (data.bomId && String(item.bom_id) !== String(data.bomId)) {
         throw new BadRequestException('bomItemId does not belong to the given bomId');
       }
     }
-    if (data.routingId) await this.assertReleased('engineering_routings', data.routingId, 'Routing');
-    if (data.processPlanId) await this.assertReleased('process_plans', data.processPlanId, 'Process plan');
+    if (data.routingId) await this.assertReleased('engineering_routings', data.routingId, 'Routing', scopeTenant);
+    if (data.processPlanId) await this.assertReleased('process_plans', data.processPlanId, 'Process plan', scopeTenant);
   }
 
-  private async assertExists(table: string, id: unknown, label: string, select = 'id, status') {
+  private async assertExists(table: string, id: unknown, label: string, select = 'id, status', tenantId?: string | null) {
     const rows = await this.dataSource.query(
-      `SELECT ${select} FROM "${table}" WHERE id = $1 AND deleted_at IS NULL`,
-      [id],
+      `SELECT ${select} FROM "${table}" WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL`,
+      [id, tenantId],
     );
     if (!rows?.length) throw new BadRequestException(`${label} not found — no orphan work order links`);
     return rows[0];
   }
 
   /** Public for the WorkOrderEngineService (release re-validates artifacts). */
-  async assertReleased(table: string, id: unknown, label: string) {
-    const row = await this.assertExists(table, id, label);
+  async assertReleased(table: string, id: unknown, label: string, tenantId?: string | null) {
+    const row = await this.assertExists(table, id, label, 'id, status', tenantId);
     if (String(row.status) !== 'RELEASED') {
       throw new BadRequestException(`${label} must be RELEASED before use in a work order`);
     }

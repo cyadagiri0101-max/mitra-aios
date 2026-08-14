@@ -349,10 +349,10 @@ The following matrix defines acceptance criteria using the **Given-When-Then** f
 
 ---
 
-*Document Version: 3.1.0*  
-*Status: Draft for Review*  
-*Last Updated: 2025-06-02*  
-*Author: Requirements Engineering — MITRA v3.1 Project*  
+*Document Version: 3.1.0*
+*Status: Draft for Review*
+*Last Updated: 2025-06-02*
+*Author: Requirements Engineering — MITRA v3.1 Project*
 *Next Review: Design Specification Section 2 (System Architecture)*
 
 
@@ -362,10 +362,10 @@ The following matrix defines acceptance criteria using the **Given-When-Then** f
 
 ## Section 2: Visual Design Direction
 
-**Version:** 3.1  
-**Date:** 2025-06-06  
-**Status:** Draft — Pending Design Review  
-**Owner:** Design / Engineering  
+**Version:** 3.1
+**Date:** 2025-06-06
+**Status:** Draft — Pending Design Review
+**Owner:** Design / Engineering
 
 ---
 
@@ -636,11 +636,11 @@ The layout system is built on a 12-column fluid grid. All spacing values are der
 
 ## MITRA v3.1 — Design Specification Document
 
-**Version:** 3.1 → 3.4+  
-**Team Size:** 4.5 FTE (1 Frontend, 1 Backend, 1 AI/ML, 1 QA, 0.5 Product Designer)  
-**Current System Rating:** 9.4/10  
-**Target System Rating:** 9.8/10  
-**Industry:** Industrial Manufacturing (Blow Molds, Injection Molds, Toolroom, CNC Manufacturing)  
+**Version:** 3.1 → 3.4+
+**Team Size:** 4.5 FTE (1 Frontend, 1 Backend, 1 AI/ML, 1 QA, 0.5 Product Designer)
+**Current System Rating:** 9.4/10
+**Target System Rating:** 9.8/10
+**Industry:** Industrial Manufacturing (Blow Molds, Injection Molds, Toolroom, CNC Manufacturing)
 **User Base:** 10–15 internal users
 
 ---
@@ -668,7 +668,7 @@ The roadmap assumes a 4.5-person team with no additional headcount. Work is sequ
 | Replace generic AI persona copy with domain-specific language | Frontend Engineer | 4 days | Guidelines ready |
 | Review and approve all copy changes | Product Designer + QA | 1 day | Frontend delivery |
 
-**Key Deliverable:** F1 — AI Persona Copy Refinement  
+**Key Deliverable:** F1 — AI Persona Copy Refinement
 **Risk:** Low. Primarily editorial work with clear acceptance criteria.
 
 ### Week 2: Hero Dashboard Widget Development (F2)
@@ -680,7 +680,7 @@ The roadmap assumes a 4.5-person team with no additional headcount. Work is sequ
 | Backend API endpoints for widget data aggregation | Backend Engineer | 3 days | Frontend contract |
 | Widget integration and initial QA | QA Engineer | 2 days | Frontend + Backend ready |
 
-**Key Deliverable:** F2 — Hero Dashboard Widget  
+**Key Deliverable:** F2 — Hero Dashboard Widget
 **Risk:** Low-Medium. Requires backend aggregation logic; mitigated by clear data contracts.
 
 ### Week 3: Search Animation States & Streaming UI (F3)
@@ -692,7 +692,7 @@ The roadmap assumes a 4.5-person team with no additional headcount. Work is sequ
 | Streaming response handler for real-time search results | Backend Engineer | 3 days | Frontend contract |
 | End-to-end search flow testing | QA Engineer | 2 days | Implementation complete |
 
-**Key Deliverable:** F3 — Search Animation & Streaming UI  
+**Key Deliverable:** F3 — Search Animation & Streaming UI
 **Risk:** Medium. Streaming UI requires careful handling of partial data states and error boundaries.
 
 ### Week 4: Blue Holographic Theme Implementation & QA
@@ -705,7 +705,7 @@ The roadmap assumes a 4.5-person team with no additional headcount. Work is sequ
 | Bug fixes and stabilization | All Engineers | 2 days | QA feedback |
 | v3.2 release preparation and deployment | Backend Engineer | 1 day | QA sign-off |
 
-**Key Deliverable:** F4 — Blue Holographic Theme + v3.2 Release  
+**Key Deliverable:** F4 — Blue Holographic Theme + v3.2 Release
 **Risk:** Low. Visual theme work with established component library.
 
 ### Phase 1 Exit Criteria
@@ -733,7 +733,7 @@ The roadmap assumes a 4.5-person team with no additional headcount. Work is sequ
 | Frontend BOM upload interface and results viewer | Frontend Engineer | 5 days | API contract |
 | Integration testing (BOM end-to-end) | QA Engineer | 2 days | All components ready |
 
-**Key Deliverable:** F5 — BOM Analysis Engine  
+**Key Deliverable:** F5 — BOM Analysis Engine
 **Risk:** High. AI model accuracy for manufacturing BOMs is unproven; mitigated via confidence scoring (see Risk Register).
 
 ### Weeks 7–8: Drawing Upload Pipeline & Analysis Engine (F6)
@@ -746,7 +746,7 @@ The roadmap assumes a 4.5-person team with no additional headcount. Work is sequ
 | Drawing analysis results dashboard | Frontend Engineer | 3 days | Viewer stable |
 | QA validation with sample drawing set | QA Engineer | 2 days | All components ready |
 
-**Key Deliverable:** F6 — Drawing Upload & Analysis Pipeline  
+**Key Deliverable:** F6 — Drawing Upload & Analysis Pipeline
 **Risk:** Medium. CAD file parsing complexity; mitigated by leveraging established CAD libraries (see Risk Register).
 
 ### Week 9: Real-Time Machine Data Integration (F7)
@@ -759,7 +759,7 @@ The roadmap assumes a 4.5-person team with no additional headcount. Work is sequ
 | Alerting and threshold configuration | Backend Engineer | 2 days | Dashboard ready |
 | QA testing with simulated machine data | QA Engineer | 2 days | All components ready |
 
-**Key Deliverable:** F7 — Real-Time Machine Data Integration  
+**Key Deliverable:** F7 — Real-Time Machine Data Integration
 **Risk:** High. Machine IoT data availability is uncertain; mitigated by manual fallback (see Risk Register).
 
 ### Week 10: Integration Testing & Performance Tuning
@@ -772,7 +772,7 @@ The roadmap assumes a 4.5-person team with no additional headcount. Work is sequ
 | Frontend bundle optimization and lazy loading | Frontend Engineer | 2 days | Performance report |
 | Bug fixes and v3.3 release preparation | All Engineers | 3 days | QA + performance sign-off |
 
-**Key Deliverable:** v3.3 Release  
+**Key Deliverable:** v3.3 Release
 **Risk:** Medium. Integration complexity between AI, backend, and machine data; mitigated by dedicated integration week.
 
 ### Phase 2 Exit Criteria
@@ -801,7 +801,7 @@ The roadmap assumes a 4.5-person team with no additional headcount. Work is sequ
 | Dashboard implementation and widget assembly | Frontend Engineer | 6 days | APIs ready |
 | Machine operator feedback loop | QA Engineer + Product Designer | 2 days | Dashboard ready |
 
-**Key Deliverable:** F8 — CNC/Toolroom Dashboard  
+**Key Deliverable:** F8 — CNC/Toolroom Dashboard
 **Risk:** Medium. Requires deep domain knowledge; mitigated by close collaboration with manufacturing team.
 
 ### Weeks 13–14: Predictive Maintenance Module (F9)
@@ -814,7 +814,7 @@ The roadmap assumes a 4.5-person team with no additional headcount. Work is sequ
 | Maintenance report generation | Backend Engineer | 2 days | Alert UI ready |
 | QA validation with historical failure scenarios | QA Engineer | 3 days | All components ready |
 
-**Key Deliverable:** F9 — Predictive Maintenance Module  
+**Key Deliverable:** F9 — Predictive Maintenance Module
 **Risk:** Medium. ML model requires sufficient historical data; mitigated by phased model training with manual override.
 
 ### Week 15: Advanced Workflow Analytics (F10)
@@ -826,7 +826,7 @@ The roadmap assumes a 4.5-person team with no additional headcount. Work is sequ
 | Export and reporting capabilities (PDF, Excel) | Frontend Engineer | 2 days | Dashboard ready |
 | Analytics accuracy validation | QA Engineer | 2 days | All components ready |
 
-**Key Deliverable:** F10 — Advanced Workflow Analytics  
+**Key Deliverable:** F10 — Advanced Workflow Analytics
 **Risk:** Low-Medium. Primarily aggregation and visualization of existing data.
 
 ### Week 16: Final QA, Documentation & Training
@@ -839,7 +839,7 @@ The roadmap assumes a 4.5-person team with no additional headcount. Work is sequ
 | v3.4+ release and deployment | Backend Engineer | 2 days | QA sign-off |
 | Post-release monitoring and hotfix window | All Engineers | 2 days | Deployment complete |
 
-**Key Deliverable:** v3.4+ Complete Platform  
+**Key Deliverable:** v3.4+ Complete Platform
 **Risk:** Low. Standard release and documentation activities.
 
 ### Phase 3 Exit Criteria
@@ -1001,8 +1001,8 @@ Week:    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15
 
 ---
 
-*Document Version: 1.0*  
-*Last Updated: 2025-07-15*  
+*Document Version: 1.0*
+*Last Updated: 2025-07-15*
 *Next Review: Phase 1 Exit (Week 4)*
 
 
@@ -1012,9 +1012,9 @@ Week:    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15
 
 ## MITRA v3.1 Design Specification
 
-**Document Version:** 3.1  
-**Last Updated:** 2026-05-23  
-**System:** MITRA Production Intelligence Engine  
+**Document Version:** 3.1
+**Last Updated:** 2026-05-23
+**System:** MITRA Production Intelligence Engine
 **Scope:** All user-facing UI text, labels, tooltips, empty states, error messages, and microcopy across the ERP/MES interface.
 
 ---
@@ -1448,7 +1448,7 @@ The following table shows the transformation from generic SaaS greetings to MITR
 
 ## 9. Implementation Notes for Engineering
 
-1. **Localization:** All strings in this document are source English. Translations must preserve the technical tone. Do not translate "MITRA AI Production Intelligence Engine." 
+1. **Localization:** All strings in this document are source English. Translations must preserve the technical tone. Do not translate "MITRA AI Production Intelligence Engine."
 
 2. **Dynamic Values:** Values shown in `{{brackets}}` are template variables. The actual implementation must preserve the surrounding text structure.
 
@@ -2035,8 +2035,8 @@ All layout changes between breakpoints use smooth transitions:
 
 ---
 
-*Document Version: v3.1.0*  
-*Last Updated: 2024*  
+*Document Version: v3.1.0*
+*Last Updated: 2024*
 *Author: Wireframe_Writer — MITRA v3.1 Design Specification*
 
 

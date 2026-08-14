@@ -1,9 +1,9 @@
 # MITRA v2.1 — Complete System Audit Report
 
-**Audit Date:** 2025-06-19  
-**Scope:** Backend (261 TS files, 93 entities, 92 tables) + Frontend (34 source files, 29 pages/components)  
-**Build Status:** ✅ Backend `nest build` → 0 errors | ✅ Frontend `tsc && vite build` → 0 errors  
-**Production Readiness:** Backend 88/100 | Frontend 100/100 | **System Average 94/100**  
+**Audit Date:** 2025-06-19
+**Scope:** Backend (261 TS files, 93 entities, 92 tables) + Frontend (34 source files, 29 pages/components)
+**Build Status:** ✅ Backend `nest build` → 0 errors | ✅ Frontend `tsc && vite build` → 0 errors
+**Production Readiness:** Backend 88/100 | Frontend 100/100 | **System Average 94/100**
 
 ---
 
@@ -137,7 +137,7 @@ CREATE POLICY tenant_isolation_projects ON projects
 - **Required for production:** `pg_dump` cron to S3/MinIO, `mc mirror` for MinIO, tested restore runbook.
 
 #### LOW-1 — RolesGuard Behavior ✅ FIXED
-Before: `if (!user) return false;` → silent 403  
+Before: `if (!user) return false;` → silent 403
 After: `throw new ForbiddenException('Authentication required');` — explicit, auditable.
 
 #### LOW-2 — Node Version Consistency ✅ CORRECT

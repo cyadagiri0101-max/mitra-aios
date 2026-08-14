@@ -13,6 +13,7 @@ import { QuotationItemService } from './quotation-item.service';
 import { QuotationMarginService } from './quotation-margin.service';
 import { QuotationApprovalService } from './quotation-approval.service';
 import { QuotationRevisionService } from './quotation-revision.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('QuotationService', () => {
@@ -108,6 +109,7 @@ describe('QuotationService', () => {
         { provide: getRepositoryToken(Rfq), useValue: mockRfqRepo },
         { provide: AuditService, useValue: { logBusinessEvent: jest.fn().mockResolvedValue({}) } },
         { provide: CommercialAiService, useValue: { syncEntityContext: jest.fn().mockResolvedValue({}) } },
+        { provide: CommercialEventPublisherService, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
       ],
     }).compile();
 

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { Customer } from '../entities/customer.entity';
@@ -17,10 +17,15 @@ export class CustomerNoteService {
     private readonly activityService: CustomerActivityService,
   ) {}
 
-  private async assertCustomerExists(customerId: string, tenantId?: string | null): Promise<void> {
-    const where: any = { id: customerId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const customer = await this.customerRepo.findOne({ where });
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
+  private async assertCustomerExists(customerId: string, tenantId: string): Promise<void> {
+    const customer = await this.customerRepo.findOne({ where: { id: customerId, tenantId, deletedAt: IsNull() } });
     if (!customer) throw new NotFoundException('Customer not found');
   }
 
@@ -30,13 +35,15 @@ export class CustomerNoteService {
     userId?: string,
     tenantId?: string | null,
   ): Promise<void> {
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.assertCustomerExists(customerId, scopeTenant);
     for (const n of notes) {
       await this.noteRepo.save(this.noteRepo.create({
         customerId,
         content: n.content,
         category: n.category ?? null,
         isPinned: n.isPinned ?? false,
-        ...(tenantId ? { tenantId } : {}),
+        tenantId: scopeTenant,
         ...(userId ? { createdBy: userId, updatedBy: userId } : {}),
       } as unknown as CustomerNote));
     }
@@ -48,8 +55,9 @@ export class CustomerNoteService {
     userId?: string,
     tenantId?: string | null,
   ): Promise<void> {
-    await this.noteRepo.update({ customerId, deletedAt: IsNull() }, { deletedAt: new Date() });
-    await this.createNotes(customerId, notes, userId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.noteRepo.update({ customerId, tenantId: scopeTenant, deletedAt: IsNull() }, { deletedAt: new Date() });
+    await this.createNotes(customerId, notes, userId, scopeTenant);
   }
 
   async addNote(
@@ -58,17 +66,18 @@ export class CustomerNoteService {
     userId?: string,
     tenantId?: string | null,
   ): Promise<CustomerNote> {
-    await this.assertCustomerExists(customerId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.assertCustomerExists(customerId, scopeTenant);
     const note = this.noteRepo.create({
       customerId,
       content: dto.content,
       category: dto.category ?? null,
       isPinned: dto.isPinned ?? false,
-      ...(tenantId ? { tenantId } : {}),
+      tenantId: scopeTenant,
       ...(userId ? { createdBy: userId, updatedBy: userId } : {}),
     } as unknown as CustomerNote);
     const saved = await this.noteRepo.save(note);
-    await this.activityService.logActivity(customerId, CustomerActivityType.NOTE_ADDED, 'Note added', userId, tenantId, { noteId: saved.id });
+    await this.activityService.logActivity(customerId, CustomerActivityType.NOTE_ADDED, 'Note added', userId, scopeTenant, { noteId: saved.id });
     return saved;
   }
 
@@ -79,9 +88,10 @@ export class CustomerNoteService {
     userId?: string,
     tenantId?: string | null,
   ): Promise<CustomerNote> {
-    await this.assertCustomerExists(customerId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.assertCustomerExists(customerId, scopeTenant);
     const note = await this.noteRepo.findOne({
-      where: { id: noteId, customerId, deletedAt: IsNull() },
+      where: { id: noteId, customerId, deletedAt: IsNull(), tenantId: scopeTenant },
     });
     if (!note) throw new NotFoundException('Note not found');
     const allowed = this.extractAllowedFields(dto as unknown as Record<string, unknown>);
@@ -90,9 +100,10 @@ export class CustomerNoteService {
   }
 
   async removeNote(customerId: string, noteId: string, tenantId?: string | null) {
-    await this.assertCustomerExists(customerId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.assertCustomerExists(customerId, scopeTenant);
     const note = await this.noteRepo.findOne({
-      where: { id: noteId, customerId, deletedAt: IsNull() },
+      where: { id: noteId, customerId, deletedAt: IsNull(), tenantId: scopeTenant },
     });
     if (!note) throw new NotFoundException('Note not found');
     note.deletedAt = new Date();

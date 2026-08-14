@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { CustomerActivity, CustomerActivityType } from '../entities/customer-activity.entity';
@@ -11,6 +11,13 @@ export class CustomerActivityService {
     private readonly activityRepo: Repository<CustomerActivity>,
   ) {}
 
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
   async logActivity(
     customerId: string,
     activityType: CustomerActivityType,
@@ -19,31 +26,36 @@ export class CustomerActivityService {
     tenantId?: string | null,
     metadata?: Record<string, unknown>,
   ): Promise<CustomerActivity> {
+    const scopeTenant = this.requireTenant(tenantId);
     const activity = this.activityRepo.create({
       customerId,
       activityType,
       description,
       metadata: metadata ?? null,
-      ...(tenantId ? { tenantId } : {}),
+      tenantId: scopeTenant,
       ...(userId ? { createdBy: userId, updatedBy: userId } : {}),
     } as unknown as CustomerActivity);
     return this.activityRepo.save(activity);
   }
 
   async addActivity(customerId: string, dto: CreateCustomerActivityDto, userId?: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     return this.logActivity(
       customerId,
       dto.activityType,
       dto.description,
       userId,
-      tenantId,
+      scopeTenant,
       { referenceType: dto.referenceType ?? null, referenceId: dto.referenceId ?? null, ...(dto.metadata ?? {}) },
     );
   }
 
   async findActivities(customerId: string, tenantId?: string | null) {
-    const where: any = { customerId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    return this.activityRepo.find({ where, order: { createdAt: 'DESC' }, take: 100 });
+    const scopeTenant = this.requireTenant(tenantId);
+    return this.activityRepo.find({
+      where: { customerId, deletedAt: IsNull(), tenantId: scopeTenant },
+      order: { createdAt: 'DESC' },
+      take: 100,
+    });
   }
 }

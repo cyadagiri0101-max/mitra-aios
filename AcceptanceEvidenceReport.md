@@ -1,7 +1,7 @@
 ﻿# Acceptance Evidence Report
 
 ## Previous completed phases summary
-- Phase 1 Backend Build: completed earlier in the session and confirmed by a successful 
+- Phase 1 Backend Build: completed earlier in the session and confirmed by a successful
 pm run build from the backend workspace.
 - Phase 2 Frontend Build: not re-run for this phase per the request.
 - Phase 3 Migration Validation: completed earlier in the session and not re-run here.
@@ -10,7 +10,7 @@ pm run build from the backend workspace.
 - Phase 6 Domain Integration Verification: completed earlier in the session and not re-run here.
 
 ## Live startup evidence
-- Backend command: 
+- Backend command:
 ode dist/main.js
 - Startup environment: NODE_ENV=development, PORT=3001, DB_HOST=localhost, DB_NAME=mitra_v2
 - Health endpoint verification: GET http://127.0.0.1:3001/api/health returned HTTP 200 with body {"status":"ok","info":{"database":{"status":"up"}},"error":{},"details":{"database":{"status":"up"}}}

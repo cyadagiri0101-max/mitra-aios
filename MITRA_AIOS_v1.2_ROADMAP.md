@@ -1,9 +1,9 @@
 # MITRA AIOS v1.2 Roadmap
 
-**Document Version**: 1.0  
-**Date**: 2026-07-17  
-**Author**: Principal Software Architect  
-**Status**: DRAFT  
+**Document Version**: 1.0
+**Date**: 2026-07-17
+**Author**: Principal Software Architect
+**Status**: DRAFT
 **Audience**: Engineering Leadership, Product Management, Development Teams
 
 ---
@@ -465,8 +465,8 @@ M1 (Foundation) ─────────────────────�
 | CI/CD Improvements | 8 | 10 |
 | **Total** | **55** | **158.5** |
 
-**Full-time team of 3 engineers**: ~10.5 weeks  
-**Full-time team of 4 engineers**: ~8 weeks  
+**Full-time team of 3 engineers**: ~10.5 weeks
+**Full-time team of 4 engineers**: ~8 weeks
 
 ---
 

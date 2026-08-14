@@ -1,8 +1,8 @@
 # MITRA AIOS — Architecture Convergence & Migration Analysis
 
-**Date**: 2026-07-17  
-**Author**: Chief Software Architect / Principal Systems Engineer  
-**Status**: COMPLETE  
+**Date**: 2026-07-17
+**Author**: Chief Software Architect / Principal Systems Engineer
+**Status**: COMPLETE
 **Method**: Source-code inspection + architecture document analysis — no assumptions, no speculative refactoring
 
 ---
@@ -134,7 +134,7 @@ aios/orchestrator.py:run()
   │     └─ Dispatcher, Pipeline, Monitor, Rollback, Failure
   └─ Phase 7: aios/reporting/generator.py (ReportGenerator.generate_all())
         └─ Metrics, Profiler, HealthReporter, Summary, PluginStats, TokenTracker
-  
+
   Events: aios/events/bus.py (legacy EventBus, sync, simple)
   Recovery: aios/recovery/engine.py
 ```
@@ -175,7 +175,7 @@ aios/api/routes.py → includes sub-routers
   ├─ /api/v1/rag/* → RAGManager (lazy)
   ├─ /api/v1/config/* → ConfigManager (lazy)
   └─ /api/v1/ws/* → WebSocket connection manager
-  
+
   Events: aios/eos/event_bus.py (EOS EventBus, priority, sync/async, history)
   State: ai-sqlite (via PersistenceStore)
   Observability: aios/eos/observability.py (event stream consumer)
@@ -503,18 +503,18 @@ A `LegacyEventAdapter` class (estimated 1d, ~80 lines) can bridge the two system
 ```python
 class LegacyEventAdapter:
     """Bridge between aios.events.types.Event and aios.eos.runtime_engine.RuntimeEvent."""
-    
+
     _TYPE_MAP = {
         EventType.EXECUTION_STARTED: RuntimeEventType.EXECUTION_STARTED,
         EventType.EXECUTION_COMPLETED: RuntimeEventType.EXECUTION_COMPLETED,
         EventType.EXECUTION_FAILED: RuntimeEventType.EXECUTION_FAILED,
         # ... partial mapping
     }
-    
+
     def to_runtime(self, legacy_event: Event) -> RuntimeEvent:
         """Convert legacy Event to EOS RuntimeEvent."""
         ...
-    
+
     def subscribe_legacy(self, eos_bus: EventBus, legacy_bus: EventBus):
         """Bridge: EOS events → legacy handlers."""
         ...
@@ -820,7 +820,7 @@ This is NOT a "competing config systems" scenario. The two serve different roles
 | Phase 5: Cleanup | Sprint 6 (2d) | 2.5 |
 | **Total** | **6 sprints (25 working days)** | **35.5** |
 
-With 2 engineers: ~3.5 sprints (18 working days)  
+With 2 engineers: ~3.5 sprints (18 working days)
 With 3 engineers: ~2.5 sprints (12 working days)
 
 ### Verification Requirements

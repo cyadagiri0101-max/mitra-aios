@@ -1,8 +1,8 @@
 # End-to-End Validation Plan
 ## AI Workspace Live Data Integration
 
-**Objective:** Verify all 10 commands produce real backend calls with real data (not generic LLM prose)  
-**Method:** DevTools Network tab + Console + Dashboard comparison  
+**Objective:** Verify all 10 commands produce real backend calls with real data (not generic LLM prose)
+**Method:** DevTools Network tab + Console + Dashboard comparison
 **Validation Criteria:** Status 200, no CORS/401/500, responses match backend data
 
 ---

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, IsNull, Like } from 'typeorm';
 import { EngineeringComponent, ComponentType } from '../entities/engineering-component.entity';
@@ -20,11 +20,18 @@ export class EngineeringComponentService {
     private readonly auditService: AuditService,
   ) {}
 
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
   async findAll(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
-    const where: any = { deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { deletedAt: IsNull(), tenantId: scopeTenant };
     if (query.search) {
       where.componentName = Like(`%${query.search}%`);
     }
@@ -45,20 +52,20 @@ export class EngineeringComponentService {
   }
 
   async findOne(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const component = await this.componentRepo.findOne({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    const component = await this.componentRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!component) throw new NotFoundException('Component not found');
     return component;
   }
 
   async create(data: Record<string, any>, userId: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     const component = this.componentRepo.create({
       ...data,
       componentType: data.componentType ?? ComponentType.STANDARD,
       createdBy: userId,
       updatedBy: userId,
-      tenantId: tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     const saved = await this.componentRepo.save(component);
     await this.auditService.logBusinessEvent('engineering.component.created', 'EngineeringComponent', saved.id, userId ?? 'system', {
@@ -70,7 +77,8 @@ export class EngineeringComponentService {
   }
 
   async update(id: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const component = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const component = await this.findOne(id, scopeTenant);
     Object.assign(component, data, { updatedBy: userId });
     const saved = await this.componentRepo.save(component);
     await this.auditService.logBusinessEvent('engineering.component.updated', 'EngineeringComponent', saved.id, userId ?? 'system', {
@@ -81,14 +89,15 @@ export class EngineeringComponentService {
   }
 
   async remove(id: string, userId: string, tenantId?: string | null) {
-    const component = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const component = await this.findOne(id, scopeTenant);
     await this.dataSource.transaction(async (em) => {
       const now = new Date();
       component.deletedAt = now;
       component.updatedBy = userId;
       await em.getRepository(EngineeringComponent).save(component);
       await em.getRepository(EngineeringComponentAlternate).update(
-        [{ componentId: id, deletedAt: IsNull() }, { alternateComponentId: id, deletedAt: IsNull() }],
+        [{ componentId: id, deletedAt: IsNull(), tenantId: scopeTenant }, { alternateComponentId: id, deletedAt: IsNull(), tenantId: scopeTenant }],
         { deletedAt: now, updatedBy: userId },
       );
     });
@@ -102,13 +111,12 @@ export class EngineeringComponentService {
   // ── Alternates / substitutes ─────────────────────────────────────────────
 
   async listAlternates(componentId: string, tenantId?: string | null) {
-    await this.findOne(componentId, tenantId);
-    const where: any = { componentId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const links = await this.alternateRepo.find({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(componentId, scopeTenant);
+    const links = await this.alternateRepo.find({ where: { componentId, deletedAt: IsNull(), tenantId: scopeTenant } });
     const ids = links.map((l) => l.alternateComponentId);
     const alternates = ids.length
-      ? await this.componentRepo.find({ where: { id: ids.length === 1 ? ids[0] : { In: ids } as any, deletedAt: IsNull() } })
+      ? await this.componentRepo.find({ where: { id: ids.length === 1 ? ids[0] : { In: ids } as any, deletedAt: IsNull(), tenantId: scopeTenant } })
       : [];
     return links.map((l) => ({
       ...l,
@@ -117,13 +125,14 @@ export class EngineeringComponentService {
   }
 
   async addAlternate(componentId: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    await this.findOne(componentId, tenantId);
-    const alternate = await this.findOne(data.alternateComponentId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(componentId, scopeTenant);
+    const alternate = await this.findOne(data.alternateComponentId, scopeTenant);
     if (alternate.id === componentId) {
       throw new Error('A component cannot be an alternate of itself');
     }
     const existing = await this.alternateRepo.findOne({
-      where: { componentId, alternateComponentId: alternate.id, deletedAt: IsNull() },
+      where: { componentId, alternateComponentId: alternate.id, deletedAt: IsNull(), tenantId: scopeTenant },
     });
     if (existing) throw new Error('Alternate relationship already exists');
 
@@ -134,7 +143,7 @@ export class EngineeringComponentService {
       notes: data.notes ?? null,
       createdBy: userId,
       updatedBy: userId,
-      tenantId: (await this.findOne(componentId, tenantId)).tenantId ?? tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     const saved = await this.alternateRepo.save(link);
     await this.auditService.logBusinessEvent('engineering.component.alternate_added', 'EngineeringComponentAlternate', saved.id, userId ?? 'system', {
@@ -146,9 +155,8 @@ export class EngineeringComponentService {
   }
 
   async removeAlternate(id: string, userId: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const link = await this.alternateRepo.findOne({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    const link = await this.alternateRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!link) throw new NotFoundException('Alternate relationship not found');
     link.deletedAt = new Date();
     link.updatedBy = userId;

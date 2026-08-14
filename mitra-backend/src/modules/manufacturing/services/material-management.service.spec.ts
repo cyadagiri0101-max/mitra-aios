@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { MaterialManagementService } from './material-management.service';
 import { MaterialReservation, ReservationStatus } from '../entities/material-reservation.entity';
 import { MaterialIssue } from '../entities/materialissue.entity';
@@ -66,14 +66,14 @@ describe('MaterialManagementService', () => {
     it('issues the full reserved quantity', async () => {
       const result = await service.issue('res-1', user, {});
       expect(issueRepo.save).toHaveBeenCalledWith(expect.objectContaining({ quantity: 20, unit: 'KG', workOrderId: 'wo-1' }));
-      expect(resRepo.update).toHaveBeenCalledWith('res-1', expect.objectContaining({ issuedQty: 20, status: 'ISSUED' }));
+      expect(resRepo.update).toHaveBeenCalledWith({ id: 'res-1', tenantId: 't-1' }, expect.objectContaining({ issuedQty: 20, status: 'ISSUED' }));
       expect(outboxRows.some((r) => r.eventType === EngineeringDomainEventType.MATERIAL_RESERVED)).toBe(true);
       expect(result).toBeDefined();
     });
 
     it('emits MATERIAL_SHORTAGE for a partial issue', async () => {
       const result = await service.issue('res-1', user, { qty: 5 });
-      expect(resRepo.update).toHaveBeenCalledWith('res-1', expect.objectContaining({ issuedQty: 5, status: 'PARTIALLY_ISSUED' }));
+      expect(resRepo.update).toHaveBeenCalledWith({ id: 'res-1', tenantId: 't-1' }, expect.objectContaining({ issuedQty: 5, status: 'PARTIALLY_ISSUED' }));
       expect(outboxRows.some((r) => r.eventType === EngineeringDomainEventType.MATERIAL_SHORTAGE)).toBe(true);
       expect(result).toBeDefined();
     });
@@ -87,7 +87,7 @@ describe('MaterialManagementService', () => {
     it('releases unused quantity and emits MATERIAL_VARIANCE', async () => {
       resRepo.findOne.mockResolvedValue({ ...reservation, issuedQty: 10, reservedQty: 20 });
       await service.releaseUnused('res-1', user, {});
-      expect(resRepo.update).toHaveBeenCalledWith('res-1', expect.objectContaining({ reservedQty: 10, status: 'ISSUED' }));
+      expect(resRepo.update).toHaveBeenCalledWith({ id: 'res-1', tenantId: 't-1' }, expect.objectContaining({ reservedQty: 10, status: 'ISSUED' }));
       expect(outboxRows.some((r) => r.eventType === EngineeringDomainEventType.MATERIAL_VARIANCE && r.payload.releasedQty === 10)).toBe(true);
     });
   });
@@ -118,6 +118,18 @@ describe('MaterialManagementService', () => {
       });
       const result = await service.shortages({}, 't-1');
       expect(result[0].shortQty).toBe(15);
+    });
+  });
+
+  describe('tenant isolation', () => {
+    it('rejects issue without tenant context', async () => {
+      const tenantless = { id: 'u-1', email: 'ops@mitra.io', role: 'PLANNING', tenantId: null, permissions: [] };
+      await expect(service.issue('res-1', tenantless, {})).rejects.toThrow(ForbiddenException);
+    });
+
+    it('rejects releaseUnused without tenant context', async () => {
+      const tenantless = { id: 'u-1', email: 'ops@mitra.io', role: 'PLANNING', tenantId: null, permissions: [] };
+      await expect(service.releaseUnused('res-1', tenantless, {})).rejects.toThrow(ForbiddenException);
     });
   });
 });

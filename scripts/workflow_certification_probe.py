@@ -43,10 +43,8 @@ def call(method, path, payload=None, token=None):
 
 
 def db_query(sql):
-    cmd = ['psql', '-h', DB_HOST, '-p', DB_PORT, '-U', DB_USER, '-d', DB_NAME, '-At', '-F', '\t', '-c', sql]
-    env = os.environ.copy()
-    env['PGPASSWORD'] = DB_PASS
-    proc = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    code = f"const {{ Client }} = require('pg'); const client = new Client({{ host: '{DB_HOST}', port: {DB_PORT}, user: '{DB_USER}', password: '{DB_PASS}', database: '{DB_NAME}' }}); client.connect().then(async () => {{ const res = await client.query({json.dumps(sql)}); console.log(res.rows.map(r => Object.values(r).join('\\t')).join('\\n')); process.exit(0); }}).catch(e => {{ console.error(e); process.exit(1); }});"
+    proc = subprocess.run(['node', '-e', code], cwd='d:\\Mitra3.0\\mitra-backend', capture_output=True, text=True)
     if proc.returncode != 0:
         raise RuntimeError(proc.stderr.strip())
     return proc.stdout.strip()
@@ -118,8 +116,7 @@ def main():
     quotation_payload = {
         'rfqId': enquiry_id,
         'customerId': customer_id,
-        'amount': 1850000,
-        'terms': {'payment_terms': '50% advance, 50% on delivery', 'delivery_weeks': 12, 'warranty_months': 12},
+        'items': [{'description': '500 mL Bottle Blow Mold', 'quantity': 1, 'unitPrice': 1850000}],
         'validUntil': '2026-09-27',
     }
     status, ms, body = call('POST', '/commercial/quotations', quotation_payload, TOKEN)

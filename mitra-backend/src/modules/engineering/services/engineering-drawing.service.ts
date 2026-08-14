@@ -1,5 +1,5 @@
 import {
-  Injectable, NotFoundException, BadRequestException, ConflictException,
+  Injectable, NotFoundException, BadRequestException, ConflictException, ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, IsNull, Like } from 'typeorm';
@@ -31,11 +31,20 @@ export class EngineeringDrawingService {
     private readonly aiHooks: EngineeringAiHooksService,
   ) {}
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async findAllAdvanced(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
     const qb = this.drawingRepo.createQueryBuilder('d').where('d.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('d.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('d.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (query.search) {
       qb.andWhere(
         '(d.drawing_number ILIKE :search OR d.title ILIKE :search OR d.part_number ILIKE :search)',
@@ -58,8 +67,7 @@ export class EngineeringDrawingService {
   }
 
   async findOne(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { id, deletedAt: IsNull(), tenantId: this.requireTenant(tenantId) };
     const drawing = await this.drawingRepo.findOne({ where });
     if (!drawing) throw new NotFoundException('Engineering drawing not found');
     return drawing;
@@ -67,11 +75,12 @@ export class EngineeringDrawingService {
 
   async create(data: Record<string, any>, userId: string, tenantId?: string | null) {
     if (!data.projectId) throw new BadRequestException('projectId is required — no orphan engineering records');
+    const scopeTenant = this.requireTenant(tenantId);
 
     let saved: EngineeringDrawing | undefined;
     let lastErr: any;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const drawingNumber = await this.generateDrawingNumber(tenantId, attempt);
+      const drawingNumber = await this.generateDrawingNumber(scopeTenant, attempt);
       const drawing = this.drawingRepo.create({
         ...data,
         drawingNumber,
@@ -81,7 +90,7 @@ export class EngineeringDrawingService {
         checkedOutAt: null,
         createdBy: userId,
         updatedBy: userId,
-        tenantId: tenantId ?? undefined,
+        tenantId: scopeTenant,
       });
       try {
         saved = await this.drawingRepo.save(drawing);
@@ -96,7 +105,7 @@ export class EngineeringDrawingService {
     // DB-driven workflow instance (engineering_drawing)
     try {
       const instance = await this.workflowService.createInstance(DRAWING_WORKFLOW_TYPE, 'drawing', saved.id, {
-        userId, userRole: [], userPermissions: [], tenantId: tenantId ?? saved.tenantId ?? undefined,
+        userId, userRole: [], userPermissions: [], tenantId: scopeTenant,
       });
       saved.workflowInstanceId = instance.id;
       await this.drawingRepo.save(saved);
@@ -153,8 +162,7 @@ export class EngineeringDrawingService {
 
   async listRevisions(drawingId: string, tenantId?: string | null) {
     await this.findOne(drawingId, tenantId);
-    const where: any = { drawingId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { drawingId, deletedAt: IsNull(), tenantId: this.requireTenant(tenantId) };
     return this.revisionRepo.find({ where, order: { revision: 'ASC', versionNumber: 'ASC' } });
   }
 

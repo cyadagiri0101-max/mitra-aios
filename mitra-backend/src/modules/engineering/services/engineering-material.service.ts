@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, Like, In } from 'typeorm';
 import { EngineeringMaterial, MaterialCategory } from '../entities/engineering-material.entity';
@@ -16,11 +16,18 @@ export class EngineeringMaterialService {
     private readonly auditService: AuditService,
   ) {}
 
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
   async findAll(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
-    const where: any = { deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { deletedAt: IsNull(), tenantId: scopeTenant };
     if (query.search) {
       where.materialName = Like(`%${query.search}%`);
     }
@@ -42,27 +49,26 @@ export class EngineeringMaterialService {
   }
 
   async findOne(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const material = await this.materialRepo.findOne({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    const material = await this.materialRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!material) throw new NotFoundException('Material not found');
     return material;
   }
 
   async findByCode(code: string, tenantId?: string | null) {
-    const where: any = { materialCode: code, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    return this.materialRepo.findOne({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    return this.materialRepo.findOne({ where: { materialCode: code, deletedAt: IsNull(), tenantId: scopeTenant } });
   }
 
   async create(data: Record<string, any>, userId: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     const material = this.materialRepo.create({
       ...data,
       category: data.category ?? MaterialCategory.STEEL,
       status: data.status ?? 'ACTIVE',
       createdBy: userId,
       updatedBy: userId,
-      tenantId: tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     const saved = await this.materialRepo.save(material);
     await this.auditService.logBusinessEvent('engineering.material.created', 'EngineeringMaterial', saved.id, userId ?? 'system', {
@@ -74,7 +80,8 @@ export class EngineeringMaterialService {
   }
 
   async update(id: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const material = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const material = await this.findOne(id, scopeTenant);
     Object.assign(material, data, { updatedBy: userId });
     const saved = await this.materialRepo.save(material);
     await this.auditService.logBusinessEvent('engineering.material.updated', 'EngineeringMaterial', saved.id, userId ?? 'system', {
@@ -85,7 +92,8 @@ export class EngineeringMaterialService {
   }
 
   async remove(id: string, userId: string, tenantId?: string | null) {
-    const material = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const material = await this.findOne(id, scopeTenant);
     material.deletedAt = new Date();
     material.updatedBy = userId;
     await this.materialRepo.save(material);
@@ -97,8 +105,9 @@ export class EngineeringMaterialService {
   }
 
   /** Bulk lookup for BOM line items. */
-  async findByIds(ids: string[]) {
+  async findByIds(ids: string[], tenantId?: string | null) {
     if (!ids.length) return [];
-    return this.materialRepo.find({ where: { id: In(ids), deletedAt: IsNull() } });
+    const scopeTenant = this.requireTenant(tenantId);
+    return this.materialRepo.find({ where: { id: In(ids), deletedAt: IsNull(), tenantId: scopeTenant } });
   }
 }

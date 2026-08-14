@@ -1,7 +1,7 @@
 # RELEASE NOTES - MITRA v3.2
 
-**Release Date**: June 24, 2026  
-**Version**: 3.2.0 (Production Ready)  
+**Release Date**: June 24, 2026
+**Version**: 3.2.0 (Production Ready)
 **Phase**: Phase 3 - AI Runtime Complete
 
 ---
@@ -44,15 +44,15 @@ MITRA v3.2 represents a complete manufacturing intelligence platform with integr
 ## Fixed Issues
 
 ### Ollama Instance Mismatch (Critical)
-**Issue**: Backend was potentially connecting to wrong Ollama instance  
-**Resolution**: 
+**Issue**: Backend was potentially connecting to wrong Ollama instance
+**Resolution**:
 - Verified backend uses container Ollama at `http://ollama:11434`
 - Confirmed model availability: phi3 and nomic-embed-text
 - All services connected on shared bridge network
 - Health checks passing
 
 ### AI Module Integration
-**Issue**: AI functionality not fully operational in Phase 2  
+**Issue**: AI functionality not fully operational in Phase 2
 **Resolution**:
 - AI module enabled and verified operational
 - Health endpoint confirms module status

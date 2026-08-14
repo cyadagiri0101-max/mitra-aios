@@ -2,10 +2,10 @@
 
 ## Section 2: Visual Design Direction
 
-**Version:** 3.1  
-**Date:** 2025-06-06  
-**Status:** Draft — Pending Design Review  
-**Owner:** Design / Engineering  
+**Version:** 3.1
+**Date:** 2025-06-06
+**Status:** Draft — Pending Design Review
+**Owner:** Design / Engineering
 
 ---
 

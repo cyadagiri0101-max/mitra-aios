@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository, IsNull } from 'typeorm';
 import { Project, ProjectStage } from '../entities/project.entity';
@@ -57,10 +57,16 @@ export class ProjectWorkflowService {
     private readonly eventBus: DomainEventBus,
   ) {}
 
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
   private async findProject(id: string, tenantId?: string | null): Promise<Project> {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const project = await this.projectRepo.findOne({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    const project = await this.projectRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!project) throw new NotFoundException('Project not found');
     return project;
   }

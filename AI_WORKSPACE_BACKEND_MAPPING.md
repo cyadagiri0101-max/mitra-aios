@@ -1,7 +1,7 @@
 # AI Workspace ↔ Backend API Mapping
 
-**Date:** 2026-06-27  
-**Status:** Implementation Plan  
+**Date:** 2026-06-27
+**Status:** Implementation Plan
 **Task:** Connect 10 AI commands to live backend capabilities (replacing mocks)
 
 ---

@@ -1,6 +1,6 @@
 ﻿import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { ProjectTask, TaskStatus, TaskPriority } from '../entities/projecttask.entity';
 import { TaskDependency, DependencyType } from '../entities/taskdependency.entity';
@@ -278,6 +278,49 @@ describe('TaskService', () => {
       expect(saved.deletedAt).toBeInstanceOf(Date);
       attachmentRepo.findOne.mockResolvedValue(null);
       await expect(service.removeAttachment('att-x', 'u-1', 't-1')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('tenant isolation', () => {
+    it('rejects tenantless create (fail closed)', async () => {
+      await expect(service.create('p-1', { title: 'X' }, 'u-1', null)).rejects.toThrow(ForbiddenException);
+      expect(taskRepo.create).not.toHaveBeenCalled();
+      expect(taskRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('writes the caller tenant onto the created task', async () => {
+      taskRepo.findOne.mockResolvedValue(null);
+      const saved = await service.create('p-1', { title: 'X' }, 'u-1', 't-1');
+      expect(taskRepo.create).toHaveBeenCalledWith(expect.objectContaining({ tenantId: 't-1' }));
+      expect(saved.tenantId).toBe('t-1');
+    });
+
+    it('rejects tenantless findByProject (fail closed)', async () => {
+      await expect(service.findByProject('p-1', {}, null)).rejects.toThrow(ForbiddenException);
+      expect(taskRepo.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 for another tenant\'s task and never mutates it', async () => {
+      taskRepo.findOne.mockResolvedValue(null);
+      await expect(service.update('t-x', { status: TaskStatus.DONE }, 'u-1', 't-2')).rejects.toThrow(NotFoundException);
+      expect(taskRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('scopes the lookup to the caller tenant', async () => {
+      taskRepo.findOne.mockResolvedValue({ ...task });
+      await service.findOne('t-1', 't-1');
+      expect(taskRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ id: 't-1', tenantId: 't-1' }) }),
+      );
+    });
+
+    it('scopes dependency writes to the caller tenant', async () => {
+      taskRepo.findOne.mockResolvedValue({ ...task, id: 't-1' });
+      dependencyRepo.findOne.mockResolvedValue(null);
+      await service.addDependency('t-1', 't-0', DependencyType.FINISH_TO_START, 'u-1', 't-1');
+      expect(dependencyRepo.create).toHaveBeenCalledWith(expect.objectContaining({ tenantId: 't-1' }));
+      const saved = await service.addComment('t-1', 'note', 'u-1', 'User', 't-1');
+      expect(saved.tenantId).toBe('t-1');
     });
   });
 });

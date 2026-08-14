@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, In, Like } from 'typeorm';
 import { ProjectTask, TaskStatus } from '../entities/projecttask.entity';
@@ -26,12 +26,21 @@ export class TaskService {
 
   // ── CRUD ───────────────────────────────────────────────────────────────────
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async findByProject(projectId: string, query: Record<string, any> = {}, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     const qb = this.taskRepo.createQueryBuilder('t')
       .where('t.project_id = :projectId', { projectId })
       .andWhere('t.deleted_at IS NULL');
 
-    if (tenantId) qb.andWhere('t.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('t.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (query.status) qb.andWhere('t.status = :status', { status: query.status });
     if (query.priority) qb.andWhere('t.priority = :priority', { priority: query.priority });
     if (query.assigneeId) qb.andWhere('t.assignee_id = :assigneeId', { assigneeId: query.assigneeId });
@@ -51,22 +60,23 @@ export class TaskService {
     qb.orderBy('t.sort_order', 'ASC').addOrderBy('t.created_at', 'ASC');
     const [tasks, total] = await qb.skip((page - 1) * limit).take(limit).getManyAndCount();
 
-    const withSubtasks = await this.attachSubtasks(tasks, projectId, tenantId);
-    const withDependencies = await this.attachDependencies(withSubtasks, tenantId);
+    const withSubtasks = await this.attachSubtasks(tasks, projectId, scopeTenant);
+    const withDependencies = await this.attachDependencies(withSubtasks, scopeTenant);
     return { data: withDependencies, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: string, tenantId?: string | null): Promise<ProjectTask> {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const where: any = { id, deletedAt: IsNull(), tenantId: scopeTenant };
     const task = await this.taskRepo.findOne({ where });
     if (!task) throw new NotFoundException('Task not found');
     return task;
   }
 
   async create(projectId: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     if (data.parentTaskId) {
-      const parent = await this.findOne(data.parentTaskId, tenantId);
+      const parent = await this.findOne(data.parentTaskId, scopeTenant);
       if (parent.projectId !== projectId) {
         throw new BadRequestException('Parent task does not belong to this project');
       }
@@ -78,22 +88,22 @@ export class TaskService {
       status: data.status ?? TaskStatus.TODO,
       createdBy: userId,
       updatedBy: userId,
-      tenantId: tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     const saved = await this.taskRepo.save(task);
 
     if (data.dependencies?.length) {
-      await this.addDependencies(saved.id, data.dependencies, undefined, tenantId);
+      await this.addDependencies(saved.id, data.dependencies, undefined, scopeTenant);
     }
 
-    await this.logActivity(saved.projectId, 'task.created', `Task created: ${saved.title}`, userId, tenantId, {
+    await this.logActivity(saved.projectId, 'task.created', `Task created: ${saved.title}`, userId, scopeTenant, {
       taskId: saved.id,
     });
     this.eventBus.publish({
       eventType: ProjectDomainEventType.TASK_CREATED,
       occurredAt: new Date(),
       projectId,
-      tenantId: tenantId ?? null,
+      tenantId: scopeTenant,
       actorId: userId ?? null,
       payload: { taskId: saved.id, title: saved.title },
     });
@@ -107,18 +117,19 @@ export class TaskService {
     tenantId?: string | null,
     metadata?: Record<string, any>,
   ) {
-    const task = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const task = await this.findOne(id, scopeTenant);
     const previousStatus = task.status;
     const transitioningToDone = data.status === TaskStatus.DONE && previousStatus !== TaskStatus.DONE;
 
     if (data.parentTaskId !== undefined && data.parentTaskId !== task.parentTaskId) {
-      await this.assertParentChangeAllowed(id, data.parentTaskId, tenantId);
+      await this.assertParentChangeAllowed(id, data.parentTaskId, scopeTenant);
     }
 
     Object.assign(task, data, { updatedBy: userId });
 
     if (transitioningToDone) {
-      await this.assertCompletable(task, tenantId);
+      await this.assertCompletable(task, scopeTenant);
     }
 
     if (task.status === TaskStatus.DONE && previousStatus !== TaskStatus.DONE) {
@@ -131,10 +142,10 @@ export class TaskService {
     const saved = await this.taskRepo.save(task);
 
     if (data.dependencies) {
-      await this.replaceDependencies(id, data.dependencies, data.dependencyType, tenantId);
+      await this.replaceDependencies(id, data.dependencies, data.dependencyType, scopeTenant);
     }
 
-    await this.logActivity(saved.projectId, 'task.updated', `Task updated: ${saved.title}`, userId, tenantId, {
+    await this.logActivity(saved.projectId, 'task.updated', `Task updated: ${saved.title}`, userId, scopeTenant, {
       taskId: saved.id,
       previousStatus,
       status: saved.status,
@@ -146,7 +157,7 @@ export class TaskService {
         eventType: ProjectDomainEventType.TASK_STATUS_CHANGED,
         occurredAt: new Date(),
         projectId: saved.projectId,
-        tenantId: tenantId ?? null,
+        tenantId: scopeTenant,
         actorId: userId ?? null,
         payload: { taskId: saved.id, from: previousStatus, to: saved.status },
       });
@@ -160,12 +171,13 @@ export class TaskService {
 
   /** Log time against a task: adds hours to `actualHours` with an activity entry. */
   async logTime(id: string, hours: number, note: string | null, userId: string, tenantId?: string | null) {
-    const task = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const task = await this.findOne(id, scopeTenant);
     if (!(hours > 0)) throw new BadRequestException('Hours must be a positive number');
     task.actualHours = Number(task.actualHours ?? 0) + hours;
     task.updatedBy = userId;
     const saved = await this.taskRepo.save(task);
-    await this.logActivity(saved.projectId, 'task.time_logged', `Time logged on ${saved.title}: ${hours}h`, userId, tenantId, {
+    await this.logActivity(saved.projectId, 'task.time_logged', `Time logged on ${saved.title}: ${hours}h`, userId, scopeTenant, {
       taskId: saved.id,
       hours,
       note,
@@ -174,21 +186,22 @@ export class TaskService {
   }
 
   async remove(id: string, userId: string, tenantId?: string | null) {
-    const task = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const task = await this.findOne(id, scopeTenant);
     const dependent = await this.dependencyRepo.findOne({ where: { dependsOnTaskId: id, deletedAt: IsNull() } });
     if (dependent) {
-      const t = await this.taskRepo.findOne({ where: { id: dependent.taskId, deletedAt: IsNull() } });
+      const t = await this.taskRepo.findOne({ where: { id: dependent.taskId, tenantId: scopeTenant, deletedAt: IsNull() } });
       throw new BadRequestException(`Cannot delete: task "${t?.title}" depends on it`);
     }
     // Orphaned subtasks: detach instead of deleting children (T-5)
     await this.taskRepo.update(
-      { parentTaskId: id, deletedAt: IsNull() },
+      { parentTaskId: id, tenantId: scopeTenant, deletedAt: IsNull() },
       { parentTaskId: null, updatedBy: userId },
     );
     task.deletedAt = new Date();
     task.updatedBy = userId;
     const saved = await this.taskRepo.save(task);
-    await this.logActivity(saved.projectId, 'task.deleted', `Task deleted: ${saved.title}`, userId, tenantId, { taskId: saved.id });
+    await this.logActivity(saved.projectId, 'task.deleted', `Task deleted: ${saved.title}`, userId, scopeTenant, { taskId: saved.id });
     return { deleted: true, id };
   }
 
@@ -198,9 +211,10 @@ export class TaskService {
    */
   private async assertParentChangeAllowed(taskId: string, newParentId: string | null, tenantId?: string | null): Promise<void> {
     if (!newParentId) return;
+    const scopeTenant = this.requireTenant(tenantId);
     if (newParentId === taskId) throw new BadRequestException('A task cannot be its own parent');
-    const task = await this.findOne(taskId, tenantId);
-    const parent = await this.findOne(newParentId, tenantId);
+    const task = await this.findOne(taskId, scopeTenant);
+    const parent = await this.findOne(newParentId, scopeTenant);
     if (parent.projectId !== task.projectId) {
       throw new BadRequestException('Parent task does not belong to this project');
     }
@@ -211,19 +225,20 @@ export class TaskService {
       if (cursor === taskId) throw new BadRequestException('Parent would create a cycle — rejected');
       if (guard.has(cursor)) break;
       guard.add(cursor);
-      const row = await this.taskRepo.findOne({ where: { id: cursor, deletedAt: IsNull() } });
+      const row = await this.taskRepo.findOne({ where: { id: cursor, tenantId: scopeTenant, deletedAt: IsNull() } });
       cursor = row?.parentTaskId ?? null;
     }
   }
 
   /** Rejects completing a task that still has open (non-DONE/CANCELLED) dependencies. */
   private async assertCompletable(task: ProjectTask, tenantId?: string | null): Promise<void> {
+    const scopeTenant = this.requireTenant(tenantId);
     const blockers = await this.dependencyRepo.find({
-      where: { taskId: task.id, deletedAt: IsNull() },
+      where: { taskId: task.id, tenantId: scopeTenant, deletedAt: IsNull() },
     });
     if (!blockers.length) return;
     const deps = await this.taskRepo.find({
-      where: { id: In(blockers.map((b) => b.dependsOnTaskId)), deletedAt: IsNull() },
+      where: { id: In(blockers.map((b) => b.dependsOnTaskId)), tenantId: scopeTenant, deletedAt: IsNull() },
     });
     const open = deps.filter((d) => d.status !== TaskStatus.DONE && d.status !== TaskStatus.CANCELLED);
     if (open.length) {
@@ -237,15 +252,16 @@ export class TaskService {
 
   /** Add a single dependency to an existing task (cycle-safe, same-project enforced). */
   async addDependency(taskId: string, dependsOnTaskId: string, dependencyType: DependencyType | undefined, userId: string, tenantId?: string | null) {
-    const task = await this.findOne(taskId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const task = await this.findOne(taskId, scopeTenant);
     if (dependsOnTaskId === taskId) throw new BadRequestException('A task cannot depend on itself');
-    const target = await this.findOne(dependsOnTaskId, tenantId);
+    const target = await this.findOne(dependsOnTaskId, scopeTenant);
     if (target.projectId !== task.projectId) {
       throw new BadRequestException('Dependency target does not belong to this project');
     }
-    await this.assertNoCycle(taskId, dependsOnTaskId, tenantId);
+    await this.assertNoCycle(taskId, dependsOnTaskId, scopeTenant);
     const existing = await this.dependencyRepo.findOne({
-      where: { taskId, dependsOnTaskId, deletedAt: IsNull() },
+      where: { taskId, dependsOnTaskId, tenantId: scopeTenant, deletedAt: IsNull() },
     });
     if (!existing) {
       await this.dependencyRepo.save(
@@ -253,7 +269,7 @@ export class TaskService {
           taskId,
           dependsOnTaskId,
           dependencyType: dependencyType ?? undefined,
-          tenantId: tenantId ?? undefined,
+          tenantId: scopeTenant,
           createdBy: userId ?? null,
           updatedBy: userId ?? null,
         }),
@@ -264,8 +280,8 @@ export class TaskService {
 
   /** Remove a dependency edge. */
   async removeDependency(taskId: string, dependsOnTaskId: string, userId: string, tenantId?: string | null) {
-    const where: any = { taskId, dependsOnTaskId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const where: any = { taskId, dependsOnTaskId, tenantId: scopeTenant, deletedAt: IsNull() };
     const dep = await this.dependencyRepo.findOne({ where });
     if (dep) {
       dep.deletedAt = new Date();
@@ -275,12 +291,12 @@ export class TaskService {
     return { removed: true };
   }
 
-  private async addDependencies(taskId: string, dependsOnIds: string[], dependencyType: DependencyType | undefined, tenantId?: string | null) {
+  private async addDependencies(taskId: string, dependsOnIds: string[], dependencyType: DependencyType | undefined, tenantId: string) {
     for (const depId of dependsOnIds) {
       if (depId === taskId) throw new BadRequestException('A task cannot depend on itself');
       await this.assertNoCycle(taskId, depId, tenantId);
       const existing = await this.dependencyRepo.findOne({
-        where: { taskId, dependsOnTaskId: depId, deletedAt: IsNull() },
+        where: { taskId, dependsOnTaskId: depId, tenantId, deletedAt: IsNull() },
       });
       if (!existing) {
         await this.dependencyRepo.save(
@@ -288,15 +304,15 @@ export class TaskService {
             taskId,
             dependsOnTaskId: depId,
             dependencyType: dependencyType ?? undefined,
-            tenantId: tenantId ?? undefined,
+            tenantId,
           }),
         );
       }
     }
   }
 
-  private async replaceDependencies(taskId: string, dependsOnIds: string[], dependencyType: DependencyType | undefined, tenantId?: string | null) {
-    await this.dependencyRepo.update({ taskId, deletedAt: IsNull() }, { deletedAt: new Date() });
+  private async replaceDependencies(taskId: string, dependsOnIds: string[], dependencyType: DependencyType | undefined, tenantId: string) {
+    await this.dependencyRepo.update({ taskId, tenantId, deletedAt: IsNull() }, { deletedAt: new Date() });
     if (dependsOnIds?.length) {
       await this.addDependencies(taskId, dependsOnIds, dependencyType, tenantId);
     }
@@ -306,7 +322,7 @@ export class TaskService {
    * DFS from `dependsOnTaskId` — if we reach `taskId`, adding the edge
    * would create a cycle. Rejects self-reference too.
    */
-  private async assertNoCycle(taskId: string, dependsOnTaskId: string, tenantId?: string | null): Promise<void> {
+  private async assertNoCycle(taskId: string, dependsOnTaskId: string, tenantId: string): Promise<void> {
     const visited = new Set<string>();
     const stack: string[] = [dependsOnTaskId];
 
@@ -318,16 +334,16 @@ export class TaskService {
       if (visited.has(current)) continue;
       visited.add(current);
       const edges = await this.dependencyRepo.find({
-        where: { taskId: current, deletedAt: IsNull() },
+        where: { taskId: current, tenantId, deletedAt: IsNull() },
       });
       stack.push(...edges.map((e) => e.dependsOnTaskId));
     }
   }
 
-  private async attachDependencies<T extends { id: string }>(tasks: T[], tenantId?: string | null): Promise<T[]> {
+  private async attachDependencies<T extends { id: string }>(tasks: T[], tenantId: string): Promise<T[]> {
     if (!tasks.length) return tasks;
     const edges = await this.dependencyRepo.find({
-      where: { taskId: In(tasks.map((t) => t.id)), deletedAt: IsNull() },
+      where: { taskId: In(tasks.map((t) => t.id)), tenantId, deletedAt: IsNull() },
       take: 2000,
     });
     const byTask = new Map<string, string[]>();
@@ -337,11 +353,11 @@ export class TaskService {
     return tasks.map((t) => ({ ...t, dependencies: byTask.get(t.id) ?? [] }));
   }
 
-  private async attachSubtasks<T extends { id: string }>(tasks: T[], projectId: string, tenantId?: string | null): Promise<(T & { subtasks: ProjectTask[] })[]> {
+  private async attachSubtasks<T extends { id: string }>(tasks: T[], projectId: string, tenantId: string): Promise<(T & { subtasks: ProjectTask[] })[]> {
     const ids = tasks.map((t) => t.id);
     if (!ids.length) return tasks.map((t) => ({ ...t, subtasks: [] }));
     const subtasks = await this.taskRepo.find({
-      where: { projectId, parentTaskId: In(ids), deletedAt: IsNull() },
+      where: { projectId, tenantId, parentTaskId: In(ids), deletedAt: IsNull() },
       order: { sortOrder: 'ASC' } as any,
       take: 500,
     });
@@ -355,21 +371,21 @@ export class TaskService {
   // ── Comments & attachments ─────────────────────────────────────────────────
 
   async addComment(taskId: string, body: string, userId: string, userName: string | null, tenantId?: string | null) {
-    await this.findOne(taskId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(taskId, scopeTenant);
     const comment = this.commentRepo.create({
       taskId,
       body,
       authorId: userId ?? null,
       authorName: userName,
       createdBy: userId ?? null,
-      tenantId: tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     return this.commentRepo.save(comment);
   }
 
   async findComments(taskId: string, tenantId?: string | null) {
-    const where: any = { taskId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { taskId, tenantId: this.requireTenant(tenantId), deletedAt: IsNull() };
     return this.commentRepo.find({ where, order: { createdAt: 'ASC' } as any, take: 500 });
   }
 
@@ -380,7 +396,8 @@ export class TaskService {
     userName: string | null,
     tenantId?: string | null,
   ) {
-    const task = await this.findOne(taskId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const task = await this.findOne(taskId, scopeTenant);
     const attachment = this.attachmentRepo.create({
       taskId,
       fileName: file.fileName,
@@ -390,10 +407,10 @@ export class TaskService {
       uploadedBy: userId ?? null,
       uploadedByName: userName,
       createdBy: userId ?? null,
-      tenantId: tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     const saved = await this.attachmentRepo.save(attachment);
-    await this.logActivity(task.projectId, 'task.attachment_added', `Attachment added: ${file.fileName}`, userId, tenantId, {
+    await this.logActivity(task.projectId, 'task.attachment_added', `Attachment added: ${file.fileName}`, userId, scopeTenant, {
       taskId,
       attachmentId: saved.id,
     });
@@ -401,14 +418,12 @@ export class TaskService {
   }
 
   async findAttachments(taskId: string, tenantId?: string | null) {
-    const where: any = { taskId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { taskId, tenantId: this.requireTenant(tenantId), deletedAt: IsNull() };
     return this.attachmentRepo.find({ where, order: { createdAt: 'DESC' } as any, take: 200 });
   }
 
   async removeAttachment(id: string, userId: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { id, tenantId: this.requireTenant(tenantId), deletedAt: IsNull() };
     const attachment = await this.attachmentRepo.findOne({ where });
     if (!attachment) throw new NotFoundException('Attachment not found');
     attachment.deletedAt = new Date();
@@ -418,8 +433,7 @@ export class TaskService {
 
   /** Task activity feed (status changes etc. — derived from project activity). */
   async findActivity(projectId: string, tenantId?: string | null, page = 1, limit = 50) {
-    const where: any = { projectId, activityType: Like('task.%'), deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { projectId, activityType: Like('task.%'), tenantId: this.requireTenant(tenantId), deletedAt: IsNull() };
     const [data, total] = await this.activityRepo.findAndCount({
       where,
       order: { occurredAt: 'DESC' } as any,
@@ -434,7 +448,7 @@ export class TaskService {
     type: string,
     title: string,
     userId: string,
-    tenantId: string | null | undefined,
+    tenantId: string,
     metadata?: Record<string, any>,
   ) {
     await this.activityRepo.save(
@@ -443,7 +457,7 @@ export class TaskService {
         activityType: type,
         title,
         actorId: userId ?? null,
-        tenantId: tenantId ?? undefined,
+        tenantId,
         metadata: metadata ?? null,
       }),
     );

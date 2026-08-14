@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, IsNull, Like } from 'typeorm';
 import {
@@ -36,11 +36,21 @@ export class EngineeringReviewService {
     private readonly outboxService: OutboxService,
   ) {}
 
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
   async findAllAdvanced(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
-    const qb = this.reviewRepo.createQueryBuilder('r').where('r.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('r.tenant_id = :tenantId', { tenantId });
+    const qb = this.reviewRepo.createQueryBuilder('r')
+      .where('r.deleted_at IS NULL')
+      .andWhere('r.tenant_id = :tenantId', { tenantId: scopeTenant });
+
     if (query.search) {
       qb.andWhere('(r.review_number ILIKE :search OR r.title ILIKE :search)', { search: `%${query.search}%` });
     }
@@ -61,25 +71,25 @@ export class EngineeringReviewService {
   }
 
   async findOne(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const review = await this.reviewRepo.findOne({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    const review = await this.reviewRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!review) throw new NotFoundException('Review request not found');
     return review;
   }
 
   async create(data: Record<string, any>, userId: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     if (!data.projectId || !data.entityType || !data.entityId) {
       throw new NotFoundException('projectId, entityType and entityId are required — no orphan review records');
     }
     const review = this.reviewRepo.create({
       ...data,
-      reviewNumber: await this.generateReviewNumber(tenantId),
+      reviewNumber: await this.generateReviewNumber(scopeTenant),
       status: ReviewStatus.PENDING,
       requestedBy: userId,
       createdBy: userId,
       updatedBy: userId,
-      tenantId: tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     const saved = await this.reviewRepo.save(review);
     await this.auditService.logBusinessEvent('engineering.review.created', 'EngineeringReviewRequest', saved.id, userId ?? 'system', {
@@ -94,7 +104,8 @@ export class EngineeringReviewService {
   }
 
   async update(id: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const review = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const review = await this.findOne(id, scopeTenant);
     Object.assign(review, data, { updatedBy: userId });
     const saved = await this.reviewRepo.save(review);
     await this.auditService.logBusinessEvent('engineering.review.updated', 'EngineeringReviewRequest', saved.id, userId ?? 'system', {
@@ -105,14 +116,15 @@ export class EngineeringReviewService {
   }
 
   async remove(id: string, userId: string, tenantId?: string | null) {
-    const review = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const review = await this.findOne(id, scopeTenant);
     await this.dataSource.transaction(async (em) => {
       const now = new Date();
       review.deletedAt = now;
       review.updatedBy = userId;
       await em.getRepository(EngineeringReviewRequest).save(review);
       await em.getRepository(EngineeringReviewComment).update(
-        { reviewRequestId: id, deletedAt: IsNull() },
+        { reviewRequestId: id, deletedAt: IsNull(), tenantId: scopeTenant },
         { deletedAt: now, updatedBy: userId },
       );
     });
@@ -128,7 +140,8 @@ export class EngineeringReviewService {
    * CONCURRED. Terminal decisions complete the review.
    */
   async decide(id: string, decision: ReviewDecision, comments: string | null, userId: string, tenantId?: string | null) {
-    const review = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const review = await this.findOne(id, scopeTenant);
     if (review.status === ReviewStatus.APPROVED || review.status === ReviewStatus.REJECTED || review.status === ReviewStatus.CANCELLED) {
       throw new NotFoundException(`Review already completed with status ${review.status}`);
     }
@@ -155,10 +168,9 @@ export class EngineeringReviewService {
 
   /** List assignments for a review request. */
   async listAssignments(reviewId: string, tenantId?: string | null) {
-    await this.findOne(reviewId, tenantId);
-    const where: any = { reviewRequestId: reviewId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    return this.assignmentRepo.find({ where, order: { createdAt: 'ASC' } });
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(reviewId, scopeTenant);
+    return this.assignmentRepo.find({ where: { reviewRequestId: reviewId, deletedAt: IsNull(), tenantId: scopeTenant }, order: { createdAt: 'ASC' } });
   }
 
   /**
@@ -172,8 +184,9 @@ export class EngineeringReviewService {
     userId: string,
     tenantId?: string | null,
   ) {
+    const scopeTenant = this.requireTenant(tenantId);
     if (!assignees?.length) throw new NotFoundException('At least one assignee is required');
-    const review = await this.findOne(reviewId, tenantId);
+    const review = await this.findOne(reviewId, scopeTenant);
     if (review.status === ReviewStatus.APPROVED || review.status === ReviewStatus.REJECTED || review.status === ReviewStatus.CANCELLED) {
       throw new NotFoundException(`Cannot assign reviewers to a completed review (${review.status})`);
     }
@@ -184,14 +197,14 @@ export class EngineeringReviewService {
       for (const a of assignees) {
         if (!a.assigneeId) throw new NotFoundException('assigneeId is required');
         const existing = await repo.findOne({
-          where: { reviewRequestId: reviewId, assigneeId: a.assigneeId, deletedAt: IsNull() },
+          where: { reviewRequestId: reviewId, assigneeId: a.assigneeId, deletedAt: IsNull(), tenantId: scopeTenant },
         });
         const row = existing ?? repo.create({
           reviewRequestId: reviewId,
           assigneeId: a.assigneeId,
           createdBy: userId,
           updatedBy: userId,
-          tenantId: review.tenantId ?? tenantId ?? undefined,
+          tenantId: scopeTenant,
         });
         if (a.assigneeName !== undefined) row.assigneeName = a.assigneeName ?? null;
         if (a.reviewRole !== undefined) row.reviewRole = (a.reviewRole as AssignmentRole) ?? AssignmentRole.REVIEWER;
@@ -206,7 +219,7 @@ export class EngineeringReviewService {
             'EngineeringReviewAssignment',
             savedRow.id,
             { projectId: review.projectId, entityId: review.id, entityNumber: review.reviewNumber, assigneeId: a.assigneeId, reviewRole: row.reviewRole },
-            { tenantId: review.tenantId, actorId: userId, em },
+            { tenantId: scopeTenant, actorId: userId, em },
           );
         }
       }
@@ -225,7 +238,7 @@ export class EngineeringReviewService {
         tenantId: review.tenantId,
       });
     }
-    return this.listAssignments(reviewId, tenantId);
+    return this.listAssignments(reviewId, scopeTenant);
   }
 
   /**
@@ -242,13 +255,14 @@ export class EngineeringReviewService {
     userId: string,
     tenantId?: string | null,
   ) {
-    const review = await this.findOne(reviewId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const review = await this.findOne(reviewId, scopeTenant);
     if (review.status === ReviewStatus.APPROVED || review.status === ReviewStatus.REJECTED || review.status === ReviewStatus.CANCELLED) {
       throw new NotFoundException(`Review already completed with status ${review.status}`);
     }
-    const where: any = { reviewRequestId: reviewId, assigneeId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const assignment = await this.assignmentRepo.findOne({ where });
+    const assignment = await this.assignmentRepo.findOne({
+      where: { reviewRequestId: reviewId, assigneeId, deletedAt: IsNull(), tenantId: scopeTenant },
+    });
     if (!assignment) throw new NotFoundException('Review assignment not found');
 
     assignment.decision = decision;
@@ -262,7 +276,7 @@ export class EngineeringReviewService {
     assignment.updatedBy = userId;
     const savedAssignment = await this.assignmentRepo.save(assignment);
 
-    const assignments = await this.listAssignments(reviewId, tenantId);
+    const assignments = await this.listAssignments(reviewId, scopeTenant);
     const terminal = [AssignmentStatus.APPROVED, AssignmentStatus.REJECTED, AssignmentStatus.CHANGES_REQUIRED];
     const rejected = assignments.some((a) => a.status === AssignmentStatus.REJECTED);
     const allDecided = assignments.length > 0 && assignments.every((a) => terminal.includes(a.status));
@@ -306,14 +320,14 @@ export class EngineeringReviewService {
   // ── Comments & markups ───────────────────────────────────────────────────
 
   async listComments(reviewId: string, tenantId?: string | null) {
-    await this.findOne(reviewId, tenantId);
-    const where: any = { reviewRequestId: reviewId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    return this.commentRepo.find({ where, order: { createdAt: 'ASC' } });
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(reviewId, scopeTenant);
+    return this.commentRepo.find({ where: { reviewRequestId: reviewId, deletedAt: IsNull(), tenantId: scopeTenant }, order: { createdAt: 'ASC' } });
   }
 
   async addComment(reviewId: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const review = await this.findOne(reviewId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const review = await this.findOne(reviewId, scopeTenant);
     const body = data.comment ?? data.body;
     if (!body) throw new NotFoundException('Comment body is required');
     const comment = this.commentRepo.create({
@@ -324,7 +338,7 @@ export class EngineeringReviewService {
       authorName: data.authorName ?? null,
       createdBy: userId,
       updatedBy: userId,
-      tenantId: review.tenantId ?? tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     const saved = await this.commentRepo.save(comment);
     await this.auditService.logBusinessEvent('engineering.review.comment_added', 'EngineeringReviewComment', saved.id, userId ?? 'system', {
@@ -335,10 +349,9 @@ export class EngineeringReviewService {
   }
 
   async resolveComment(reviewId: string, commentId: string, userId: string, tenantId?: string | null) {
-    await this.findOne(reviewId, tenantId);
-    const where: any = { id: commentId, reviewRequestId: reviewId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const comment = await this.commentRepo.findOne({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(reviewId, scopeTenant);
+    const comment = await this.commentRepo.findOne({ where: { id: commentId, reviewRequestId: reviewId, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!comment) throw new NotFoundException('Review comment not found');
     comment.isResolved = true;
     comment.resolvedBy = userId;
@@ -348,10 +361,9 @@ export class EngineeringReviewService {
   }
 
   async removeComment(reviewId: string, commentId: string, userId: string, tenantId?: string | null) {
-    await this.findOne(reviewId, tenantId);
-    const where: any = { id: commentId, reviewRequestId: reviewId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const comment = await this.commentRepo.findOne({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(reviewId, scopeTenant);
+    const comment = await this.commentRepo.findOne({ where: { id: commentId, reviewRequestId: reviewId, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!comment) throw new NotFoundException('Review comment not found');
     comment.deletedAt = new Date();
     comment.updatedBy = userId;
@@ -362,11 +374,10 @@ export class EngineeringReviewService {
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   private async generateReviewNumber(tenantId?: string | null): Promise<string> {
+    const scopeTenant = this.requireTenant(tenantId);
     const year = new Date().getFullYear();
     const prefix = `RVR-${year}-`;
-    const where: any = { reviewNumber: Like(`${prefix}%`) };
-    if (tenantId) where.tenantId = tenantId;
-    const count = await this.reviewRepo.count({ where });
+    const count = await this.reviewRepo.count({ where: { reviewNumber: Like(`${prefix}%`), tenantId: scopeTenant } });
     return `${prefix}${String(count + 1).padStart(4, '0')}`;
   }
 

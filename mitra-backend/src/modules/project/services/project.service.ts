@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, IsNull, LessThan, Like, In } from 'typeorm';
 import { Project, ProjectStage, ProjectHealth } from '../entities/project.entity';
@@ -45,9 +45,17 @@ export class ProjectService {
 
   // ─── CRUD ──────────────────────────────────────────────────────────────────
 
-  async findAll(tenantId?: string, page = 1, limit = 20) {
-    const where: any = { deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
+  async findAll(tenantId?: string | null, page = 1, limit = 20) {
+    const scopeTenant = this.requireTenant(tenantId);
+    const where: any = { deletedAt: IsNull(), tenantId: scopeTenant };
     const [data, total] = await this.projectRepo.findAndCount({
       where, skip: (page - 1) * limit, take: limit,
       order: { createdAt: 'DESC' },
@@ -59,12 +67,13 @@ export class ProjectService {
    * Advanced listing: pagination, free-text search, structured filters,
    * whitelisted sorting (Sprint 2.2).
    */
-  async findAllAdvanced(tenantId?: string, query: Record<string, any> = {}) {
+  async findAllAdvanced(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
 
     const qb = this.projectRepo.createQueryBuilder('p').where('p.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('p.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('p.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (query.search) {
       qb.andWhere(
         '(p.name ILIKE :search OR p.project_number ILIKE :search OR p.customer_name ILIKE :search OR p.product_name ILIKE :search)',
@@ -91,8 +100,8 @@ export class ProjectService {
   }
 
   async findOne(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const where: any = { id, deletedAt: IsNull(), tenantId: scopeTenant };
     const project = await this.projectRepo.findOne({ where });
     if (!project) throw new NotFoundException('Project not found');
     return project;
@@ -103,11 +112,12 @@ export class ProjectService {
   }
 
   async create(data: Record<string, any>, userId: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     let saved: Project | undefined;
     let lastErr: any;
 
     for (let attempt = 0; attempt < 5; attempt++) {
-      const projectNumber = await this.generateProjectNumber(tenantId, attempt);
+      const projectNumber = await this.generateProjectNumber(scopeTenant, attempt);
       const project = this.projectRepo.create({
         ...data,
         projectNumber,
@@ -116,7 +126,7 @@ export class ProjectService {
         stageEnteredAt: new Date(),
         createdBy: userId,
         updatedBy: userId,
-        tenantId: tenantId ?? undefined,
+        tenantId: scopeTenant,
       });
       try {
         saved = await this.projectRepo.save(project);
@@ -133,7 +143,7 @@ export class ProjectService {
     // Auto-create workflow instance
     try {
       await this.workflowService.createInstance('mold_project', 'project', saved.id, {
-        userId, userRole: [], userPermissions: [], tenantId: tenantId ?? saved.tenantId ?? undefined,
+        userId, userRole: [], userPermissions: [], tenantId: scopeTenant,
       });
     } catch { /* workflow states not seeded yet */ }
 
@@ -400,17 +410,16 @@ export class ProjectService {
     return { health, reasons, overdueMilestones, budgetVariancePct, stageDaysOverdue };
   }
 
-  async refreshAllHealthStatuses(tenantId?: string) {
+  async refreshAllHealthStatuses(tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     // Process in batches of 50 to avoid loading thousands of project IDs at once.
-    // tenantId is required except for super-admin operations (no tenantId = all tenants).
     const BATCH = 50;
     let skip = 0;
     let total = 0;
     let updated = 0;
 
     while (true) {
-      const where: any = { deletedAt: IsNull() };
-      if (tenantId) where.tenantId = tenantId;
+      const where: any = { deletedAt: IsNull(), tenantId: scopeTenant };
 
       const batch = await this.projectRepo.find({
         where,
@@ -420,7 +429,7 @@ export class ProjectService {
       });
       if (!batch.length) break;
       total += batch.length;
-      const results = await Promise.allSettled(batch.map((p) => this.computeHealth(p.id, tenantId)));
+      const results = await Promise.allSettled(batch.map((p) => this.computeHealth(p.id, scopeTenant)));
       updated += results.filter((r) => r.status === 'fulfilled').length;
       if (batch.length < BATCH) break;
       skip += BATCH;
@@ -429,7 +438,8 @@ export class ProjectService {
     return { updated, total };
   }
 
-  async getDashboardStats(tenantId?: string) {
+  async getDashboardStats(tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     // Use aggregate SQL rather than loading every project row into Node memory.
     // This makes the endpoint O(1) instead of O(n) as the project count grows.
     const qb = this.projectRepo
@@ -440,7 +450,7 @@ export class ProjectService {
       .where('p.deleted_at IS NULL')
       .groupBy('p.stage, p.health_status');
 
-    if (tenantId) qb.andWhere('p.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('p.tenant_id = :tenantId', { tenantId: scopeTenant });
 
     const rows: { stage: string; healthStatus: string; count: string }[] = await qb.getRawMany();
 

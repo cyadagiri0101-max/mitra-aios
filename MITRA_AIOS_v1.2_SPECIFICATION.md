@@ -1,8 +1,8 @@
 # MITRA AIOS v1.2 — Engineering Specification
 
-**Date**: 2026-07-17  
-**Status**: APPROVED — Ready for Development  
-**Based on**: MITRA_AIOS_v1.2_ARCHITECTURE_BLUEPRINT.md  
+**Date**: 2026-07-17
+**Status**: APPROVED — Ready for Development
+**Based on**: MITRA_AIOS_v1.2_ARCHITECTURE_BLUEPRINT.md
 
 ---
 

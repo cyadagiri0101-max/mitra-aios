@@ -12,6 +12,8 @@ import {
 } from '../dto/invoice.dto';
 import { TenantAwareService } from '@common/services/tenant-aware.service';
 import { AuditService } from '../../audit/services/audit.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
+import { CommercialEventType } from '../events/commercial.events';
 
 @Injectable()
 export class InvoiceService extends TenantAwareService<Invoice> {
@@ -25,6 +27,7 @@ export class InvoiceService extends TenantAwareService<Invoice> {
     @InjectRepository(SalesOrderLine)
     private readonly salesOrderLineRepo: Repository<SalesOrderLine>,
     private readonly auditService: AuditService,
+    private readonly events: CommercialEventPublisherService,
   ) {
     super(repo, 'Invoice');
   }
@@ -145,6 +148,22 @@ export class InvoiceService extends TenantAwareService<Invoice> {
       },
     );
 
+    await this.events.publish({
+      eventType: CommercialEventType.INVOICE_CREATED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        invoiceId: saved.id,
+        invoiceNumber: number,
+        salesOrderId: saved.salesOrderId ?? null,
+        quotationId: saved.quotationId ?? null,
+        projectId: saved.projectId ?? null,
+        customerId: saved.customerId ?? null,
+        totalAmount: saved.totalAmount,
+      },
+    });
+
     return this.findOneWithLines(saved.id, tenantId);
   }
 
@@ -214,6 +233,17 @@ export class InvoiceService extends TenantAwareService<Invoice> {
       'invoice.issued', 'Invoice', invoice.id, userId ?? 'system',
       { invoiceNumber: invoice.invoiceNumber, totalAmount: invoice.totalAmount, tenantId },
     );
+    await this.events.publish({
+      eventType: CommercialEventType.INVOICE_ISSUED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        invoiceId: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        totalAmount: invoice.totalAmount,
+      },
+    });
     return this.findOneWithLines(invoice.id, tenantId);
   }
 
@@ -238,6 +268,17 @@ export class InvoiceService extends TenantAwareService<Invoice> {
       'invoice.cancelled', 'Invoice', invoice.id, userId ?? 'system',
       { invoiceNumber: invoice.invoiceNumber, reason: dto.reason, tenantId },
     );
+    await this.events.publish({
+      eventType: CommercialEventType.INVOICE_CANCELLED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        invoiceId: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        reason: dto.reason,
+      },
+    });
     return this.findOneWithLines(invoice.id, tenantId);
   }
 

@@ -3,6 +3,8 @@ import { AcceptQuotationDto } from '../dto/quotation.dto';
 import { QuotationService } from './quotation.service';
 import { QuotationApprovalService } from './quotation-approval.service';
 import { ProjectFactoryService, QuotationSnapshot } from '../../project/services/project-factory.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
+import { CommercialEventType } from '../events/commercial.events';
 
 @Injectable()
 export class QuotationAcceptanceService {
@@ -10,6 +12,7 @@ export class QuotationAcceptanceService {
     private readonly quotationService: QuotationService,
     private readonly approvalService: QuotationApprovalService,
     private readonly projectFactory: ProjectFactoryService,
+    private readonly events: CommercialEventPublisherService,
   ) {}
 
   async acceptAndCreateProject(
@@ -36,6 +39,20 @@ export class QuotationAcceptanceService {
     const { project } = await this.projectFactory.createFromQuotation(snapshot, userId ?? '', tenantId);
 
     await this.quotationService.linkProject(id, project.id, userId, tenantId);
+
+    await this.events.publish({
+      eventType: CommercialEventType.PROJECT_CREATED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        projectId: project.id,
+        projectNumber: project.projectNumber,
+        name: project.name,
+        quotationId: quotation.id ?? id,
+        customerId: quotation.customerId ?? null,
+      },
+    });
 
     return {
       quotation: { ...quotation, projectId: project.id, status: 'ACCEPTED' },

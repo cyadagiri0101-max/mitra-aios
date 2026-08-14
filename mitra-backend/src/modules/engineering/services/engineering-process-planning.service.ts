@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, IsNull, Like } from 'typeorm';
 import { EngineeringRouting } from '../entities/engineering-routing.entity';
@@ -38,13 +38,20 @@ export class EngineeringProcessPlanningService {
     private readonly outboxService: OutboxService,
   ) {}
 
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
   // ── Work Centers ─────────────────────────────────────────────────────────
 
   async findWorkCenters(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
-    const where: any = { deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { deletedAt: IsNull(), tenantId: scopeTenant };
     if (query.search) where.name = Like(`%${query.search}%`);
     if (query.workCenterType) where.workCenterType = query.workCenterType;
     const [data, total] = await this.workCenterRepo.findAndCount({
@@ -54,15 +61,15 @@ export class EngineeringProcessPlanningService {
   }
 
   async findWorkCenter(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const wc = await this.workCenterRepo.findOne({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    const wc = await this.workCenterRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!wc) throw new NotFoundException('Work center not found');
     return wc;
   }
 
   async createWorkCenter(data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const wc = this.workCenterRepo.create({ ...data, createdBy: userId, updatedBy: userId, tenantId: tenantId ?? undefined });
+    const scopeTenant = this.requireTenant(tenantId);
+    const wc = this.workCenterRepo.create({ ...data, createdBy: userId, updatedBy: userId, tenantId: scopeTenant });
     const saved = await this.workCenterRepo.save(wc);
     await this.auditService.logBusinessEvent('engineering.workcenter.created', 'EngineeringWorkCenter', saved.id, userId ?? 'system', {
       code: saved.code, tenantId: saved.tenantId,
@@ -71,13 +78,15 @@ export class EngineeringProcessPlanningService {
   }
 
   async updateWorkCenter(id: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const wc = await this.findWorkCenter(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const wc = await this.findWorkCenter(id, scopeTenant);
     Object.assign(wc, data, { updatedBy: userId });
     return this.workCenterRepo.save(wc);
   }
 
   async removeWorkCenter(id: string, userId: string, tenantId?: string | null) {
-    const wc = await this.findWorkCenter(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const wc = await this.findWorkCenter(id, scopeTenant);
     wc.deletedAt = new Date();
     wc.updatedBy = userId;
     await this.workCenterRepo.save(wc);
@@ -90,10 +99,13 @@ export class EngineeringProcessPlanningService {
   // ── Routings ─────────────────────────────────────────────────────────────
 
   async findAllAdvanced(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
-    const qb = this.routingRepo.createQueryBuilder('r').where('r.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('r.tenant_id = :tenantId', { tenantId });
+    const qb = this.routingRepo.createQueryBuilder('r')
+      .where('r.deleted_at IS NULL')
+      .andWhere('r.tenant_id = :tenantId', { tenantId: scopeTenant });
+
     if (query.search) {
       qb.andWhere('(r.routing_number ILIKE :search OR r.name ILIKE :search)', { search: `%${query.search}%` });
     }
@@ -112,19 +124,19 @@ export class EngineeringProcessPlanningService {
   }
 
   async findOne(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const routing = await this.routingRepo.findOne({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    const routing = await this.routingRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!routing) throw new NotFoundException('Engineering routing not found');
     return routing;
   }
 
   async create(data: Record<string, any>, userId: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     if (!data.projectId) throw new BadRequestException('projectId is required — no orphan engineering records');
     let saved: EngineeringRouting | undefined;
     let lastErr: any;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const routingNumber = await this.generateRoutingNumber(tenantId, attempt);
+      const routingNumber = await this.generateRoutingNumber(scopeTenant, attempt);
       const routing = this.routingRepo.create({
         ...data,
         routingNumber,
@@ -132,7 +144,7 @@ export class EngineeringProcessPlanningService {
         status: 'DRAFT',
         createdBy: userId,
         updatedBy: userId,
-        tenantId: tenantId ?? undefined,
+        tenantId: scopeTenant,
       });
       try {
         saved = await this.routingRepo.save(routing);
@@ -145,7 +157,7 @@ export class EngineeringProcessPlanningService {
     if (!saved) throw lastErr;
     try {
       const instance = await this.workflowService.createInstance(ROUTING_WORKFLOW_TYPE, 'routing', saved.id, {
-        userId, userRole: [], userPermissions: [], tenantId: tenantId ?? saved.tenantId ?? undefined,
+        userId, userRole: [], userPermissions: [], tenantId: scopeTenant,
       });
       saved.workflowInstanceId = instance.id;
       await this.routingRepo.save(saved);
@@ -161,7 +173,8 @@ export class EngineeringProcessPlanningService {
   }
 
   async update(id: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const routing = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const routing = await this.findOne(id, scopeTenant);
     Object.assign(routing, data, { updatedBy: userId });
     const saved = await this.routingRepo.save(routing);
     await this.auditService.logBusinessEvent('engineering.routing.updated', 'EngineeringRouting', saved.id, userId ?? 'system', {
@@ -172,14 +185,15 @@ export class EngineeringProcessPlanningService {
   }
 
   async remove(id: string, userId: string, tenantId?: string | null) {
-    const routing = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const routing = await this.findOne(id, scopeTenant);
     await this.dataSource.transaction(async (em) => {
       const now = new Date();
       routing.deletedAt = now;
       routing.updatedBy = userId;
       await em.getRepository(EngineeringRouting).save(routing);
       await em.getRepository(EngineeringOperation).update(
-        { routingId: id, deletedAt: IsNull() },
+        { routingId: id, deletedAt: IsNull(), tenantId: scopeTenant },
         { deletedAt: now, updatedBy: userId },
       );
     });
@@ -193,25 +207,25 @@ export class EngineeringProcessPlanningService {
   // ── Operations ───────────────────────────────────────────────────────────
 
   async listOperations(routingId: string, tenantId?: string | null) {
-    await this.findOne(routingId, tenantId);
-    const where: any = { routingId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    return this.operationRepo.find({ where, order: { operationNumber: 'ASC' } });
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(routingId, scopeTenant);
+    return this.operationRepo.find({ where: { routingId, deletedAt: IsNull(), tenantId: scopeTenant }, order: { operationNumber: 'ASC' } });
   }
 
   async addOperation(routingId: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const routing = await this.findOne(routingId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const routing = await this.findOne(routingId, scopeTenant);
     if (routing.status === 'RELEASED') {
       throw new BadRequestException('Cannot modify a released routing');
     }
     if (data.predecessorOperationId) {
-      await this.validatePredecessor(routingId, null, data.predecessorOperationId, tenantId);
+      await this.validatePredecessor(routingId, null, data.predecessorOperationId, scopeTenant);
     }
     const operation = this.operationRepo.create({
       ...data,
       routingId,
       description: data.description ?? data.operationName,
-      operationNumber: data.operationNumber ?? (await this.operationRepo.count({ where: { routingId, deletedAt: IsNull() } })) * 10 + 10,
+      operationNumber: data.operationNumber ?? (await this.operationRepo.count({ where: { routingId, deletedAt: IsNull(), tenantId: scopeTenant } })) * 10 + 10,
       setupTimeMinutes: Number(data.setupTimeMinutes ?? 0),
       cycleTimeMinutes: Number(data.cycleTimeMinutes ?? 0),
       standardTimeMinutes: Number(data.standardTimeMinutes ?? 0),
@@ -220,10 +234,10 @@ export class EngineeringProcessPlanningService {
         : null,
       createdBy: userId,
       updatedBy: userId,
-      tenantId: routing.tenantId ?? tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     const saved = await this.operationRepo.save(operation);
-    await this.recomputeTotals(routingId);
+    await this.recomputeTotals(routingId, scopeTenant);
     await this.auditService.logBusinessEvent('engineering.routing.operation_created', 'EngineeringOperation', saved.id, userId ?? 'system', {
       routingId,
       operationNumber: saved.operationNumber,
@@ -233,17 +247,16 @@ export class EngineeringProcessPlanningService {
   }
 
   async updateOperation(routingId: string, operationId: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const routing = await this.findOne(routingId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const routing = await this.findOne(routingId, scopeTenant);
     if (routing.status === 'RELEASED') {
       throw new BadRequestException('Cannot modify a released routing');
     }
-    const where: any = { id: operationId, routingId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const operation = await this.operationRepo.findOne({ where });
+    const operation = await this.operationRepo.findOne({ where: { id: operationId, routingId, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!operation) throw new NotFoundException('Operation not found');
 
     if (data.predecessorOperationId !== undefined) {
-      await this.validatePredecessor(routingId, operationId, data.predecessorOperationId, tenantId);
+      await this.validatePredecessor(routingId, operationId, data.predecessorOperationId, scopeTenant);
     }
 
     Object.assign(operation, data, { updatedBy: userId });
@@ -253,30 +266,30 @@ export class EngineeringProcessPlanningService {
       );
     }
     const saved = await this.operationRepo.save(operation);
-    await this.recomputeTotals(routingId);
+    await this.recomputeTotals(routingId, scopeTenant);
     return saved;
   }
 
   async removeOperation(routingId: string, operationId: string, userId: string, tenantId?: string | null) {
-    const routing = await this.findOne(routingId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const routing = await this.findOne(routingId, scopeTenant);
     if (routing.status === 'RELEASED') {
       throw new BadRequestException('Cannot modify a released routing');
     }
-    const where: any = { id: operationId, routingId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const operation = await this.operationRepo.findOne({ where });
+    const operation = await this.operationRepo.findOne({ where: { id: operationId, routingId, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!operation) throw new NotFoundException('Operation not found');
     operation.deletedAt = new Date();
     operation.updatedBy = userId;
     await this.operationRepo.save(operation);
-    await this.recomputeTotals(routingId);
+    await this.recomputeTotals(routingId, scopeTenant);
     return { deleted: true, id: operationId };
   }
 
   /** Recompute routing totals from operations (setup, cycle, standard hours + cost). */
-  async recomputeTotals(routingId: string) {
-    const routing = await this.findOne(routingId);
-    const ops = await this.listOperations(routingId);
+  async recomputeTotals(routingId: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
+    const routing = await this.findOne(routingId, scopeTenant);
+    const ops = await this.listOperations(routingId, scopeTenant);
     const totalSetupMinutes = ops.reduce((s, o) => s + Number(o.setupTimeMinutes ?? 0), 0);
     const totalCycleMinutes = ops.reduce((s, o) => s + Number(o.cycleTimeMinutes ?? 0), 0);
     const totalStandardMinutes = ops.reduce((s, o) => s + Number(o.standardTimeMinutes ?? 0), 0);
@@ -288,8 +301,9 @@ export class EngineeringProcessPlanningService {
   }
 
   async getRoutingWithOperations(id: string, tenantId?: string | null) {
-    const routing = await this.findOne(id, tenantId);
-    const operations = await this.listOperations(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const routing = await this.findOne(id, scopeTenant);
+    const operations = await this.listOperations(id, scopeTenant);
     return { ...routing, operations };
   }
 
@@ -300,10 +314,11 @@ export class EngineeringProcessPlanningService {
    * `engineering_routings.version`; rows are unique per (routing, version).
    */
   async createRevision(routingId: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const routing = await this.findOne(routingId, tenantId);
-    const operations = await this.listOperations(routingId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const routing = await this.findOne(routingId, scopeTenant);
+    const operations = await this.listOperations(routingId, scopeTenant);
     const last = await this.revisionRepo.findOne({
-      where: { routingId, deletedAt: IsNull() },
+      where: { routingId, deletedAt: IsNull(), tenantId: scopeTenant },
       order: { version: 'DESC' },
     });
     const version = (last?.version ?? routing.version ?? 0) + 1;
@@ -339,7 +354,7 @@ export class EngineeringProcessPlanningService {
         releasedAt: new Date(),
         createdBy: userId,
         updatedBy: userId,
-        tenantId: routing.tenantId ?? tenantId ?? undefined,
+        tenantId: scopeTenant,
       });
       const savedRev = await em.getRepository(EngineeringRoutingRevision).save(rev);
       await this.outboxService.append(
@@ -347,7 +362,7 @@ export class EngineeringProcessPlanningService {
         'EngineeringRoutingRevision',
         savedRev.id,
         { projectId: routing.projectId, entityId: routing.id, entityNumber: routing.routingNumber, version },
-        { tenantId: routing.tenantId, actorId: userId, em },
+        { tenantId: scopeTenant, actorId: userId, em },
       );
       return savedRev;
     });
@@ -364,18 +379,18 @@ export class EngineeringProcessPlanningService {
   }
 
   async listRevisions(routingId: string, tenantId?: string | null) {
-    await this.findOne(routingId, tenantId);
-    const where: any = { routingId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    return this.revisionRepo.find({ where, order: { version: 'DESC' } });
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(routingId, scopeTenant);
+    return this.revisionRepo.find({ where: { routingId, deletedAt: IsNull(), tenantId: scopeTenant }, order: { version: 'DESC' } });
   }
 
   /** Compare two routing revision snapshots operation-by-operation. */
   async compareRevisions(routingId: string, versionA: number, versionB: number, tenantId?: string | null) {
-    await this.findOne(routingId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(routingId, scopeTenant);
     const find = async (version: number) => {
       const rev = await this.revisionRepo.findOne({
-        where: { routingId, version, deletedAt: IsNull() },
+        where: { routingId, version, deletedAt: IsNull(), tenantId: scopeTenant },
       });
       if (!rev) throw new NotFoundException(`Routing revision v${version} not found`);
       return rev;
@@ -417,13 +432,12 @@ export class EngineeringProcessPlanningService {
    * must never return to the operation itself).
    */
   private async validatePredecessor(routingId: string, operationId: string | null, predecessorId: string | null, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     if (!predecessorId) return;
     if (operationId && predecessorId === operationId) {
       throw new BadRequestException('An operation cannot be its own predecessor');
     }
-    const where: any = { id: predecessorId, routingId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const predecessor = await this.operationRepo.findOne({ where });
+    const predecessor = await this.operationRepo.findOne({ where: { id: predecessorId, routingId, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!predecessor) {
       throw new BadRequestException('Predecessor operation not found in this routing');
     }
@@ -435,19 +449,16 @@ export class EngineeringProcessPlanningService {
           throw new BadRequestException('Predecessor chain would create a cycle');
         }
         visited.add(cursor.predecessorOperationId);
-        const next: any = { id: cursor.predecessorOperationId, routingId, deletedAt: IsNull() };
-        if (tenantId) next.tenantId = tenantId;
-        cursor = await this.operationRepo.findOne({ where: next });
+        cursor = await this.operationRepo.findOne({ where: { id: cursor.predecessorOperationId, routingId, deletedAt: IsNull(), tenantId: scopeTenant } });
       }
     }
   }
 
   private async generateRoutingNumber(tenantId: string | null | undefined, attempt = 0): Promise<string> {
+    const scopeTenant = this.requireTenant(tenantId);
     const year = new Date().getFullYear();
     const prefix = `RTG-${year}-`;
-    const where: any = { routingNumber: Like(`${prefix}%`) };
-    if (tenantId) where.tenantId = tenantId;
-    const count = await this.routingRepo.count({ where });
+    const count = await this.routingRepo.count({ where: { routingNumber: Like(`${prefix}%`), tenantId: scopeTenant } });
     const seq = count + 1 + attempt;
     return `${prefix}${String(seq).padStart(4, '0')}`;
   }

@@ -94,14 +94,14 @@ describe('ProjectService', () => {
   describe('findOne()', () => {
     it('returns project when found', async () => {
       projectRepo.findOne.mockResolvedValue(mockProject);
-      const result = await service.findOne('project-uuid-1');
+      const result = await service.findOne('project-uuid-1', 'tenant-1');
       expect(result).toEqual(mockProject);
       expect(projectRepo.findOne).toHaveBeenCalledTimes(1);
     });
 
     it('throws NotFoundException when not found', async () => {
       projectRepo.findOne.mockResolvedValue(null);
-      await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('nonexistent', 'tenant-1')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -200,7 +200,7 @@ describe('ProjectService', () => {
   describe('findAll()', () => {
     it('calls repository to find projects', async () => {
       projectRepo.findAndCount.mockResolvedValue([[mockProject], 1]);
-      await service.findAll();
+      await service.findAll('tenant-1');
       expect(projectRepo.findAndCount).toHaveBeenCalled();
     });
 

@@ -1,6 +1,6 @@
 ﻿import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { MilestoneService } from './milestone.service';
 import { ProjectMilestone, MilestoneStatus } from '../entities/projectmilestone.entity';
 import { MilestoneTemplate } from '../entities/milestone-template.entity';
@@ -148,12 +148,30 @@ describe('MilestoneService', () => {
       milestoneRepo.find.mockResolvedValue([overdue, future, done]);
       milestoneRepo.save.mockImplementation((m: any) => Promise.resolve(m));
 
-      const result = await service.refreshDelays('p-1', 't-1');
+      const result = await service.refreshDelays('p-1', 'u-1', 't-1');
       expect(result.updated).toBe(1);
       expect(result.delayed).toBe(1);
       const savedOverdue = milestoneRepo.save.mock.calls.map((c: any[]) => c[0]).find((m: any) => m.id === 'm-9');
       expect(savedOverdue.status).toBe(MilestoneStatus.DELAYED);
       expect(savedOverdue.delayDays).toBe(5);
+    });
+
+    it('scopes the refresh to the caller\'s tenant', async () => {
+      const overdue = {
+        ...baseMilestone, id: 'm-12', status: MilestoneStatus.PENDING,
+        plannedDate: new Date(Date.now() - 5 * 86400000),
+      };
+      milestoneRepo.find.mockResolvedValue([overdue]);
+      milestoneRepo.save.mockImplementation((m: any) => Promise.resolve(m));
+      await service.refreshDelays('p-1', 'u-1', 't-1');
+      expect(milestoneRepo.find).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ projectId: 'p-1', tenantId: 't-1' }) }),
+      );
+    });
+
+    it('rejects tenantless refresh (fail closed)', async () => {
+      await expect(service.refreshDelays('p-1', 'u-1', null)).rejects.toThrow(ForbiddenException);
+      expect(milestoneRepo.find).not.toHaveBeenCalled();
     });
   });
 

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { Repository, IsNull } from 'typeorm';
 import { IndustrialBaseEntity } from '@common/entities/industrial-base.entity';
 
@@ -6,11 +6,20 @@ import { IndustrialBaseEntity } from '@common/entities/industrial-base.entity';
 export class QualityBaseService<T extends IndustrialBaseEntity> {
   constructor(protected readonly repo: Repository<T>) {}
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  protected requireTenant(tenantId?: string): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async findAll(query: Record<string, any> = {}, tenantId?: string) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
     const qb = this.repo.createQueryBuilder('e').where('e.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('e.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('e.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (query.status) qb.andWhere('e.status = :status', { status: query.status });
     if (query.projectId) qb.andWhere('e.project_id = :projectId', { projectId: query.projectId });
     qb.orderBy('e.created_at', 'DESC');
@@ -19,20 +28,21 @@ export class QualityBaseService<T extends IndustrialBaseEntity> {
   }
 
   async findOne(id: string, tenantId?: string) {
-    const entity = await this.repo.findOne({ where: { id, deletedAt: IsNull(), tenantId: tenantId ?? undefined } as any });
+    const entity = await this.repo.findOne({ where: { id, deletedAt: IsNull(), tenantId: this.requireTenant(tenantId) } as any });
     if (!entity) throw new NotFoundException('Record not found');
     return entity;
   }
 
   async create(dto: Record<string, unknown>, userId?: string, tenantId?: string) {
-    const entity = this.repo.create({ ...dto, createdBy: userId ?? null, updatedBy: userId ?? null, tenantId: tenantId ?? undefined } as any) as unknown as T;
+    const entity = this.repo.create({ ...dto, createdBy: userId ?? null, updatedBy: userId ?? null, tenantId: this.requireTenant(tenantId) } as any) as unknown as T;
     return this.repo.save(entity);
   }
 
   async update(id: string, dto: Record<string, unknown>, userId?: string, tenantId?: string) {
-    await this.findOne(id, tenantId);
-    await this.repo.update(id, { ...dto, updatedBy: userId ?? undefined } as any);
-    return this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(id, scopeTenant);
+    await this.repo.update({ id, tenantId: scopeTenant } as any, { ...dto, updatedBy: userId ?? undefined } as any);
+    return this.findOne(id, scopeTenant);
   }
 }
 

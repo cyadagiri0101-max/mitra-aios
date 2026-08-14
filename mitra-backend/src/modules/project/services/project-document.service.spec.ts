@@ -1,6 +1,6 @@
 ﻿import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { ProjectDocumentService } from './project-document.service';
 import { ProjectFolder } from '../entities/projectfolder.entity';
 import { ProjectDocument, ProjectDocumentStatus } from '../entities/projectdocument.entity';
@@ -194,6 +194,13 @@ describe('ProjectDocumentService', () => {
 
       versionRepo.findOne.mockResolvedValue(null);
       await expect(service.download('doc-1', 99, 't-1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('rejects tenantless access with 403 (fail closed)', async () => {
+      await expect(service.findOne('doc-1', null)).rejects.toThrow(ForbiddenException);
+      await expect(service.versions('doc-1', null)).rejects.toThrow(ForbiddenException);
+      await expect(service.download('doc-1', undefined, null)).rejects.toThrow(ForbiddenException);
+      await expect(service.create('p-1', { title: 'X' }, { fileName: 'x.pdf', filePath: '/x.pdf' }, 'u-1', 'u', null)).rejects.toThrow(ForbiddenException);
     });
 
     it('rejects creating a folder under a folder of another project', async () => {

@@ -2,6 +2,9 @@ import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AiModule } from '../ai/ai.module';
 import { EngineeringModule } from '../engineering/engineering.module';
+import { CommercialModule } from '../commercial/commercial.module';
+import { PlatformModule } from '../platform/platform.module';
+import { Tenant } from '../platform/entities/tenant.entity';
 import { KnowledgeArticle } from './entities/knowledgearticle.entity';
 import { KnowledgeAttachment } from './entities/knowledgeattachment.entity';
 import { KnowledgeCategory } from './entities/knowledgecategory.entity';
@@ -15,6 +18,7 @@ import { KnowledgeCatalogController } from './controllers/knowledgecatalog.contr
 import { KnowledgeSearchService } from './services/knowledge-search.service';
 import { KnowledgeSearchController } from './controllers/knowledge-search.controller';
 import { KnowledgeIndexingService } from './services/knowledge-indexing.service';
+import { KnowledgeReindexSchedulerService } from './services/knowledge-reindex-scheduler.service';
 import { KnowledgeContextBuilderService } from './services/knowledge-context-builder.service';
 import { KnowledgeGraphService } from './services/knowledge-graph.service';
 
@@ -27,9 +31,12 @@ import { KnowledgeGraphService } from './services/knowledge-graph.service';
       KnowledgeTag,
       KnowledgeCatalogEntry,
       KnowledgeGraphEdge,
+      Tenant,
     ]),
     forwardRef(() => AiModule),
     EngineeringModule,
+    CommercialModule,
+    PlatformModule,
   ],
   controllers: [KnowledgeArticleController, KnowledgeCatalogController, KnowledgeSearchController],
   providers: [
@@ -37,6 +44,7 @@ import { KnowledgeGraphService } from './services/knowledge-graph.service';
     KnowledgeCatalogService,
     KnowledgeSearchService,
     KnowledgeIndexingService,
+    KnowledgeReindexSchedulerService,
     KnowledgeContextBuilderService,
     KnowledgeGraphService,
   ],

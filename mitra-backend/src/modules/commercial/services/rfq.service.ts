@@ -19,6 +19,8 @@ import { WorkflowService } from '../../workflow/services/workflow.service';
 import { AuditService } from '../../audit/services/audit.service';
 import { NotificationService } from '../../platform/services/notification.service';
 import { CommercialAiService } from './commercial-ai.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
+import { CommercialEventType } from '../events/commercial.events';
 
 export const RFQ_WORKFLOW_TYPE = 'rfq';
 
@@ -46,6 +48,7 @@ export class RfqService extends TenantAwareService<Rfq> {
     private readonly auditService: AuditService,
     private readonly notificationService: NotificationService,
     private readonly aiService: CommercialAiService,
+    private readonly events: CommercialEventPublisherService,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {
     super(repo, 'RFQ');
@@ -122,6 +125,19 @@ export class RfqService extends TenantAwareService<Rfq> {
       priority: saved.priority,
       workflowState: saved.workflowState,
     }, actor.userId, actor.tenantId);
+
+    await this.events.publish({
+      eventType: CommercialEventType.RFQ_SUBMITTED,
+      timestamp: new Date(),
+      tenantId: actor.tenantId ?? null,
+      actorId: actor.userId ?? null,
+      payload: {
+        enquiryId: saved.id,
+        enquiryNumber: saved.rfqNumber,
+        customerName: saved.customerName ?? null,
+        productName: saved.products?.length ? saved.products[0].productName : null,
+      },
+    });
 
     return this.findOneWithDetails(saved.id, actor.tenantId);
   }
@@ -383,6 +399,7 @@ export class RfqService extends TenantAwareService<Rfq> {
     actor: WorkflowActorContext,
   ): Promise<Rfq> {
     let syncState: { rfqNumber: string; workflowState: string; approvalStatus?: string } | null = null;
+    let fromStateCode: string | null = null;
     await this.dataSource.transaction(async (em: EntityManager) => {
       const rfqRepo = em.getRepository(Rfq);
       const rfqWhere: any = { id, deletedAt: IsNull() };
@@ -397,6 +414,7 @@ export class RfqService extends TenantAwareService<Rfq> {
         throw new BadRequestException('No workflow instance found for this RFQ');
       }
       const fromState = instance.currentState.stateCode;
+      fromStateCode = fromState;
 
       const updated = await this.workflowService.executeTransition(
         instance.id, dto.transitionId, {
@@ -459,6 +477,37 @@ export class RfqService extends TenantAwareService<Rfq> {
     } catch (err) {
       // AI sync is best-effort; log and continue
       console.warn(`[RFQ] AI context sync skipped for ${id}:`, (err as Error).message);
+    }
+
+    // Durable domain events (transactional outbox, G-13) for downstream
+    // consumers — emitted after the transition commit.
+    const finalState = syncState as { rfqNumber: string; workflowState: string; approvalStatus?: string } | null;
+    if (finalState) {
+      if (finalState.workflowState === RfqWorkflowState.CANCELLED) {
+        await this.events.publish({
+          eventType: CommercialEventType.RFQ_CANCELLED,
+          timestamp: new Date(),
+          tenantId: actor.tenantId ?? null,
+          actorId: actor.userId ?? null,
+          payload: {
+            enquiryId: id,
+            enquiryNumber: finalState.rfqNumber,
+            previousStatus: fromStateCode ?? finalState.workflowState,
+          },
+        });
+      } else if (finalState.workflowState === RfqWorkflowState.REJECTED) {
+        await this.events.publish({
+          eventType: CommercialEventType.RFQ_LOST,
+          timestamp: new Date(),
+          tenantId: actor.tenantId ?? null,
+          actorId: actor.userId ?? null,
+          payload: {
+            enquiryId: id,
+            enquiryNumber: finalState.rfqNumber,
+            reason: dto.remarks ?? null,
+          },
+        });
+      }
     }
 
     return this.findOneWithDetails(id, actor.tenantId);

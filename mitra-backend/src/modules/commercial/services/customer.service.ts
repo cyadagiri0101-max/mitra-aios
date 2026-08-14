@@ -9,6 +9,7 @@ import { CustomerAddress } from '../entities/customer-address.entity';
 import { CustomerNote } from '../entities/customer-note.entity';
 import { CustomerAttachment } from '../entities/customer-attachment.entity';
 import { CustomerActivityType } from '../entities/customer-activity.entity';
+import { CommercialEventType } from '../events/commercial.events';
 import { CreateCustomerDto, UpdateCustomerDto, CustomerFilterDto } from '../dto/customer.dto';
 import { CreateContactDto, UpdateContactDto } from '../dto/contact.dto';
 import { CreateCustomerAddressDto } from '../dto/customer-address.dto';
@@ -18,6 +19,8 @@ import { CreateCustomerAttachmentDto } from '../dto/customer-attachment.dto';
 import { TenantAwareService } from '@common/services/tenant-aware.service';
 import { AuditService } from '../../audit/services/audit.service';
 import { CommercialAiService } from './commercial-ai.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
+import { CustomerCreatedEvent, CustomerUpdatedEvent } from '../events/commercial.events';
 import { CustomerContactService } from './customer-contact.service';
 import { CustomerAddressService } from './customer-address.service';
 import { CustomerNoteService } from './customer-note.service';
@@ -32,6 +35,7 @@ export class CustomerService extends TenantAwareService<Customer> {
     private readonly attachmentRepo: Repository<CustomerAttachment>,
     private readonly auditService: AuditService,
     private readonly aiService: CommercialAiService,
+    private readonly events: CommercialEventPublisherService,
     private readonly contactService: CustomerContactService,
     private readonly addressService: CustomerAddressService,
     private readonly noteService: CustomerNoteService,
@@ -91,6 +95,14 @@ export class CustomerService extends TenantAwareService<Customer> {
       gstNumber: saved.gstNumber,
       status: saved.status,
     }, userId, tenantId);
+
+    await this.events.publish({
+      eventType: CommercialEventType.CUSTOMER_CREATED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: { customerId: saved.id, name: saved.name, industry: saved.industry ?? null },
+    } as CustomerCreatedEvent);
 
     return this.findOneWithDetails(saved.id, tenantId);
   }
@@ -195,6 +207,15 @@ export class CustomerService extends TenantAwareService<Customer> {
       industry: saved.industry,
       status: saved.status,
     }, userId, tenantId);
+
+    await this.events.publish({
+      eventType: CommercialEventType.CUSTOMER_UPDATED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: { customerId: id, changes: allowed },
+    } as CustomerUpdatedEvent);
+
     return this.findOneWithDetails(id, tenantId);
   }
 

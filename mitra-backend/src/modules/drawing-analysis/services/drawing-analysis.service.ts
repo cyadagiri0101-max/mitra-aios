@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { DrawingAnalysis, DrawingFileType } from '../entities/drawing-analysis.entity';
@@ -15,7 +15,15 @@ export class DrawingAnalysisService {
     private readonly minio: MinioService,
   ) {}
 
-  async uploadAndAnalyze(dto: UploadDrawingDto): Promise<DrawingAnalysisResponseDto> {
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
+  async uploadAndAnalyze(dto: UploadDrawingDto, tenantId?: string | null): Promise<DrawingAnalysisResponseDto> {
+    const scopeTenant = this.requireTenant(tenantId);
     const t0 = Date.now();
 
     // Decode base64 and validate size
@@ -45,7 +53,7 @@ export class DrawingAnalysisService {
 
     const entity = this.drawingRepo.create({
       projectId: dto.projectId,
-      tenantId: (dto as any).tenantId ?? null,
+      tenantId: scopeTenant,
       fileName: dto.fileName,
       fileType: dto.fileType,
       fileUrl: presigned.url,
@@ -65,18 +73,16 @@ export class DrawingAnalysisService {
     return this.mapToResponse(saved);
   }
 
-  async getAnalysis(id: string, tenantId?: string): Promise<DrawingAnalysisResponseDto> {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const analysis = await this.drawingRepo.findOne({ where });
+  async getAnalysis(id: string, tenantId?: string | null): Promise<DrawingAnalysisResponseDto> {
+    const scopeTenant = this.requireTenant(tenantId);
+    const analysis = await this.drawingRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!analysis) throw new NotFoundException(`Drawing Analysis ${id} not found`);
     return this.mapToResponse(analysis);
   }
 
-  async getProjectAnalyses(projectId: string, tenantId?: string): Promise<DrawingAnalysisResponseDto[]> {
-    const where: any = { projectId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const analyses = await this.drawingRepo.find({ where, order: { createdAt: 'DESC' } });
+  async getProjectAnalyses(projectId: string, tenantId?: string | null): Promise<DrawingAnalysisResponseDto[]> {
+    const scopeTenant = this.requireTenant(tenantId);
+    const analyses = await this.drawingRepo.find({ where: { projectId, deletedAt: IsNull(), tenantId: scopeTenant }, order: { createdAt: 'DESC' } });
     return analyses.map((a) => this.mapToResponse(a));
   }
 

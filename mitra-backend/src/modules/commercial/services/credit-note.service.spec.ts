@@ -7,6 +7,7 @@ import { CreditNote, CreditNoteStatus } from '../entities/creditnote.entity';
 import { Invoice, InvoiceStatus } from '../entities/invoice.entity';
 import { Customer } from '../entities/customer.entity';
 import { AuditService } from '../../audit/services/audit.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
 
 describe('CreditNoteService', () => {
   let service: CreditNoteService;
@@ -79,6 +80,7 @@ describe('CreditNoteService', () => {
         { provide: getRepositoryToken(Invoice), useValue: { findOne: jest.fn() } },
         { provide: getRepositoryToken(Customer), useValue: { findOne: jest.fn() } },
         { provide: AuditService, useValue: { logBusinessEvent: jest.fn() } },
+        { provide: CommercialEventPublisherService, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
       ],
     }).compile();
 

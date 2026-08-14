@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { InspectionPlan, InspectionPlanStatus } from '../entities/inspection-plan.entity';
@@ -13,11 +13,21 @@ export class InspectionPlanService {
     private readonly outboxService: OutboxService,
   ) {}
 
-  async findAll(q: { page?: number; limit?: number; status?: InspectionPlanStatus; projectId?: string } = {}, tenantId?: string) {
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
+  async findAll(q: { page?: number; limit?: number; status?: InspectionPlanStatus; projectId?: string } = {}, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(q.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(q.limit ?? 20)));
-    const qb = this.repo.createQueryBuilder('p').where('p.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('p.tenant_id = :tenantId', { tenantId });
+    const qb = this.repo.createQueryBuilder('p')
+      .where('p.deleted_at IS NULL')
+      .andWhere('p.tenant_id = :tenantId', { tenantId: scopeTenant });
+
     if (q.status) qb.andWhere('p.status = :status', { status: q.status });
     if (q.projectId) qb.andWhere('p.project_id = :projectId', { projectId: q.projectId });
     qb.orderBy('p.created_at', 'DESC');
@@ -25,20 +35,22 @@ export class InspectionPlanService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async findOne(id: string, tenantId?: string) {
-    const entity = await this.repo.findOne({ where: { id, deletedAt: IsNull(), tenantId: tenantId ?? undefined } });
+  async findOne(id: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
+    const entity = await this.repo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!entity) throw new NotFoundException('Inspection plan not found');
     return entity;
   }
 
-  async create(dto: Record<string, unknown>, userId?: string, tenantId?: string) {
+  async create(dto: Record<string, unknown>, userId?: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     const entity = this.repo.create({
       ...dto,
       planNumber: dto.planNumber ?? this.nextNumber('IP'),
       status: dto.status ?? InspectionPlanStatus.DRAFT,
       createdBy: userId ?? null,
       updatedBy: userId ?? null,
-      tenantId: tenantId ?? undefined,
+      tenantId: scopeTenant,
     } as Partial<InspectionPlan>);
     const saved = await this.repo.save(entity);
     await this.outboxService.append(EngineeringDomainEventType.INSPECTION_PLAN_CREATED, 'inspection_plan', saved.id, {
@@ -48,14 +60,15 @@ export class InspectionPlanService {
       drawingId: saved.drawingId,
       bomId: saved.bomId,
       routingId: saved.routingId,
-    }, { tenantId, actorId: userId });
+    }, { tenantId: scopeTenant, actorId: userId });
     return saved;
   }
 
-  async update(id: string, dto: Record<string, unknown>, userId?: string, tenantId?: string) {
-    await this.findOne(id, tenantId);
-    await this.repo.update(id, { ...dto, updatedBy: userId ?? undefined } as Partial<InspectionPlan>);
-    return this.findOne(id, tenantId);
+  async update(id: string, dto: Record<string, unknown>, userId?: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(id, scopeTenant);
+    await this.repo.update({ id, tenantId: scopeTenant }, { ...dto, updatedBy: userId ?? undefined } as Partial<InspectionPlan>);
+    return this.findOne(id, scopeTenant);
   }
 
   private nextNumber(prefix: string): string {

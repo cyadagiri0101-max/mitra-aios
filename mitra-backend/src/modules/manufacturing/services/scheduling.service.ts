@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { JobCard, JobCardStatus } from '../entities/jobcard.entity';
@@ -29,6 +29,14 @@ export class SchedulingService {
     private readonly machineService: MachineMasterService,
     private readonly outboxService: OutboxService,
   ) {}
+
+  /** Fail-closed tenant guard - mirrors TenantAwareService.requireTenant. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
 
   /** Overview for the scheduling board: machines + load + active jobs. */
   async overview(q: { from?: string; to?: string; machineTypeId?: string }, tenantId?: string) {
@@ -83,18 +91,19 @@ export class SchedulingService {
 
   /** Assign a job card to a specific machine (+ booking). */
   async assignToMachine(jobId: string, machineId: string, user: AuthUser, dto: { startDatetime?: string; endDatetime?: string; shift?: string } = {}) {
-    const job = await this.jobCardRepo.findOne({ where: { id: jobId, deletedAt: undefined } });
+    const tenantId = this.requireTenant(user.tenantId);
+    const job = await this.jobCardRepo.findOne({ where: { id: jobId, tenantId, deletedAt: undefined } });
     if (!job) throw new NotFoundException('Job card not found');
     if (job.status === JobCardStatus.COMPLETED || job.status === JobCardStatus.CANCELLED || job.status === JobCardStatus.SCRAPPED) {
       throw new BadRequestException('Cannot reassign a terminal job');
     }
-    await this.machineService.findOne(machineId, user.tenantId ?? undefined);
+    await this.machineService.findOne(machineId, tenantId);
 
     const hours = job.plannedHours ?? 8;
     const start = dto.startDatetime ? new Date(dto.startDatetime) : new Date();
     const end = dto.endDatetime ? new Date(dto.endDatetime) : new Date(start.getTime() + hours * 3600000);
 
-    await this.jobCardRepo.update(job.id, { machineId, updatedBy: user.id } as any);
+    await this.jobCardRepo.update({ id: job.id, tenantId }, { machineId, updatedBy: user.id } as any);
     const booking = await this.machineService.createBooking({
       machineId,
       workOrderId: job.workOrderId,
@@ -123,12 +132,13 @@ export class SchedulingService {
    * machines are selected by operation machine type, least-loaded first.
    */
   async batchSchedule(workOrderId: string, user: AuthUser) {
-    const wo = await this.workOrderRepo.findOne({ where: { id: workOrderId, deletedAt: undefined } });
+    const tenantId = this.requireTenant(user.tenantId);
+    const wo = await this.workOrderRepo.findOne({ where: { id: workOrderId, tenantId, deletedAt: undefined } });
     if (!wo) throw new NotFoundException('Work order not found');
-    const jobs = await this.jobCardRepo.find({ where: { workOrderId, machineId: IsNull(), deletedAt: undefined } });
+    const jobs = await this.jobCardRepo.find({ where: { workOrderId, machineId: IsNull(), tenantId, deletedAt: undefined } });
     const results: Array<Record<string, unknown>> = [];
     for (const job of jobs) {
-      const machine = await this.pickMachine(job.operationId);
+      const machine = await this.pickMachine(job.operationId, tenantId);
       if (!machine) {
         results.push({ jobId: job.id, jobCardNumber: job.jobCardNumber, assigned: false, reason: 'no machine of required type available' });
         continue;
@@ -141,11 +151,12 @@ export class SchedulingService {
 
   /** Machines of the same type as the job's operation, least-loaded first. */
   async alternates(jobId: string, tenantId?: string) {
-    const job = await this.jobCardRepo.findOne({ where: { id: jobId, deletedAt: undefined } });
+    const scopeTenant = this.requireTenant(tenantId);
+    const job = await this.jobCardRepo.findOne({ where: { id: jobId, tenantId: scopeTenant, deletedAt: undefined } });
     if (!job) throw new NotFoundException('Job card not found');
-    const machineTypeId = await this.operationMachineTypeId(job.operationId);
+    const machineTypeId = await this.operationMachineTypeId(job.operationId, scopeTenant);
     if (!machineTypeId) return [];
-    const machines = await this.machineService.findAll({ limit: 100, machineTypeId }, tenantId);
+    const machines = await this.machineService.findAll({ limit: 100, machineTypeId }, scopeTenant);
     return machines.data;
   }
 
@@ -155,30 +166,30 @@ export class SchedulingService {
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
-  private async operationMachineTypeId(operationId: string | null): Promise<string | null> {
+  private async operationMachineTypeId(operationId: string | null, tenantId: string): Promise<string | null> {
     if (!operationId) return null;
     const rows = await this.dataSource.query(
-      `SELECT machine_type_id FROM engineering_operations WHERE id = $1 AND deleted_at IS NULL`,
-      [operationId],
+      `SELECT machine_type_id FROM engineering_operations WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL`,
+      [operationId, tenantId],
     );
     return rows[0]?.machine_type_id ?? null;
   }
 
-  private async pickMachine(operationId: string | null): Promise<{ id: string; machineNumber: string } | null> {
-    const machineTypeId = await this.operationMachineTypeId(operationId);
+  private async pickMachine(operationId: string | null, tenantId: string): Promise<{ id: string; machineNumber: string } | null> {
+    const machineTypeId = await this.operationMachineTypeId(operationId, tenantId);
     if (!machineTypeId) return null;
     const rows = await this.dataSource.query(
       `SELECT m.id, m.machine_number, COUNT(jc.id) AS load_count
          FROM machine_masters m
          LEFT JOIN job_cards jc
-           ON jc.machine_id = m.id AND jc.deleted_at IS NULL
+           ON jc.machine_id = m.id AND jc.deleted_at IS NULL AND jc.tenant_id = $2
           AND jc.status NOT IN ('COMPLETED','CANCELLED','SCRAPPED')
-        WHERE m.machine_type_id = $1 AND m.deleted_at IS NULL
+        WHERE m.machine_type_id = $1 AND m.tenant_id = $2 AND m.deleted_at IS NULL
           AND m.status IN ('ACTIVE','IDLE')
         GROUP BY m.id, m.machine_number
         ORDER BY load_count ASC, m.machine_number ASC
         LIMIT 1`,
-      [machineTypeId],
+      [machineTypeId, tenantId],
     );
     return rows[0] ? { id: rows[0].id, machineNumber: rows[0].machine_number } : null;
   }

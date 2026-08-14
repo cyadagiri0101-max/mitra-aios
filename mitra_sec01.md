@@ -339,8 +339,8 @@ The following matrix defines acceptance criteria using the **Given-When-Then** f
 
 ---
 
-*Document Version: 3.1.0*  
-*Status: Draft for Review*  
-*Last Updated: 2025-06-02*  
-*Author: Requirements Engineering — MITRA v3.1 Project*  
+*Document Version: 3.1.0*
+*Status: Draft for Review*
+*Last Updated: 2025-06-02*
+*Author: Requirements Engineering — MITRA v3.1 Project*
 *Next Review: Design Specification Section 2 (System Architecture)*

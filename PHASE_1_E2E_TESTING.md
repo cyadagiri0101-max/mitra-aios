@@ -1,8 +1,8 @@
 # Phase 1 E2E Testing - Quick Start Guide
 ## DevTools Validation of All 10 AI Commands
 
-**Goal:** Prove each command produces a real API call with real data (Status 200, not generic LLM prose)  
-**Time:** ~10 minutes per command (100-120 minutes total for all 10)  
+**Goal:** Prove each command produces a real API call with real data (Status 200, not generic LLM prose)
+**Time:** ~10 minutes per command (100-120 minutes total for all 10)
 **Difficulty:** Low (mostly clicking and observing)
 
 ---
@@ -283,14 +283,14 @@ After all 10 commands, run this quick check:
 
 ## Next Steps After Phase 1
 
-**If PASS:** 
-→ Proceed to Phase 2 (Major page review)  
+**If PASS:**
+→ Proceed to Phase 2 (Major page review)
 → Continue to Phase 3-6 (Staging, RC tag, production merge)
 
 **If FAIL:**
-→ Document the issue  
-→ Post issue details + network screenshot  
-→ Fix backend/frontend code  
+→ Document the issue
+→ Post issue details + network screenshot
+→ Fix backend/frontend code
 → Re-run Phase 1
 
 ---

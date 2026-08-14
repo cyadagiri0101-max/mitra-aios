@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { NcrService } from './ncr.service';
 import { NcrRecord, NcrStatus } from '../entities/ncr-record.entity';
 import { OutboxService } from '@modules/platform/services/outbox.service';
@@ -78,8 +78,44 @@ describe('NcrService', () => {
     it('emits NCR_CLOSED and stamps closedAt on close', async () => {
       repo.findOne.mockResolvedValue({ ...ncr, status: NcrStatus.ACTION });
       await service.transition('ncr-1', NcrStatus.CLOSED, user, { disposition: 'REWORK' });
-      expect(repo.update).toHaveBeenCalledWith('ncr-1', expect.objectContaining({ status: 'CLOSED', disposition: 'REWORK', closedAt: expect.any(Date) }));
+      expect(repo.update).toHaveBeenCalledWith(expect.objectContaining({ id: 'ncr-1', tenantId: 't-1' }), expect.objectContaining({ status: 'CLOSED', disposition: 'REWORK', closedAt: expect.any(Date) }));
       expect(outboxRows.some((r) => r.eventType === EngineeringDomainEventType.NCR_CLOSED)).toBe(true);
+    });
+  });
+
+  describe('tenant isolation', () => {
+    it('rejects tenantless create (fail closed)', async () => {
+      await expect(service.create({ workOrderId: 'wo-1', severity: 'MAJOR', description: 'x' }, { ...user, tenantId: null })).rejects.toThrow(ForbiddenException);
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    it('rejects tenantless findOne (fail closed)', async () => {
+      await expect(service.findOne('ncr-1', undefined)).rejects.toThrow(ForbiddenException);
+      expect(repo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('rejects tenantless transition (fail closed)', async () => {
+      await expect(service.transition('ncr-1', NcrStatus.CLOSED, { ...user, tenantId: null })).rejects.toThrow(ForbiddenException);
+      expect(repo.update).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 for an NCR of another tenant and never mutates it', async () => {
+      repo.findOne.mockResolvedValue(null);
+      await expect(service.transition('ncr-x', NcrStatus.CLOSED, { ...user, tenantId: 't-2' })).rejects.toThrow(NotFoundException);
+      expect(repo.findOne).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ id: 'ncr-x', tenantId: 't-2' }) }));
+      expect(repo.update).not.toHaveBeenCalled();
+      expect(outboxRows.length).toBe(0);
+    });
+
+    it('persists the caller tenant on create', async () => {
+      await service.create({ workOrderId: 'wo-1', severity: 'MINOR', description: 'x' }, user);
+      expect(repo.create).toHaveBeenCalledWith(expect.objectContaining({ tenantId: 't-1' }));
+    });
+
+    it('updates only within the caller tenant', async () => {
+      repo.findOne.mockResolvedValue({ ...ncr });
+      await service.update('ncr-1', { severity: 'CRITICAL' }, user);
+      expect(repo.update).toHaveBeenCalledWith(expect.objectContaining({ id: 'ncr-1', tenantId: 't-1' }), expect.objectContaining({ severity: 'CRITICAL' }));
     });
   });
 });

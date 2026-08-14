@@ -1,9 +1,9 @@
 # MITRA AIOS v1.2 — Architecture Implementation Blueprint
 
-**Date**: 2026-07-17  
-**Author**: Chief Software Architect / Principal Systems Engineer  
-**Status**: APPROVED — Ready for Implementation  
-**Version**: 1.2.0-draft  
+**Date**: 2026-07-17
+**Author**: Chief Software Architect / Principal Systems Engineer
+**Status**: APPROVED — Ready for Implementation
+**Version**: 1.2.0-draft
 **Based on**: MITRA_AIOS_ARCHITECTURE_CONVERGENCE_ANALYSIS.md (Phase 1-12 analysis)
 
 ---
@@ -22,7 +22,7 @@ This blueprint defines the executable engineering program to converge both paths
 - **core/config.py remains canonical** — config/manager.py integration deferred to v1.3+
 - **Zero circular dependencies** — enforced via CI
 
-**Total migration effort**: 35.5 engineering-days across 6 sprints  
+**Total migration effort**: 35.5 engineering-days across 6 sprints
 **Release target**: v1.2.0-rc1 within 8-10 weeks
 
 ---
@@ -431,7 +431,7 @@ Every manager module MUST implement:
 class ManagerProtocol(Protocol):
     @property
     def is_initialized(self) -> bool: ...
-    
+
     def initialize(self, **deps) -> Self: ...
     def validate(self) -> ValidationResult: ...
     def statistics(self) -> Statistics: ...
@@ -1250,8 +1250,8 @@ Each migration sprint produces a git tag. Rollback = `git checkout <pre-sprint-t
 
 MITRA AIOS v1.2 converges the dual execution architecture (CLI Orchestrator path + API/EOS path) into a single EOS-canonical runtime. The migration removes ~35 legacy files, formalizes 12 manager integrations, resolves 4 circular dependency chains, and refactors 8 CLI commands. All 21 CLI commands and all 20+ HTTP API endpoints remain fully backward compatible.
 
-**Total effort**: 35.5 engineering-days  
-**Timeline**: 6 sprints × ~6 days = 8-10 weeks  
+**Total effort**: 35.5 engineering-days
+**Timeline**: 6 sprints × ~6 days = 8-10 weeks
 **Risk**: Low (verified through architecture analysis and risk assessment)
 
 ### 14.2 Target Architecture

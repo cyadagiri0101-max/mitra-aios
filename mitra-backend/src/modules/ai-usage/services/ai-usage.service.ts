@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { AiUsageRecord } from '../entities/ai-usage-record.entity';
@@ -28,13 +28,21 @@ export class AiUsageService {
     return saved;
   }
 
-  async getStats(tenantId?: string, days = 7): Promise<AiUsageSummaryDto> {
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped reads. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
+  async getStats(tenantId?: string | null, days = 7): Promise<AiUsageSummaryDto> {
+    const scopeTenant = this.requireTenant(tenantId);
     const end = new Date();
     const start = new Date();
     start.setDate(start.getDate() - days);
 
-    const where: any = { createdAt: Between(start, end) };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { createdAt: Between(start, end), tenantId: scopeTenant };
 
     const records = await this.usageRepo.find({ where });
 
@@ -59,13 +67,13 @@ export class AiUsageService {
     };
   }
 
-  async getUserUsage(userId: string, tenantId?: string, days = 30): Promise<AiUsageSummaryDto> {
+  async getUserUsage(userId: string, tenantId?: string | null, days = 30): Promise<AiUsageSummaryDto> {
+    const scopeTenant = this.requireTenant(tenantId);
     const end = new Date();
     const start = new Date();
     start.setDate(start.getDate() - days);
 
-    const where: any = { userId, createdAt: Between(start, end) };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { userId, createdAt: Between(start, end), tenantId: scopeTenant };
 
     const records = await this.usageRepo.find({
       where,

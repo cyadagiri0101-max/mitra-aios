@@ -9,6 +9,8 @@ import { CreatePaymentDto, VerifyPaymentDto, PaymentFilterDto } from '../dto/pay
 import { TenantAwareService } from '@common/services/tenant-aware.service';
 import { AuditService } from '../../audit/services/audit.service';
 import { InvoiceService } from './invoice.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
+import { CommercialEventType } from '../events/commercial.events';
 
 @Injectable()
 export class PaymentService extends TenantAwareService<Payment> {
@@ -19,6 +21,7 @@ export class PaymentService extends TenantAwareService<Payment> {
     private readonly invoiceRepo: Repository<Invoice>,
     private readonly invoiceService: InvoiceService,
     private readonly auditService: AuditService,
+    private readonly events: CommercialEventPublisherService,
   ) {
     super(repo, 'Payment');
   }
@@ -86,6 +89,21 @@ export class PaymentService extends TenantAwareService<Payment> {
         currency, method: saved.method, tenantId,
       },
     );
+
+    await this.events.publish({
+      eventType: CommercialEventType.PAYMENT_RECORDED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        paymentId: saved.id,
+        paymentNumber: number,
+        invoiceId: invoice.id,
+        amount: saved.amount,
+        currency: saved.currency,
+        method: saved.method,
+      },
+    });
 
     return saved;
   }

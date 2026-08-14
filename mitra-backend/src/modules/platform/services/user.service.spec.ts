@@ -117,4 +117,11 @@ describe('UserService (role validation: own tenant OR global)', () => {
     expect(Array.isArray(where)).toBe(false);
     expect(where.tenantId).toBeUndefined();
   });
+
+  it('F — Tenantless system admin can still list users (platform op unaffected)', async () => {
+    userRepo.findAndCount.mockResolvedValue([[mockUser()], 1]);
+    const result = await service.findAll(undefined, 1, 20);
+    expect(result.total).toBe(1);
+    expect(userRepo.findAndCount).toHaveBeenCalled();
+  });
 });

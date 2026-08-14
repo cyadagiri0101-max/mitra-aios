@@ -1,8 +1,8 @@
 # MITRA Backend Security Audit Report
 
-**Date:** 2026-04-28  
-**Scope:** NestJS backend — Controllers, Auth System, Guards, DTOs, Services, and Global Configuration  
-**Auditor:** Security Auditor (Orchestrator)  
+**Date:** 2026-04-28
+**Scope:** NestJS backend — Controllers, Auth System, Guards, DTOs, Services, and Global Configuration
+**Auditor:** Security Auditor (Orchestrator)
 **Total Files Reviewed:** 40+ modules, controllers, services, guards, decorators, DTOs, and `main.ts` / `app.module.ts`
 
 ---
@@ -24,7 +24,7 @@ The MITRA backend demonstrates a **mature multi-tenant architecture** with globa
 ## CRITICAL Findings
 
 ### CRIT-1: Mass Assignment + Missing Validation on User Creation & Update
-**File:** `modules/platform/controllers/user.controller.ts` (lines 36–51, 53–62)  
+**File:** `modules/platform/controllers/user.controller.ts` (lines 36–51, 53–62)
 **File:** `modules/platform/services/user.service.ts` (lines 8–27, 102–115)
 
 `CreateUserDto` and `UpdateUserDto` are **TypeScript interfaces**, not `class-validator` classes. At runtime the global `ValidationPipe` sees `Object` and **cannot validate or whitelist anything**. An attacker (or admin) can send arbitrary fields such as `roleId`, `status`, `password`, or `tenantId` and they pass straight through to the service.
@@ -143,7 +143,7 @@ async computeHealth(id: string, tenantId?: string | null): Promise<HealthCheckRe
 ---
 
 ### CRIT-4: Mass Assignment in Tenant Management
-**File:** `modules/platform/controllers/tenant.controller.ts` (lines 37–43, 45–52)  
+**File:** `modules/platform/controllers/tenant.controller.ts` (lines 37–43, 45–52)
 **File:** `modules/platform/services/tenant.service.ts` (lines 37–48)
 
 `TenantController` accepts `Record<string, unknown>` for both `create` and `update`. `TenantService` performs `Object.assign(entity, data, ...)` with no validation or whitelisting. Any field present on the `Tenant` entity can be injected, including internal fields.
@@ -309,8 +309,8 @@ async adminResetPassword(@Param('id') id: string, @Body() dto: AdminResetPasswor
 ## HIGH Findings
 
 ### HIGH-1: Missing Tenant Isolation in Drawing, BOM, and Machine Status Controllers
-**File:** `modules/drawing-analysis/controllers/drawing-analysis.controller.ts` (lines 35–55)  
-**File:** `modules/bom-analysis/controllers/bom-analysis.controller.ts` (lines 35–55)  
+**File:** `modules/drawing-analysis/controllers/drawing-analysis.controller.ts` (lines 35–55)
+**File:** `modules/bom-analysis/controllers/bom-analysis.controller.ts` (lines 35–55)
 **File:** `modules/machine-status/controllers/machine-status.controller.ts` (lines 35–62)
 
 `getById()` and `getByProject()` (or `getAll()`, `getSummary()`) endpoints **do not pass `tenantId`** to the underlying services. If the services lack their own isolation checks, this is a direct cross-tenant data leak.
@@ -420,7 +420,7 @@ async update(@Body() body: UpdateRoleDto, ...) { ... }
 ---
 
 ### HIGH-4: Unbounded File Upload via Base64
-**File:** `modules/drawing-analysis/controllers/drawing-analysis.controller.ts` (lines 22–33)  
+**File:** `modules/drawing-analysis/controllers/drawing-analysis.controller.ts` (lines 22–33)
 **File:** `modules/drawing-analysis/dto/drawing-analysis.dto.ts` (lines 7–23)
 
 `UploadDrawingDto.fileContentBase64` is validated only as `@IsString()`. There is **no length limit** or actual file type validation. An attacker can send a multi-gigabyte base64 string causing memory exhaustion or DoS.
@@ -576,10 +576,10 @@ async findByEmail(email: string, tenantId?: string | null) {
 ---
 
 ### HIGH-9: Missing Pagination on List Endpoints
-**File:** `modules/dispatch/controllers/dispatch.controller.ts` (line 22–28)  
-**File:** `modules/machine-status/controllers/machine-status.controller.ts` (line 35–42)  
-**File:** `modules/workflow/controllers/workflow.controller.ts` (line 54–58)  
-**File:** `modules/bom-analysis/controllers/bom-analysis.controller.ts` (line 46–55)  
+**File:** `modules/dispatch/controllers/dispatch.controller.ts` (line 22–28)
+**File:** `modules/machine-status/controllers/machine-status.controller.ts` (line 35–42)
+**File:** `modules/workflow/controllers/workflow.controller.ts` (line 54–58)
+**File:** `modules/bom-analysis/controllers/bom-analysis.controller.ts` (line 46–55)
 **File:** `modules/drawing-analysis/controllers/drawing-analysis.controller.ts` (line 46–55)
 
 Several `findAll` or `getByProject` endpoints return **all records** without pagination, creating DoS vectors when data grows.
@@ -684,7 +684,7 @@ async findAll(...) { ... }
 ---
 
 ### MED-5: Global Email Uniqueness Instead of Per-Tenant
-**File:** `modules/platform/services/auth.service.ts` (lines 114–117)  
+**File:** `modules/platform/services/auth.service.ts` (lines 114–117)
 **File:** `modules/platform/services/user.service.ts` (lines 80–83)
 
 Both `register()` and `create()` enforce email uniqueness globally. In a multi-tenant SaaS, it is common to allow the same email in different tenants unless a global identity provider is used.

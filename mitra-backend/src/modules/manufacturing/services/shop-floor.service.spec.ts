@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ShopFloorService } from './shop-floor.service';
 import { JobCard, JobCardStatus } from '../entities/jobcard.entity';
 import { OperationLog } from '../entities/operationlog.entity';
@@ -158,6 +158,23 @@ describe('ShopFloorService', () => {
       const woRepo = (service as any).workOrderRepo;
       expect(woRepo.update).toHaveBeenCalledWith('wo-1', expect.objectContaining({ status: 'COMPLETED', completedQty: 8 }));
       expect(outboxRows.some((r) => r.eventType === EngineeringDomainEventType.WORK_ORDER_COMPLETED)).toBe(true);
+    });
+  });
+
+  describe('tenant isolation', () => {
+    it('rejects startJob without tenant context', async () => {
+      const tenantless = { id: 'u-1', email: 'ops@mitra.io', role: 'PRODUCTION', tenantId: null, permissions: [] };
+      await expect(service.startJob('job-1', tenantless, {})).rejects.toThrow(ForbiddenException);
+    });
+
+    it('rejects logProduction without tenant context', async () => {
+      const tenantless = { id: 'u-1', email: 'ops@mitra.io', role: 'PRODUCTION', tenantId: null, permissions: [] };
+      await expect(service.logProduction('job-1', tenantless, { qtyProduced: 1 })).rejects.toThrow(ForbiddenException);
+    });
+
+    it('rejects transitionJob without tenant context', async () => {
+      const tenantless = { id: 'u-1', email: 'ops@mitra.io', role: 'PRODUCTION', tenantId: null, permissions: [] };
+      await expect(service.transitionJob('job-1', 'HOLD', tenantless, {})).rejects.toThrow(ForbiddenException);
     });
   });
 });

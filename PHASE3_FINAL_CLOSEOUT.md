@@ -6,7 +6,7 @@
 - **Host Ollama**: Windows process listening on `localhost:11434` (PID 23208)
   - Models: `openchat:latest`, `phi3:latest`
   - Missing: `nomic-embed-text:latest`
-  
+
 - **Container Ollama**: Separate instance in `mitra30_ollama_1`
   - Models: `nomic-embed-text:latest`, `phi3:latest`
   - Correctly provisioned with embedding model

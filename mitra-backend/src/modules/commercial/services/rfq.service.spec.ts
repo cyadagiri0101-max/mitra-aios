@@ -11,6 +11,7 @@ import { WorkflowService } from '../../workflow/services/workflow.service';
 import { AuditService } from '../../audit/services/audit.service';
 import { CommercialAiService } from './commercial-ai.service';
 import { NotificationService } from '../../platform/services/notification.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('RfqService', () => {
@@ -130,6 +131,7 @@ describe('RfqService', () => {
         { provide: AuditService, useValue: { logBusinessEvent: jest.fn().mockResolvedValue({}) } },
         { provide: CommercialAiService, useValue: { syncEntityContext: jest.fn().mockResolvedValue({}) } },
         { provide: NotificationService, useValue: { enqueue: jest.fn().mockResolvedValue({}) } },
+        { provide: CommercialEventPublisherService, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
         { provide: getDataSourceToken(), useValue: mockDataSource },
       ],
     }).compile();

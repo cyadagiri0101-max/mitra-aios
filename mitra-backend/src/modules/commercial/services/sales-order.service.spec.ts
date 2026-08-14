@@ -8,6 +8,7 @@ import { SalesOrderLine } from '../entities/sales-order-line.entity';
 import { Quotation, QuotationStatus } from '../entities/quotation.entity';
 import { QuotationItem } from '../entities/quotationitem.entity';
 import { AuditService } from '../../audit/services/audit.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
 
 describe('SalesOrderService', () => {
   let service: SalesOrderService;
@@ -130,6 +131,7 @@ describe('SalesOrderService', () => {
         { provide: getRepositoryToken(Quotation), useValue: { findOne: jest.fn() } },
         { provide: getRepositoryToken(QuotationItem), useValue: { find: jest.fn() } },
         { provide: AuditService, useValue: { logBusinessEvent: jest.fn() } },
+        { provide: CommercialEventPublisherService, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
       ],
     }).compile();
 

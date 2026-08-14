@@ -272,7 +272,7 @@ The AI subsystem is **PARTIALLY FUNCTIONAL**:
 
 **Primary Blocker:** Embedding model installation not persistent in Ollama.
 
-**Recommendation:** 
+**Recommendation:**
 1. Resolve embedding model installation (critical for vector search)
 2. Optimize response timeouts
 3. Test frontend components once backend is fully stable

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import {
@@ -18,10 +18,21 @@ export class EngineeringUomConversionService {
     private readonly conversionRepo: Repository<EngineeringUomConversion>,
   ) {}
 
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
   async findAll(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
-    const qb = this.conversionRepo.createQueryBuilder('u').where('u.deleted_at IS NULL');
+    const qb = this.conversionRepo.createQueryBuilder('u')
+      .where('u.deleted_at IS NULL')
+      .andWhere('(u.tenant_id = :tenantId OR u.tenant_id IS NULL)', { tenantId: scopeTenant });
+
     if (query.search) {
       qb.andWhere('(u.from_uom ILIKE :search OR u.to_uom ILIKE :search)', { search: `%${query.search}%` });
     }
@@ -31,14 +42,14 @@ export class EngineeringUomConversionService {
   }
 
   async findOne(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const conversion = await this.conversionRepo.findOne({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    const conversion = await this.conversionRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!conversion) throw new NotFoundException('UoM conversion not found');
     return conversion;
   }
 
   async create(data: Record<string, any>, userId: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     const fromUom = String(data.fromUom ?? '').trim().toUpperCase();
     const toUom = String(data.toUom ?? '').trim().toUpperCase();
     if (!fromUom || !toUom) throw new BadRequestException('fromUom and toUom are required');
@@ -46,9 +57,7 @@ export class EngineeringUomConversionService {
     if (!Number.isFinite(factor) || factor <= 0) {
       throw new BadRequestException('conversionFactor must be a positive number');
     }
-    const where: any = { fromUom, toUom, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    if (await this.conversionRepo.findOne({ where })) {
+    if (await this.conversionRepo.findOne({ where: { fromUom, toUom, deletedAt: IsNull(), tenantId: scopeTenant } })) {
       throw new BadRequestException(`Conversion ${fromUom} → ${toUom} already exists`);
     }
     const conversion = this.conversionRepo.create({
@@ -59,13 +68,14 @@ export class EngineeringUomConversionService {
       conversionType: data.conversionType ?? UomConversionType.EXACT,
       createdBy: userId,
       updatedBy: userId,
-      tenantId: tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     return this.conversionRepo.save(conversion);
   }
 
   async update(id: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const conversion = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const conversion = await this.findOne(id, scopeTenant);
     if (data.conversionFactor !== undefined) {
       const factor = Number(data.conversionFactor);
       if (!Number.isFinite(factor) || factor <= 0) {
@@ -81,7 +91,8 @@ export class EngineeringUomConversionService {
   }
 
   async remove(id: string, userId: string, tenantId?: string | null) {
-    const conversion = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const conversion = await this.findOne(id, scopeTenant);
     conversion.deletedAt = new Date();
     conversion.updatedBy = userId;
     await this.conversionRepo.save(conversion);
@@ -94,6 +105,7 @@ export class EngineeringUomConversionService {
    * → throw. Tenant-specific rows win over the global seed.
    */
   async convert(value: number, fromUom: string, toUom: string, tenantId?: string | null): Promise<number> {
+    const scopeTenant = this.requireTenant(tenantId);
     const from = String(fromUom ?? '').trim().toUpperCase();
     const to = String(toUom ?? '').trim().toUpperCase();
     if (!from || !to) throw new BadRequestException('from and to UoM are required');
@@ -102,12 +114,11 @@ export class EngineeringUomConversionService {
     if (from === to) return input;
 
     const lookup = async (f: string, t: string): Promise<EngineeringUomConversion | null> => {
-      if (tenantId) {
-        const tenantRow = await this.conversionRepo.findOne({
-          where: { fromUom: f, toUom: t, deletedAt: IsNull(), tenantId },
-        });
-        if (tenantRow) return tenantRow;
-      }
+      const tenantRow = await this.conversionRepo.findOne({
+        where: { fromUom: f, toUom: t, deletedAt: IsNull(), tenantId: scopeTenant },
+      });
+      if (tenantRow) return tenantRow;
+
       return this.conversionRepo.findOne({
         where: { fromUom: f, toUom: t, deletedAt: IsNull(), tenantId: IsNull() },
       });

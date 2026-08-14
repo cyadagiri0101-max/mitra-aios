@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, IsNull, In } from 'typeorm';
 import { EngineeringDrawing } from '../entities/engineering-drawing.entity';
@@ -33,13 +33,22 @@ export class EngineeringTraceabilityService {
     @InjectRepository(EngineeringChangeImpact) private readonly impactRepo: Repository<EngineeringChangeImpact>,
   ) {}
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   /**
    * Full artifact map for a project: customer/RFQ/quotation context (from
    * the project row), drawings, BOMs, routings, changes, reviews,
    * documents, manufacturing orders and quality records.
    */
   async byProject(projectId: string, tenantId?: string | null) {
-    const tenantWhere = (tenantId ? { tenantId } : {}) as any;
+    const scopeTenant = this.requireTenant(tenantId);
+    const tenantWhere = { tenantId: scopeTenant } as any;
 
     const [
       drawings, boms, routings, reviews, documents,
@@ -69,13 +78,13 @@ export class EngineeringTraceabilityService {
     const [workOrders, qualityRecords] = await Promise.all([
       this.dataSource.query(
         `SELECT id, wo_number, operation_type, status, planned_qty, completed_qty, planned_start_date, planned_end_date
-         FROM work_orders WHERE project_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 200`,
-        [projectId],
+         FROM work_orders WHERE project_id = $1 AND tenant_id = $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 200`,
+        [projectId, scopeTenant],
       ).catch(() => []),
       this.dataSource.query(
         `SELECT id, trial_number, trial_type, status, trial_date
-         FROM trial_observations WHERE project_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 200`,
-        [projectId],
+         FROM trial_observations WHERE project_id = $1 AND tenant_id = $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 200`,
+        [projectId, scopeTenant],
       ).catch(() => []),
     ]);
 
@@ -105,7 +114,8 @@ export class EngineeringTraceabilityService {
    * downstream. entityType: DRAWING | BOM | ROUTING | CHANGE | DOCUMENT.
    */
   async byEntity(entityType: string, entityId: string, tenantId?: string | null) {
-    const tenantWhere = (tenantId ? { tenantId } : {}) as any;
+    const scopeTenant = this.requireTenant(tenantId);
+    const tenantWhere = { tenantId: scopeTenant } as any;
     const type = entityType.toUpperCase();
     const links: Record<string, any> = { upstream: {}, downstream: {} };
 

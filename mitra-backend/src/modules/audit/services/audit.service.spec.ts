@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ForbiddenException } from '@nestjs/common';
 import { AuditService } from './audit.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AuditLog, AuditEventType } from '../entities/audit-log.entity';
@@ -157,17 +158,21 @@ describe('AuditService', () => {
   // ── findByEntity() ─────────────────────────────────────────────────────────
 
   describe('findByEntity()', () => {
-    it('finds records by entityType and entityId', async () => {
+    it('finds records by entityType and entityId scoped to the tenant', async () => {
       repo.find.mockResolvedValue([{ id: 'log-1' }]);
-      const results = await service.findByEntity('projects', 'proj-uuid');
+      const results = await service.findByEntity('projects', 'proj-uuid', 'tenant-uuid');
       expect(repo.find).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { entityType: 'projects', entityId: 'proj-uuid' } }),
+        expect.objectContaining({ where: { entityType: 'projects', entityId: 'proj-uuid', tenantId: 'tenant-uuid' } }),
       );
       expect(results).toHaveLength(1);
     });
 
+    it('rejects tenantless queries (fail closed)', async () => {
+      await expect(service.findByEntity('projects', 'proj-uuid')).rejects.toThrow(ForbiddenException);
+    });
+
     it('orders by createdAt DESC', async () => {
-      await service.findByEntity('capas', 'c-1');
+      await service.findByEntity('capas', 'c-1', 'tenant-uuid');
       const opts = repo.find.mock.calls[0][0];
       expect(opts.order.createdAt).toBe('DESC');
     });
@@ -176,22 +181,27 @@ describe('AuditService', () => {
   // ── findByUser() ───────────────────────────────────────────────────────────
 
   describe('findByUser()', () => {
-    it('finds records by userId', async () => {
+    it('finds records by userId scoped to the tenant', async () => {
       repo.find.mockResolvedValue([{ id: 'log-2' }, { id: 'log-3' }]);
-      const results = await service.findByUser('user-uuid');
+      const results = await service.findByUser('user-uuid', 'tenant-uuid');
       expect(results).toHaveLength(2);
     });
 
     it('defaults to limit 50', async () => {
-      await service.findByUser('user-uuid');
+      await service.findByUser('user-uuid', 'tenant-uuid');
       const opts = repo.find.mock.calls[0][0];
       expect(opts.take).toBe(50);
+      expect(opts.where.tenantId).toBe('tenant-uuid');
     });
 
     it('accepts custom limit', async () => {
-      await service.findByUser('user-uuid', undefined, 10);
+      await service.findByUser('user-uuid', 'tenant-uuid', 10);
       const opts = repo.find.mock.calls[0][0];
       expect(opts.take).toBe(10);
+    });
+
+    it('rejects tenantless queries (fail closed)', async () => {
+      await expect(service.findByUser('user-uuid')).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -206,7 +216,7 @@ describe('AuditService', () => {
       expect(result.totalPages).toBe(1);
     });
 
-    it('applies tenant filter when tenantId provided', async () => {
+    it('applies the tenant filter unconditionally', async () => {
       await service.findAll('tenant-uuid');
       expect(repo._qb.where).toHaveBeenCalledWith(
         expect.stringContaining('tenant_id'),
@@ -214,8 +224,12 @@ describe('AuditService', () => {
       );
     });
 
+    it('rejects tenantless queries (fail closed)', async () => {
+      await expect(service.findAll(undefined, 1, 25)).rejects.toThrow(ForbiddenException);
+    });
+
     it('skips correct number of records for page 2', async () => {
-      await service.findAll(undefined, 2, 25);
+      await service.findAll('tenant-uuid', 2, 25);
       expect(repo._qb.skip).toHaveBeenCalledWith(25); // (page-1)*limit = 1*25
     });
   });

@@ -568,6 +568,6 @@ All layout changes between breakpoints use smooth transitions:
 
 ---
 
-*Document Version: v3.1.0*  
-*Last Updated: 2024*  
+*Document Version: v3.1.0*
+*Last Updated: 2024*
 *Author: Wireframe_Writer — MITRA v3.1 Design Specification*

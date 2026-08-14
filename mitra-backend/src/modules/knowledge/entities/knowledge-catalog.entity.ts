@@ -9,6 +9,14 @@ export enum KnowledgeCatalogEntityType {
   KNOWLEDGE = 'knowledge',
   WORK_ORDER = 'work_order',
   ANALYTICS = 'analytics',
+  // Commercial domain (Sprint 3, P1-2)
+  CUSTOMER = 'customer',
+  ENQUIRY = 'enquiry',
+  QUOTATION = 'quotation',
+  SALES_ORDER = 'sales_order',
+  INVOICE = 'invoice',
+  PAYMENT = 'payment',
+  CREDIT_NOTE = 'credit_note',
 }
 
 @Entity('knowledge_catalog')

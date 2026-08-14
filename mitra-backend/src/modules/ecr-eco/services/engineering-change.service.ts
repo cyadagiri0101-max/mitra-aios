@@ -1,5 +1,5 @@
 import {
-  Injectable, NotFoundException, BadRequestException,
+  Injectable, NotFoundException, BadRequestException, ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, IsNull, Like, In } from 'typeorm';
@@ -58,11 +58,20 @@ export class EngineeringChangeService {
 
   // ── ECR ───────────────────────────────────────────────────────────────────
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async findECRs(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
     const qb = this.ecrRepo.createQueryBuilder('e').where('e.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('e.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('e.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (query.search) {
       qb.andWhere('(e.ecr_number ILIKE :search OR e.title ILIKE :search)', { search: `%${query.search}%` });
     }
@@ -82,8 +91,8 @@ export class EngineeringChangeService {
   }
 
   async findECR(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const where: any = { id, deletedAt: IsNull(), tenantId: scopeTenant };
     const ecr = await this.ecrRepo.findOne({ where });
     if (!ecr) throw new NotFoundException('Change request not found');
     return ecr;
@@ -91,11 +100,12 @@ export class EngineeringChangeService {
 
   async createECR(data: Record<string, any>, actor: ChangeActor) {
     if (!data.projectId) throw new BadRequestException('projectId is required — no orphan engineering records');
+    const scopeTenant = this.requireTenant(actor.tenantId);
 
     let saved: EngineeringChangeRequest | undefined;
     let lastErr: any;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const ecrNumber = await this.generateNumber(this.ecrRepo, 'ecrNumber', 'ECR', actor.tenantId, attempt);
+      const ecrNumber = await this.generateNumber(this.ecrRepo, 'ecrNumber', 'ECR', scopeTenant, attempt);
       const ecr = this.ecrRepo.create({
         ...data,
         ecrNumber,
@@ -106,7 +116,7 @@ export class EngineeringChangeService {
         requestedDate: data.requestedDate ? new Date(data.requestedDate) : new Date(),
         createdBy: actor.userId,
         updatedBy: actor.userId,
-        tenantId: actor.tenantId ?? undefined,
+        tenantId: scopeTenant,
       });
       try {
         saved = await this.ecrRepo.save(ecr);
@@ -123,7 +133,7 @@ export class EngineeringChangeService {
         userId: actor.userId,
         userRole: actor.userRole,
         userPermissions: actor.userPermissions,
-        tenantId: actor.tenantId ?? saved.tenantId ?? undefined,
+        tenantId: scopeTenant,
       });
       saved.workflowInstanceId = instance.id;
       await this.ecrRepo.save(saved);
@@ -190,8 +200,7 @@ export class EngineeringChangeService {
 
   async listImpacts(ecrId: string, tenantId?: string | null) {
     await this.findECR(ecrId, tenantId);
-    const where: any = { ecrId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { ecrId, deletedAt: IsNull(), tenantId: this.requireTenant(tenantId) };
     return this.impactRepo.find({ where, order: { severity: 'ASC' } as any });
   }
 
@@ -222,8 +231,7 @@ export class EngineeringChangeService {
 
   async updateImpact(ecrId: string, impactId: string, data: Record<string, any>, actor: ChangeActor) {
     await this.findECR(ecrId, actor.tenantId);
-    const where: any = { id: impactId, ecrId, deletedAt: IsNull() };
-    if (actor.tenantId) where.tenantId = actor.tenantId;
+    const where: any = { id: impactId, ecrId, deletedAt: IsNull(), tenantId: this.requireTenant(actor.tenantId) };
     const impact = await this.impactRepo.findOne({ where });
     if (!impact) throw new NotFoundException('Impact entry not found');
     Object.assign(impact, data, { updatedBy: actor.userId });
@@ -232,8 +240,7 @@ export class EngineeringChangeService {
 
   async removeImpact(ecrId: string, impactId: string, actor: ChangeActor) {
     await this.findECR(ecrId, actor.tenantId);
-    const where: any = { id: impactId, ecrId, deletedAt: IsNull() };
-    if (actor.tenantId) where.tenantId = actor.tenantId;
+    const where: any = { id: impactId, ecrId, deletedAt: IsNull(), tenantId: this.requireTenant(actor.tenantId) };
     const impact = await this.impactRepo.findOne({ where });
     if (!impact) throw new NotFoundException('Impact entry not found');
     impact.deletedAt = new Date();
@@ -245,10 +252,11 @@ export class EngineeringChangeService {
   // ── ECO ───────────────────────────────────────────────────────────────────
 
   async findECOs(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
     const qb = this.ecoRepo.createQueryBuilder('e').where('e.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('e.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('e.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (query.search) {
       qb.andWhere('(e.eco_number ILIKE :search OR e.implementation_plan ILIKE :search)', { search: `%${query.search}%` });
     }
@@ -261,8 +269,7 @@ export class EngineeringChangeService {
   }
 
   async findECO(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { id, deletedAt: IsNull(), tenantId: this.requireTenant(tenantId) };
     const eco = await this.ecoRepo.findOne({ where });
     if (!eco) throw new NotFoundException('Change order not found');
     return eco;
@@ -274,13 +281,14 @@ export class EngineeringChangeService {
    */
   async createECO(data: Record<string, any>, actor: ChangeActor) {
     const ecr = await this.findECR(data.ecrId, actor.tenantId);
+    const scopeTenant = this.requireTenant(actor.tenantId);
     const projectId = data.projectId ?? ecr.projectId;
     if (!projectId) throw new BadRequestException('projectId is required — no orphan engineering records');
 
     let saved: EngineeringChangeOrder | undefined;
     let lastErr: any;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const ecoNumber = await this.generateNumber(this.ecoRepo, 'ecoNumber', 'ECO', actor.tenantId, attempt);
+      const ecoNumber = await this.generateNumber(this.ecoRepo, 'ecoNumber', 'ECO', scopeTenant, attempt);
       const eco = this.ecoRepo.create({
         ...data,
         ecoNumber,
@@ -290,7 +298,7 @@ export class EngineeringChangeService {
         status: ECOStatus.DRAFT,
         createdBy: actor.userId,
         updatedBy: actor.userId,
-        tenantId: actor.tenantId ?? undefined,
+        tenantId: scopeTenant,
       });
       try {
         saved = await this.ecoRepo.save(eco);
@@ -324,10 +332,11 @@ export class EngineeringChangeService {
   // ── ECN ───────────────────────────────────────────────────────────────────
 
   async findECNs(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
     const qb = this.ecnRepo.createQueryBuilder('e').where('e.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('e.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('e.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (query.search) {
       qb.andWhere('(e.ecn_number ILIKE :search OR e.title ILIKE :search)', { search: `%${query.search}%` });
     }
@@ -340,8 +349,7 @@ export class EngineeringChangeService {
   }
 
   async findECN(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { id, deletedAt: IsNull(), tenantId: this.requireTenant(tenantId) };
     const ecn = await this.ecnRepo.findOne({ where });
     if (!ecn) throw new NotFoundException('Change notice not found');
     return ecn;
@@ -353,13 +361,14 @@ export class EngineeringChangeService {
    */
   async issueECN(ecoId: string, data: Record<string, any>, actor: ChangeActor) {
     const eco = await this.findECO(ecoId, actor.tenantId);
+    const scopeTenant = this.requireTenant(actor.tenantId);
     const projectId = data.projectId ?? eco.projectId;
     if (!projectId) throw new BadRequestException('projectId is required — no orphan engineering records');
 
     let saved: EngineeringChangeNotice | undefined;
     let lastErr: any;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const ecnNumber = await this.generateNumber(this.ecnRepo, 'ecnNumber', 'ECN', actor.tenantId, attempt);
+      const ecnNumber = await this.generateNumber(this.ecnRepo, 'ecnNumber', 'ECN', scopeTenant, attempt);
       const ecn = this.ecnRepo.create({
         ...data,
         ecnNumber,
@@ -373,7 +382,7 @@ export class EngineeringChangeService {
         affectedManufacturingOrders: data.affectedManufacturingOrders ?? null,
         createdBy: actor.userId,
         updatedBy: actor.userId,
-        tenantId: actor.tenantId ?? undefined,
+        tenantId: scopeTenant,
       });
       try {
         saved = await this.ecnRepo.save(ecn);

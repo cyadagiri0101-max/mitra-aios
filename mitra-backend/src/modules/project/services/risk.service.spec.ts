@@ -1,6 +1,6 @@
 ﻿import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { RiskService } from './risk.service';
 import { ProjectRisk, RiskStatus } from '../entities/projectrisk.entity';
 import { ProjectActivityLog } from '../entities/projectactivitylog.entity';
@@ -124,6 +124,19 @@ describe('RiskService', () => {
       expect(result.overdueReviews).toBe(1);
       expect(result.criticalRisks).toBe(1);
       expect(result.maxExposure).toBe(20);
+    });
+
+    it('scopes the dashboard read to the caller\'s tenant', async () => {
+      riskRepo.find.mockResolvedValue([]);
+      await service.dashboard('p-1', 't-1');
+      expect(riskRepo.find).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ projectId: 'p-1', tenantId: 't-1' }) }),
+      );
+    });
+
+    it('rejects tenantless dashboard reads (fail closed)', async () => {
+      await expect(service.dashboard('p-1', null)).rejects.toThrow(ForbiddenException);
+      expect(riskRepo.find).not.toHaveBeenCalled();
     });
   });
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
 import { AuditLog, AuditEventType } from '../entities/audit-log.entity';
@@ -77,32 +77,39 @@ export class AuditService {
     }, em);
   }
 
+  /** Fail-closed tenant guard - mirrors TenantAwareService.requireTenant. */
+  private requireTenant(tenantId?: string): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async findByEntity(entityType: string, entityId: string, tenantId?: string) {
-    const where: any = { entityType, entityId };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
     return this.auditLogRepository.find({
-      where,
+      where: { entityType, entityId, tenantId: scopeTenant },
       order: { createdAt: 'DESC' },
       take: 200,
     });
   }
 
   async findByUser(userId: string, tenantId?: string, limit = 50) {
-    const where: any = { userId };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
     return this.auditLogRepository.find({
-      where,
+      where: { userId, tenantId: scopeTenant },
       order: { createdAt: 'DESC' },
       take: Math.min(limit, 200),
     });
   }
 
   async findAll(tenantId?: string, page = 1, limit = 50) {
+    const scopeTenant = this.requireTenant(tenantId);
     const qb = this.auditLogRepository.createQueryBuilder('al')
+      .where('al.tenant_id = :tenantId', { tenantId: scopeTenant })
       .orderBy('al.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit);
-    if (tenantId) qb.where('al.tenant_id = :tenantId', { tenantId });
     const [data, total] = await qb.getManyAndCount();
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }

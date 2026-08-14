@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { Repository, IsNull, FindOptionsWhere } from 'typeorm';
 import { IndustrialBaseEntity } from '../entities/industrial-base.entity';
 
@@ -8,6 +8,13 @@ import { IndustrialBaseEntity } from '../entities/industrial-base.entity';
  * IDOR protection: findOne() verifies the requested record belongs to the
  * caller's tenant. A cross-tenant request returns 404 (not 403) to avoid
  * leaking that the record exists.
+ *
+ * FAIL-CLOSED TENANT BOUNDARY:
+ * Every method requires a real tenant context. Missing tenantId is a
+ * ForbiddenException (403) — never an unfiltered read. Global
+ * (tenantId IS NULL) rows are NOT readable by tenant-scoped callers;
+ * platform-wide data must be served by dedicated platform services
+ * (user/role/tenant/audit), not through this class.
  *
  * Usage:
  *   @Injectable()
@@ -23,10 +30,21 @@ export abstract class TenantAwareService<E extends IndustrialBaseEntity> {
     protected readonly entityName: string,
   ) {}
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  protected requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   // ── List ───────────────────────────────────────────────────────────────────
   async findAll(tenantId?: string | null, page = 1, limit = 20) {
-    const where: FindOptionsWhere<E> = { deletedAt: IsNull() } as FindOptionsWhere<E>;
-    if (tenantId) (where as Record<string, unknown>)['tenantId'] = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const where: FindOptionsWhere<E> = {
+      deletedAt: IsNull(),
+      tenantId: scopeTenant,
+    } as FindOptionsWhere<E>;
 
     const [data, total] = await this.repo.findAndCount({
       where,
@@ -39,13 +57,15 @@ export abstract class TenantAwareService<E extends IndustrialBaseEntity> {
 
   // ── Tenant-isolated findOne ────────────────────────────────────────────────
   async findOne(id: string, tenantId?: string | null): Promise<E> {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const where: any = { id, deletedAt: IsNull(), tenantId: scopeTenant };
 
     const entity = await this.repo.findOne({ where });
     if (!entity) throw new NotFoundException(`${this.entityName} not found`);
 
-    if (tenantId && (entity as unknown as Record<string, unknown>).tenantId && (entity as unknown as Record<string, unknown>).tenantId !== tenantId) {
+    // Strict ownership: the record's tenant MUST equal the caller's tenant.
+    // Global (tenantId IS NULL) records are not readable through this class.
+    if (entity.tenantId !== scopeTenant) {
       throw new NotFoundException(`${this.entityName} not found`);
     }
 
@@ -58,10 +78,11 @@ export abstract class TenantAwareService<E extends IndustrialBaseEntity> {
     userId?: string,
     tenantId?: string | null,
   ): Promise<E> {
+    const scopeTenant = this.requireTenant(tenantId);
     const allowed = this.extractAllowedFields(data);
     const entity = this.repo.create({
       ...allowed,
-      ...(tenantId ? { tenantId } : {}),
+      tenantId: scopeTenant,
       ...(userId ? { createdBy: userId, updatedBy: userId } : {}),
     } as unknown as E);
     return this.repo.save(entity);
@@ -74,6 +95,7 @@ export abstract class TenantAwareService<E extends IndustrialBaseEntity> {
     userId?: string,
     tenantId?: string | null,
   ): Promise<E> {
+    this.requireTenant(tenantId);
     const entity = await this.findOne(id, tenantId);
     const allowed = this.extractAllowedFields(data);
     Object.assign(entity, allowed, userId ? { updatedBy: userId } : {});
@@ -95,6 +117,7 @@ export abstract class TenantAwareService<E extends IndustrialBaseEntity> {
     userId?: string,
     tenantId?: string | null,
   ): Promise<{ deleted: true; id: string }> {
+    this.requireTenant(tenantId);
     const entity = await this.findOne(id, tenantId);
     (entity as unknown as Record<string, unknown>)['deletedAt'] = new Date();
     if (userId) (entity as unknown as Record<string, unknown>)['updatedBy'] = userId;

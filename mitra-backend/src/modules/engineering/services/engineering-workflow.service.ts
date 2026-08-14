@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository, IsNull } from 'typeorm';
 import { EngineeringDrawing } from '../entities/engineering-drawing.entity';
@@ -56,6 +56,14 @@ export class EngineeringWorkflowService {
     private readonly eventBus: EngineeringEventBus,
   ) {}
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   private getRepo(entityType: string): Repository<any> {
     if (entityType === 'drawing') return this.drawingRepo;
     if (entityType === 'bom') return this.bomRepo;
@@ -64,9 +72,9 @@ export class EngineeringWorkflowService {
   }
 
   private async findEntity(entityType: string, id: string, tenantId?: string | null): Promise<EngineeringEntity> {
+    const scopeTenant = this.requireTenant(tenantId);
     const repo = this.getRepo(entityType);
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { id, deletedAt: IsNull(), tenantId: scopeTenant };
     const entity = await repo.findOne({ where });
     if (!entity) throw new NotFoundException(`${entityType} not found`);
     return entity;

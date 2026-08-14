@@ -77,7 +77,6 @@ export class OutboxService {
       }
       row.attemptCount += 1;
       row.lastAttemptAt = new Date();
-      row.updatedBy = 'outbox-relay';
       await this.outboxRepo.save(row);
       relayed += 1;
     }
@@ -95,7 +94,6 @@ export class OutboxService {
       row.status = OutboxStatus.PENDING;
       row.errorMessage = null;
       row.availableAt = new Date(Date.now() + 30_000);
-      row.updatedBy = 'outbox-retry';
     }
     await this.outboxRepo.save(rows);
     return rows.length;

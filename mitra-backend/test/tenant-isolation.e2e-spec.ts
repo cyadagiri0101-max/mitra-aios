@@ -213,6 +213,10 @@ describe('P0-2 Cross-Tenant API Isolation (v4.1)', () => {
     conversationB = chatB.body.conversationId;
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('isolates project reads: tenant B cannot read tenant A projects', async () => {
     await request(server)
       .get(`/api/project/${projectA.id}`)

@@ -2,9 +2,9 @@
 
 ## MITRA v3.1 Design Specification
 
-**Document Version:** 3.1  
-**Last Updated:** 2026-05-23  
-**System:** MITRA Production Intelligence Engine  
+**Document Version:** 3.1
+**Last Updated:** 2026-05-23
+**System:** MITRA Production Intelligence Engine
 **Scope:** All user-facing UI text, labels, tooltips, empty states, error messages, and microcopy across the ERP/MES interface.
 
 ---
@@ -438,7 +438,7 @@ The following table shows the transformation from generic SaaS greetings to MITR
 
 ## 9. Implementation Notes for Engineering
 
-1. **Localization:** All strings in this document are source English. Translations must preserve the technical tone. Do not translate "MITRA AI Production Intelligence Engine." 
+1. **Localization:** All strings in this document are source English. Translations must preserve the technical tone. Do not translate "MITRA AI Production Intelligence Engine."
 
 2. **Dynamic Values:** Values shown in `{{brackets}}` are template variables. The actual implementation must preserve the surrounding text structure.
 

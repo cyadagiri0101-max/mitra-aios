@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, In } from 'typeorm';
 import { Project } from '../entities/project.entity';
@@ -47,9 +47,16 @@ export class TimelineService {
     @InjectRepository(TaskDependency) private readonly dependencyRepo: Repository<TaskDependency>,
   ) {}
 
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
   async build(projectId: string, options: { includeTasks?: boolean; includeMilestones?: boolean; criticalPathOnly?: boolean } = {}, tenantId?: string | null): Promise<TimelineResult> {
-    const where: any = { id: projectId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const where: any = { id: projectId, deletedAt: IsNull(), tenantId: scopeTenant };
     const project = await this.projectRepo.findOne({ where });
     if (!project) throw new NotFoundException('Project not found');
 
@@ -57,7 +64,7 @@ export class TimelineService {
     const includeMilestones = options.includeMilestones !== false;
 
     const tasks = includeTasks
-      ? await this.taskRepo.find({ where: { projectId, deletedAt: IsNull() }, order: { sortOrder: 'ASC' } as any, take: 2000 })
+      ? await this.taskRepo.find({ where: { projectId, deletedAt: IsNull(), tenantId: scopeTenant }, order: { sortOrder: 'ASC' } as any, take: 2000 })
       : [];
     const milestones = includeMilestones
       ? await this.milestoneRepo.find({ where: { projectId, deletedAt: IsNull() }, order: { sequenceNumber: 'ASC' } as any, take: 500 })

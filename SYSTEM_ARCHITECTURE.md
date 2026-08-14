@@ -1,7 +1,7 @@
 # SYSTEM ARCHITECTURE - MITRA v3.2
 
-**Document Version**: 1.0  
-**Last Updated**: June 24, 2026  
+**Document Version**: 1.0
+**Last Updated**: June 24, 2026
 **Audience**: Architects, DevOps, Backend/Frontend Developers
 
 ---
@@ -68,7 +68,7 @@ MITRA v3.2 is a containerized, multi-service manufacturing intelligence platform
 
 #### Nginx Web Server
 - **Technology**: Nginx 1.x (Alpine-based)
-- **Purpose**: 
+- **Purpose**:
   - Static asset serving
   - SSL/TLS termination (production)
   - Reverse proxy to backend
@@ -145,7 +145,7 @@ backend/src/
 
 #### PostgreSQL 16 + pgvector
 - **Port**: 5432 (internal only)
-- **Databases**: 
+- **Databases**:
   - `mitra_v2` (main database)
   - `postgres` (system database)
 - **Extensions**:
@@ -175,12 +175,12 @@ ai_interactions (id, user_id, prompt, response, model_used)
 
 #### Redis 7
 - **Port**: 6379 (internal only)
-- **Purpose**: 
+- **Purpose**:
   - Session storage
   - Cache layer (projects, user data)
   - Rate limiting counters
   - Background job queue (future)
-- **Persistence**: 
+- **Persistence**:
   - Snapshots: Save 900 changes every 1 sec
   - AOF: Disabled (snapshots sufficient)
 
@@ -219,9 +219,9 @@ POST /api/pull                      # Download models
 
 ### Container Network
 
-**Network Name**: `mitra30_mitra-internal` (bridge)  
-**Subnet**: 10.89.0.0/24  
-**Gateway**: 10.89.0.1  
+**Network Name**: `mitra30_mitra-internal` (bridge)
+**Subnet**: 10.89.0.0/24
+**Gateway**: 10.89.0.1
 **DNS**: Podman internal DNS (automatic service discovery)
 
 **Container IP Allocation**:
@@ -451,14 +451,14 @@ Auth Endpoint:
 
 ### Vertical Scaling
 
-**CPU**: Additional cores benefit Ollama model inference  
-**RAM**: 
+**CPU**: Additional cores benefit Ollama model inference
+**RAM**:
 - PostgreSQL buffer pool: 25% of available RAM
 - Backend Node heap: 4GB (configurable)
 - Redis in-memory storage: Depends on data size
 - Ollama model loading: Depends on model size
 
-**Storage**: 
+**Storage**:
 - PostgreSQL: Grows with data (backups: 20-30GB)
 - MinIO: Depends on uploaded documents
 - Ollama models: 2.2GB (phi3) + 274MB (nomic-embed-text)

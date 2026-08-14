@@ -1,7 +1,7 @@
 # MITRA v3.2 Infrastructure, Dependencies & Deployment Security Audit Report
 
-**Audit Date:** 2025-06-20  
-**Auditor:** DevOps / Security Engineering Specialist  
+**Audit Date:** 2025-06-20
+**Auditor:** DevOps / Security Engineering Specialist
 **Scope:** `mitra-backend`, `mitra-frontend`, `docker-compose.yml`, `podman-compose.yml`, deployment scripts, CI/CD, and infrastructure configuration.
 
 ---
@@ -43,8 +43,8 @@ npm install --package-lock-only
 | **Current Config** | `synchronize: configService.get('DB_SYNC', 'false') === 'true'` |
 | **Suggested Fix** | ```typescript
 // In app.module.ts — enforce synchronize=false in production regardless of env
-synchronize: configService.get('NODE_ENV') === 'production' 
-  ? false 
+synchronize: configService.get('NODE_ENV') === 'production'
+  ? false
   : configService.get('DB_SYNC', 'false') === 'true',
 // OR throw at bootstrap if DB_SYNC=true in production
 ``` |

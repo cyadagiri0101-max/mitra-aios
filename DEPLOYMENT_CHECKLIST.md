@@ -1,7 +1,7 @@
 # DEPLOYMENT CHECKLIST - MITRA v3.2
 
-**Purpose**: Production deployment verification for MITRA v3.2  
-**Audience**: DevOps, Site Reliability Engineers, System Administrators  
+**Purpose**: Production deployment verification for MITRA v3.2
+**Audience**: DevOps, Site Reliability Engineers, System Administrators
 **Last Updated**: June 24, 2026
 
 ---
@@ -98,7 +98,7 @@ must reach dashboard after login.
   - [ ] `scripts/` (setup and maintenance scripts)
   - [ ] `docker-compose.yml` (orchestration)
   - [ ] `.env.example` (configuration template)
-  
+
 - [ ] Create `.env` file from template
   ```bash
   cp .env.example .env
@@ -173,7 +173,7 @@ must reach dashboard after login.
   - [ ] Creates named volumes
   - [ ] Sets volume ownership
   - [ ] Initializes bridge network
-  
+
 - [ ] Verify volumes created
   ```bash
   podman volume ls | grep mitra

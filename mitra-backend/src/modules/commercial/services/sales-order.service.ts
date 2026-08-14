@@ -13,6 +13,8 @@ import {
 } from '../dto/sales-order.dto';
 import { TenantAwareService } from '@common/services/tenant-aware.service';
 import { AuditService } from '../../audit/services/audit.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
+import { CommercialEventType } from '../events/commercial.events';
 
 @Injectable()
 export class SalesOrderService extends TenantAwareService<SalesOrder> {
@@ -26,6 +28,7 @@ export class SalesOrderService extends TenantAwareService<SalesOrder> {
     @InjectRepository(QuotationItem)
     private readonly quotationItemRepo: Repository<QuotationItem>,
     private readonly auditService: AuditService,
+    private readonly events: CommercialEventPublisherService,
   ) {
     super(repo, 'Sales Order');
   }
@@ -153,6 +156,21 @@ export class SalesOrderService extends TenantAwareService<SalesOrder> {
       },
     );
 
+    await this.events.publish({
+      eventType: CommercialEventType.SALES_ORDER_CREATED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        salesOrderId: saved.id,
+        salesOrderNumber: number,
+        quotationId: quotation?.id ?? null,
+        projectId: projectId ?? null,
+        customerId: customerId ?? null,
+        totalAmount: saved.totalAmount,
+      },
+    });
+
     return this.findOneWithLines(saved.id, tenantId);
   }
 
@@ -206,6 +224,16 @@ export class SalesOrderService extends TenantAwareService<SalesOrder> {
       'sales-order.confirmed', 'SalesOrder', order.id, userId ?? 'system',
       { salesOrderNumber: order.salesOrderNumber, tenantId },
     );
+    await this.events.publish({
+      eventType: CommercialEventType.SALES_ORDER_CONFIRMED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        salesOrderId: order.id,
+        salesOrderNumber: order.salesOrderNumber,
+      },
+    });
     return this.findOneWithLines(order.id, tenantId);
   }
 
@@ -243,6 +271,17 @@ export class SalesOrderService extends TenantAwareService<SalesOrder> {
       'sales-order.cancelled', 'SalesOrder', order.id, userId ?? 'system',
       { salesOrderNumber: order.salesOrderNumber, reason: dto.reason, tenantId },
     );
+    await this.events.publish({
+      eventType: CommercialEventType.SALES_ORDER_CANCELLED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        salesOrderId: order.id,
+        salesOrderNumber: order.salesOrderNumber,
+        reason: dto.reason,
+      },
+    });
     return this.findOneWithLines(order.id, tenantId);
   }
 

@@ -95,6 +95,14 @@ export class WorkflowService {
     });
   }
 
+    /** Fail-closed guard — workflow instances are tenant-scoped records. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async createInstance(
     workflowType: string,
     entityType: string,
@@ -102,17 +110,16 @@ export class WorkflowService {
     context: WorkflowContext,
     em?: EntityManager,
   ) {
+    const scopeTenant = this.requireTenant(context.tenantId);
     const stateRepo = em ? em.getRepository(WorkflowState) : this.stateRepository;
     const instanceRepo = em ? em.getRepository(WorkflowInstance) : this.instanceRepository;
 
     // M-4 fix: resolve the initial state tenant-aware — prefer a
     // tenant-specific state definition, fall back to the system default.
     let initialState = null;
-    if (context.tenantId) {
-      initialState = await stateRepo.findOne({
-        where: { workflowType, isInitial: true, tenantId: context.tenantId, deletedAt: IsNull() },
-      });
-    }
+    initialState = await stateRepo.findOne({
+      where: { workflowType, isInitial: true, tenantId: scopeTenant, deletedAt: IsNull() },
+    });
     if (!initialState) {
       initialState = await stateRepo.findOne({
         where: { workflowType, isInitial: true, tenantId: IsNull(), deletedAt: IsNull() },
@@ -137,7 +144,7 @@ export class WorkflowService {
       currentStateId: initialState.id,
       currentState: initialState,
       stateEnteredAt: new Date(),
-      tenantId: context.tenantId ?? null,
+      tenantId: scopeTenant,
       createdBy: context.userId,
       history: [historyEntry],
       status: 'active',
@@ -151,11 +158,11 @@ export class WorkflowService {
     context: WorkflowContext,
     em?: EntityManager,
   ) {
+    const scopeTenant = this.requireTenant(context.tenantId);
     const instanceRepo = em ? em.getRepository(WorkflowInstance) : this.instanceRepository;
     const transitionRepo = em ? em.getRepository(WorkflowTransition) : this.transitionRepository;
 
-    const where: any = { id: instanceId, deletedAt: IsNull() };
-    if (context.tenantId) where.tenantId = context.tenantId;
+    const where: any = { id: instanceId, deletedAt: IsNull(), tenantId: scopeTenant };
     const instance = await instanceRepo.findOne({
       where,
       relations: ['currentState'],
@@ -165,7 +172,7 @@ export class WorkflowService {
     const transitionWhere: any = {
       id: transitionId, fromStateId: instance.currentStateId, deletedAt: IsNull(),
     };
-    if (context.tenantId) transitionWhere.tenantId = context.tenantId;
+    transitionWhere.tenantId = scopeTenant;
     let transition = await transitionRepo.findOne({
       where: transitionWhere,
       relations: ['fromState', 'toState'],
@@ -243,10 +250,10 @@ export class WorkflowService {
     return instanceRepo.save(instance);
   }
 
-  async getInstanceHistory(instanceId: string, tenantId?: string, em?: EntityManager) {
+  async getInstanceHistory(instanceId: string, tenantId?: string | null, em?: EntityManager) {
+    const scopeTenant = this.requireTenant(tenantId);
     const instanceRepo = em ? em.getRepository(WorkflowInstance) : this.instanceRepository;
-    const where: any = { id: instanceId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { id: instanceId, deletedAt: IsNull(), tenantId: scopeTenant };
     const instance = await instanceRepo.findOne({ where });
     if (!instance) throw new NotFoundException('Instance not found');
     return instance.history ?? [];
@@ -255,12 +262,12 @@ export class WorkflowService {
   async findInstanceByEntity(
     entityType: string,
     entityId: string,
-    tenantId?: string,
+    tenantId?: string | null,
     em?: EntityManager,
   ) {
+    const scopeTenant = this.requireTenant(tenantId);
     const instanceRepo = em ? em.getRepository(WorkflowInstance) : this.instanceRepository;
-    const where: any = { entityType, entityId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { entityType, entityId, deletedAt: IsNull(), tenantId: scopeTenant };
     return instanceRepo.findOne({ where, relations: ['currentState'] });
   }
 }

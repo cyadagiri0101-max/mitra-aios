@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import * as fs from 'fs';
@@ -62,16 +62,25 @@ export class EngineeringFileIndexerService {
     @InjectRepository(ToolMaster) private readonly toolRepo: Repository<ToolMaster>,
   ) {}
 
+/** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async scanAndIndex(tenantId?: string | null, options: ScanOptions = {}) {
-    const matches = await this.toolRepo.find({ where: { deletedAt: IsNull(), tenantId: tenantId ?? undefined } as any });
+    const scopeTenant = this.requireTenant(tenantId);
+    const matches = await this.toolRepo.find({ where: { deletedAt: IsNull(), tenantId: scopeTenant } as any });
     const toolNumbers = matches.map((tool) => tool.toolNo?.trim()).filter(Boolean);
     const targetToolNo = options.toolNo ? this.normalizeToolNo(options.toolNo) : null;
     if (targetToolNo && !toolNumbers.some((toolNo) => this.normalizeToolNo(toolNo) === targetToolNo)) {
       toolNumbers.push(targetToolNo);
     }
-    const existingRows = await this.loadExistingIndexRows(tenantId, targetToolNo);
+    const existingRows = await this.loadExistingIndexRows(scopeTenant, targetToolNo);
     const context: ScanContext = {
-      tenantId,
+      tenantId: scopeTenant,
       toolNumbers,
       targetToolNo,
       existingByPath: new Map(existingRows.map((row) => [row.uncPath, row])),
@@ -119,10 +128,11 @@ export class EngineeringFileIndexerService {
     return context.summary;
   }
 
-  async browse(tenantId?: string | null, toolNo?: string, itemType?: 'folder' | 'file') {
+async browse(tenantId?: string | null, toolNo?: string, itemType?: 'folder' | 'file') {
+    const scopeTenant = this.requireTenant(tenantId);
     const qb = this.indexRepo.createQueryBuilder('index');
     qb.where('index.deletedAt IS NULL');
-    if (tenantId) qb.andWhere('index.tenantId = :tenantId', { tenantId });
+    qb.andWhere('index.tenantId = :tenantId', { tenantId: scopeTenant });
     if (toolNo) qb.andWhere('index.toolNo = :toolNo', { toolNo });
     if (itemType) qb.andWhere('index.itemType = :itemType', { itemType });
     return qb.orderBy('index.toolNo', 'ASC').addOrderBy('index.relativePath', 'ASC').getMany();

@@ -8,6 +8,8 @@ import { ApproveQuotationDto, AcceptQuotationDto, RejectQuotationDto } from '../
 import { TenantAwareService } from '@common/services/tenant-aware.service';
 import { AuditService } from '../../audit/services/audit.service';
 import { CommercialAiService } from './commercial-ai.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
+import { CommercialEventType } from '../events/commercial.events';
 
 @Injectable()
 export class QuotationApprovalService extends TenantAwareService<Quotation> {
@@ -20,6 +22,7 @@ export class QuotationApprovalService extends TenantAwareService<Quotation> {
     private readonly enquiryRepo: Repository<Enquiry>,
     private readonly auditService: AuditService,
     private readonly aiService: CommercialAiService,
+    private readonly events: CommercialEventPublisherService,
   ) {
     super(repo, 'Quotation');
   }
@@ -92,6 +95,20 @@ export class QuotationApprovalService extends TenantAwareService<Quotation> {
       projectName: dto.projectName,
     }, userId, tenantId);
 
+    await this.events.publish({
+      eventType: CommercialEventType.QUOTATION_ACCEPTED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        quotationId: saved.id,
+        quotationNumber: saved.quotationNumber,
+        customerId: saved.customerId ?? null,
+        projectId: null,
+        projectName: dto.projectName,
+      },
+    });
+
     return { quotation: saved, projectData };
   }
 
@@ -116,6 +133,18 @@ export class QuotationApprovalService extends TenantAwareService<Quotation> {
       'quotation.rejected', 'Quotation', id, userId ?? 'system',
       { quotationNumber: saved.quotationNumber, reason: dto.reason, tenantId },
     );
+    await this.events.publish({
+      eventType: CommercialEventType.QUOTATION_REJECTED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        quotationId: saved.id,
+        quotationNumber: saved.quotationNumber,
+        customerId: saved.customerId ?? null,
+        reason: dto.reason,
+      },
+    });
     return saved;
   }
 }

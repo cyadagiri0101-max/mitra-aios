@@ -11,7 +11,7 @@
  */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
 // ── Shared factory ───────────────────────────────────────────────────────────
@@ -36,6 +36,7 @@ async function buildService<S>(ServiceClass: new (...a: any[]) => S, EntityClass
       ServiceClass,
       { provide: getRepositoryToken(EntityClass), useValue: repo },
       { provide: DataSource, useValue: { query: jest.fn().mockResolvedValue([{ id: 'x' }]) } },
+      { provide: CommercialEventPublisherService, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
     ],
   }).compile();
   return { service: module.get<S>(ServiceClass), repo };
@@ -47,6 +48,7 @@ import { Note }                      from '@modules/collaboration/entities/note.
 
 import { EnquiryService }            from '@modules/commercial/services/enquiry.service';
 import { Enquiry }                   from '@modules/commercial/entities/enquiry.entity';
+import { CommercialEventPublisherService } from '@modules/commercial/services/commercial-event-publisher.service';
 
 import { CpsReviewService }          from '@modules/cps/services/cpsreview.service';
 import { CPSReview }                 from '@modules/cps/entities/cpsreview.entity';
@@ -110,7 +112,7 @@ describe.each(SERVICES)('%s (TenantAwareService)', (name, ServiceClass, EntityCl
       expect(result.totalPages).toBe(1);
     });
 
-    it('scopes query to tenantId when provided', async () => {
+    it('always scopes to the caller tenant', async () => {
       repo.findAndCount.mockResolvedValue([[], 0]);
       await service.findAll('tenant-abc', 2, 10);
       const [opts] = repo.findAndCount.mock.calls[0];
@@ -119,11 +121,10 @@ describe.each(SERVICES)('%s (TenantAwareService)', (name, ServiceClass, EntityCl
       expect(opts.take).toBe(10);
     });
 
-    it('does not scope to tenant when tenantId is undefined', async () => {
-      repo.findAndCount.mockResolvedValue([[], 0]);
-      await service.findAll(undefined);
-      const [opts] = repo.findAndCount.mock.calls[0];
-      expect(opts.where.tenantId).toBeUndefined();
+    it('fails closed when tenantId is undefined — no unfiltered reads (G/D)', async () => {
+      repo.findAndCount.mockResolvedValue([[{ id: 'leak' }], 1]);
+      await expect(service.findAll(undefined)).rejects.toThrow(ForbiddenException);
+      expect(repo.findAndCount).not.toHaveBeenCalled();
     });
 
     it('always filters by deletedAt: IsNull()', async () => {
@@ -156,11 +157,17 @@ describe.each(SERVICES)('%s (TenantAwareService)', (name, ServiceClass, EntityCl
         .rejects.toThrow(NotFoundException);
     });
 
-    it('returns entity regardless of tenantId when tenantId is null (super-admin path)', async () => {
+    it('rejects a tenant caller reading a tenantless/global row (C)', async () => {
+      const entity = { id: 'e-1', tenantId: null };
+      repo.findOne.mockResolvedValue(entity);
+      await expect(service.findOne('e-1', 'tenant-1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('fails closed when tenantId is null — no super-admin bypass (D/G)', async () => {
       const entity = { id: 'e-1', tenantId: 'any-tenant' };
       repo.findOne.mockResolvedValue(entity);
-      const result = await service.findOne('e-1', null);
-      expect(result).toBe(entity);
+      await expect(service.findOne('e-1', null)).rejects.toThrow(ForbiddenException);
+      expect(repo.findOne).not.toHaveBeenCalled();
     });
   });
 
@@ -177,6 +184,11 @@ describe.each(SERVICES)('%s (TenantAwareService)', (name, ServiceClass, EntityCl
     it('persists with repo.save()', async () => {
       await service.create({ name: 'Test' }, 'user-1', 'tenant-1');
       expect(repo.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('fails closed without tenant context — no tenantless rows (E)', async () => {
+      await expect(service.create({ name: 'Test' }, 'user-1', undefined)).rejects.toThrow(ForbiddenException);
+      expect(repo.save).not.toHaveBeenCalled();
     });
   });
 
@@ -195,6 +207,11 @@ describe.each(SERVICES)('%s (TenantAwareService)', (name, ServiceClass, EntityCl
       const saved = repo.save.mock.calls[0][0];
       expect(saved.name).toBe('New');
       expect(saved.updatedBy).toBe('user-2');
+    });
+
+    it('fails closed without tenant context — cannot mutate (E)', async () => {
+      await expect(service.update('e-1', { name: 'New' }, 'user-2', undefined)).rejects.toThrow(ForbiddenException);
+      expect(repo.save).not.toHaveBeenCalled();
     });
   });
 

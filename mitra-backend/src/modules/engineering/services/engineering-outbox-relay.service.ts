@@ -4,6 +4,7 @@ import { EngineeringEventBus } from './engineering-event-bus.service';
 import { EngineeringAiHooksService } from './engineering-ai-hooks.service';
 import { EngineeringDomainEvent, EngineeringDomainEventType } from '../events/engineering.events';
 import { DomainOutboxMessage } from '../../platform/entities/domain-outbox.entity';
+import { isCommercialEventType } from '../../commercial/events/commercial.events';
 
 /**
  * Outbox relay for the Engineering Domain (G-13). Dispatches durable
@@ -21,6 +22,9 @@ export class EngineeringOutboxRelayService {
 
   /** Dispatch a durable outbox row through the event bus + AI hooks. */
   private dispatch = async (message: DomainOutboxMessage): Promise<void> => {
+    // Commercial rows are owned by the Commercial relay — never cast them
+    // into engineering events.
+    if (isCommercialEventType(message.eventType)) return;
     const event: EngineeringDomainEvent = {
       eventType: message.eventType as EngineeringDomainEventType,
       occurredAt: new Date(),

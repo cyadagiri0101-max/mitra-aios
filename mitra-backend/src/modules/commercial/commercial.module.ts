@@ -40,6 +40,10 @@ import { QuotationMarginService } from './services/quotation-margin.service';
 import { QuotationApprovalService } from './services/quotation-approval.service';
 import { QuotationRevisionService } from './services/quotation-revision.service';
 import { QuotationAcceptanceService } from './services/quotation-acceptance.service';
+import { CommercialEventBus } from './services/commercial-event-bus.service';
+import { CommercialEventPublisherService } from './services/commercial-event-publisher.service';
+import { CommercialOutboxRelayService } from './services/commercial-outbox-relay.service';
+import { CommercialOutboxRelayScheduler } from './services/commercial-outbox-relay-scheduler.service';
 import { SalesOrderService } from './services/sales-order.service';
 import { InvoiceService } from './services/invoice.service';
 import { PaymentService } from './services/payment.service';
@@ -87,6 +91,8 @@ import { PlatformModule } from '../platform/platform.module';
     QuotationPricingService, QuotationItemService, QuotationMarginService,
     QuotationApprovalService, QuotationRevisionService, QuotationAcceptanceService,
     SalesOrderService, InvoiceService, PaymentService, CreditNoteService,
+    CommercialEventBus, CommercialEventPublisherService,
+    CommercialOutboxRelayService, CommercialOutboxRelayScheduler,
   ],
   exports: [
     EnquiryService, CustomerService, QuotationService,
@@ -96,6 +102,7 @@ import { PlatformModule } from '../platform/platform.module';
     QuotationPricingService, QuotationItemService, QuotationMarginService,
     QuotationApprovalService, QuotationRevisionService, QuotationAcceptanceService,
     SalesOrderService, InvoiceService, PaymentService, CreditNoteService,
+    CommercialEventBus, CommercialEventPublisherService, CommercialOutboxRelayService,
     TypeOrmModule,
   ],
 })

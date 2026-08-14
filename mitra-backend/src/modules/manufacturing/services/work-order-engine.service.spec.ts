@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { WorkOrderEngineService } from './work-order-engine.service';
 import { WorkOrder, WorkOrderStatus } from '../entities/workorder.entity';
 import { JobCard } from '../entities/jobcard.entity';
@@ -118,7 +118,7 @@ describe('WorkOrderEngineService', () => {
 
     it('creates a DRAFT work order from the released routing', async () => {
       const result = await service.generateFromArtifacts({ routingId: 'r-1', plannedQty: 5 }, user);
-      expect(workOrderService.assertReleased).toHaveBeenCalledWith('engineering_routings', 'r-1', 'Routing');
+      expect(workOrderService.assertReleased).toHaveBeenCalledWith('engineering_routings', 'r-1', 'Routing', 't-1');
       expect(workOrderService.create).toHaveBeenCalledWith(expect.objectContaining({
         routingId: 'r-1', status: 'DRAFT', partName: 'P-9', costBaseline: 50, estimatedHours: 8,
       }), 'u-1', 't-1');
@@ -150,6 +150,14 @@ describe('WorkOrderEngineService', () => {
       woRepo.findOne.mockResolvedValue({ ...wo, status: WorkOrderStatus.RELEASED });
       await expect(service.release('wo-1', user)).rejects.toThrow(BadRequestException);
     });
+
+    it('rejects releasing another tenant\'s work order with 404', async () => {
+      const woRepo = (service as any).workOrderRepo;
+      woRepo.findOne.mockResolvedValue(null);
+      const other: any = { id: 'u-2', email: 'y@mitra.io', role: 'MANAGEMENT', tenantId: 't-2', permissions: [] };
+      await expect(service.release('wo-1', other)).rejects.toThrow(NotFoundException);
+      expect(workflow.createInstance).not.toHaveBeenCalled();
+    });
   });
 
   describe('transition', () => {
@@ -162,7 +170,23 @@ describe('WorkOrderEngineService', () => {
       expect(result.status).toBe('COMPLETED');
       expect(outboxRows.some((r) => r.eventType === EngineeringDomainEventType.WORK_ORDER_COMPLETED && r.payload.remarks === 'done')).toBe(true);
       const resRepo = (service as any).reservationRepo;
-      expect(resRepo.update).toHaveBeenCalledWith({ workOrderId: 'wo-1' }, { status: 'RELEASED', updatedBy: 'u-1' });
+      expect(resRepo.update).toHaveBeenCalledWith({ workOrderId: 'wo-1', tenantId: 't-1' }, { status: 'RELEASED', updatedBy: 'u-1' });
+    });
+
+    it('rejects a tenantless user (fail closed)', async () => {
+      const tenantless: any = { id: 'u-9', email: 'x@mitra.io', role: 'MANAGEMENT', tenantId: null, permissions: [] };
+      await expect(service.transition('wo-1', 'START', tenantless)).rejects.toThrow(ForbiddenException);
+      await expect(service.release('wo-1', tenantless)).rejects.toThrow(ForbiddenException);
+      await expect(service.listJobCards('wo-1', null)).rejects.toThrow(ForbiddenException);
+      await expect(service.listReservations('wo-1', null)).rejects.toThrow(ForbiddenException);
+      await expect(service.listCheckpoints('wo-1', null)).rejects.toThrow(ForbiddenException);
+    });
+
+    it('rejects cross-tenant transitions with 404', async () => {
+      const woRepo = (service as any).workOrderRepo;
+      woRepo.findOne.mockResolvedValue(null);
+      const other: any = { id: 'u-2', email: 'y@mitra.io', role: 'MANAGEMENT', tenantId: 't-2', permissions: [] };
+      await expect(service.transition('wo-1', 'START', other)).rejects.toThrow(NotFoundException);
     });
 
     it('rejects a transition when no workflow instance exists', async () => {
@@ -171,16 +195,16 @@ describe('WorkOrderEngineService', () => {
   });
 
   describe('reads', () => {
-    it('lists job cards, reservations and checkpoints', async () => {
+    it('lists job cards, reservations and checkpoints scoped to the tenant', async () => {
       await service.listJobCards('wo-1', 't-1');
       await service.listReservations('wo-1', 't-1');
       await service.listCheckpoints('wo-1', 't-1');
       const jobRepo = (service as any).jobCardRepo;
-      expect(jobRepo.find).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ workOrderId: 'wo-1' }) }));
+      expect(jobRepo.find).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ workOrderId: 'wo-1', tenantId: 't-1' }) }));
       const resRepo = (service as any).reservationRepo;
-      expect(resRepo.find).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ workOrderId: 'wo-1' }) }));
+      expect(resRepo.find).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ workOrderId: 'wo-1', tenantId: 't-1' }) }));
       const cpRepo = (service as any).checkpointRepo;
-      expect(cpRepo.find).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ workOrderId: 'wo-1' }) }));
+      expect(cpRepo.find).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ workOrderId: 'wo-1', tenantId: 't-1' }) }));
     });
   });
 });

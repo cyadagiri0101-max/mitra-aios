@@ -1,7 +1,7 @@
 # OPERATIONS RUNBOOK - MITRA v3.2
 
-**Purpose**: Operational procedures for running, maintaining, and troubleshooting MITRA  
-**Audience**: Site Reliability Engineers, DevOps, System Administrators  
+**Purpose**: Operational procedures for running, maintaining, and troubleshooting MITRA
+**Audience**: Site Reliability Engineers, DevOps, System Administrators
 **Last Updated**: June 24, 2026
 
 ---
@@ -238,7 +238,7 @@ SELECT email, role FROM users WHERE role='ADMIN';  # List admins
 
 ### Issue: Backend Container Not Starting
 
-**Symptoms**: 
+**Symptoms**:
 - `podman compose ps` shows backend as "Exited" or "Restarting"
 
 **Diagnosis**:
@@ -573,9 +573,9 @@ curl http://localhost:3001/api/health
 
 ## Contact & Escalation
 
-**Primary On-Call**: [Team Contact]  
-**Secondary On-Call**: [Team Contact]  
-**Incident Channel**: #mitra-incidents  
+**Primary On-Call**: [Team Contact]
+**Secondary On-Call**: [Team Contact]
+**Incident Channel**: #mitra-incidents
 **Escalation**: [Manager Contact] if unresolved after 30 minutes
 
 ---

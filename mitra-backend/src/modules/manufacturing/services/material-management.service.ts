@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { MaterialReservation, ReservationStatus } from '../entities/material-reservation.entity';
@@ -39,9 +39,18 @@ export class MaterialManagementService {
     return qb.getMany();
   }
 
+  /** Fail-closed tenant guard - mirrors TenantAwareService.requireTenant. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   /** Issue a reservation (full or partial). */
   async issue(reservationId: string, user: AuthUser, dto: { qty?: number; issueDate?: string; storeLocation?: string; remarks?: string }) {
-    const reservation = await this.reservationRepo.findOne({ where: { id: reservationId, deletedAt: IsNull() } });
+    const tenantId = this.requireTenant(user.tenantId);
+    const reservation = await this.reservationRepo.findOne({ where: { id: reservationId, tenantId, deletedAt: IsNull() } });
     if (!reservation) throw new NotFoundException('Reservation not found');
     if (reservation.status === ReservationStatus.CANCELLED || reservation.status === ReservationStatus.RELEASED) {
       throw new BadRequestException('Reservation is closed');
@@ -67,13 +76,13 @@ export class MaterialManagementService {
       remarks: dto.remarks ?? null,
       createdBy: user.id,
       updatedBy: user.id,
-      tenantId: user.tenantId ?? undefined,
+      tenantId,
     } as any);
     await this.issueRepo.save(issue);
 
     const issuedTotal = Number(reservation.issuedQty) + qty;
     const status = issuedTotal >= Number(reservation.reservedQty) ? ReservationStatus.ISSUED : ReservationStatus.PARTIALLY_ISSUED;
-    await this.reservationRepo.update(reservation.id, { issuedQty: issuedTotal, status, updatedBy: user.id } as any);
+    await this.reservationRepo.update({ id: reservation.id, tenantId }, { issuedQty: issuedTotal, status, updatedBy: user.id } as any);
 
     if (status === ReservationStatus.PARTIALLY_ISSUED) {
       await this.outboxService.append(EngineeringDomainEventType.MATERIAL_SHORTAGE, 'material_reservation', reservation.id, {
@@ -83,7 +92,7 @@ export class MaterialManagementService {
         partNumber: reservation.partNumber,
         reservedQty: reservation.reservedQty,
         issuedQty: issuedTotal,
-      }, { tenantId: user.tenantId, actorId: user.id });
+      }, { tenantId, actorId: user.id });
     } else {
       await this.outboxService.append(EngineeringDomainEventType.MATERIAL_RESERVED, 'material_reservation', reservation.id, {
         entityId: reservation.id,
@@ -91,15 +100,16 @@ export class MaterialManagementService {
         workOrderId: reservation.workOrderId,
         partNumber: reservation.partNumber,
         qty,
-      }, { tenantId: user.tenantId, actorId: user.id });
+      }, { tenantId, actorId: user.id });
     }
 
-    return this.reservationRepo.findOne({ where: { id: reservation.id } });
+    return this.reservationRepo.findOne({ where: { id: reservation.id, tenantId } });
   }
 
   /** Release unused reservation quantity (partial or full) back to store. */
   async releaseUnused(reservationId: string, user: AuthUser, dto: { qty?: number; remarks?: string }) {
-    const reservation = await this.reservationRepo.findOne({ where: { id: reservationId, deletedAt: IsNull() } });
+    const tenantId = this.requireTenant(user.tenantId);
+    const reservation = await this.reservationRepo.findOne({ where: { id: reservationId, tenantId, deletedAt: IsNull() } });
     if (!reservation) throw new NotFoundException('Reservation not found');
     if (reservation.status === ReservationStatus.CANCELLED || reservation.status === ReservationStatus.RELEASED) {
       throw new BadRequestException('Reservation is closed');
@@ -107,7 +117,7 @@ export class MaterialManagementService {
     const releaseQty = dto.qty ?? Math.max(0, Number(reservation.reservedQty) - Number(reservation.issuedQty));
     if (releaseQty <= 0) throw new BadRequestException('No unused quantity to release');
 
-    await this.reservationRepo.update(reservation.id, {
+    await this.reservationRepo.update({ id: reservation.id, tenantId }, {
       reservedQty: Number(reservation.reservedQty) - releaseQty,
       status: Number(reservation.reservedQty) - releaseQty <= Number(reservation.issuedQty) ? ReservationStatus.ISSUED : ReservationStatus.PARTIALLY_ISSUED,
       remarks: dto.remarks ?? reservation.remarks,
@@ -120,15 +130,16 @@ export class MaterialManagementService {
       workOrderId: reservation.workOrderId,
       partNumber: reservation.partNumber,
       releasedQty: releaseQty,
-    }, { tenantId: user.tenantId, actorId: user.id });
+    }, { tenantId, actorId: user.id });
 
-    return this.reservationRepo.findOne({ where: { id: reservation.id } });
+    return this.reservationRepo.findOne({ where: { id: reservation.id, tenantId } });
   }
 
   /** Batch-issue every reservation of a work order (store picking). */
   async issueAll(workOrderId: string, user: AuthUser, dto: { issueDate?: string } = {}) {
+    const tenantId = this.requireTenant(user.tenantId);
     const reservations = await this.reservationRepo.find({
-      where: { workOrderId, status: ReservationStatus.RESERVED, deletedAt: IsNull() } as any,
+      where: { workOrderId, tenantId, status: ReservationStatus.RESERVED, deletedAt: IsNull() } as any,
     });
     const results = [];
     for (const r of reservations) {

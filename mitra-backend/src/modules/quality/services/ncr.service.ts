@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { NcrRecord, NcrStatus } from '../entities/ncr-record.entity';
@@ -22,11 +22,20 @@ export class NcrService {
     private readonly outboxService: OutboxService,
   ) {}
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async findAll(q: { page?: number; limit?: number; status?: NcrStatus; workOrderId?: string; projectId?: string; severity?: string }, tenantId?: string) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(q.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(q.limit ?? 20)));
     const qb = this.ncrRepo.createQueryBuilder('n').where('n.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('n.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('n.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (q.status) qb.andWhere('n.status = :status', { status: q.status });
     if (q.workOrderId) qb.andWhere('n.work_order_id = :workOrderId', { workOrderId: q.workOrderId });
     if (q.projectId) qb.andWhere('n.project_id = :projectId', { projectId: q.projectId });
@@ -37,19 +46,20 @@ export class NcrService {
   }
 
   async findOne(id: string, tenantId?: string) {
-    const ncr = await this.ncrRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: tenantId ?? undefined } });
+    const ncr = await this.ncrRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: this.requireTenant(tenantId) } });
     if (!ncr) throw new NotFoundException('NCR not found');
     return ncr;
   }
 
   async create(dto: Record<string, unknown>, user: AuthUser) {
+    const scopeTenant = this.requireTenant(user.tenantId);
     const ncr = this.ncrRepo.create({
       ...dto,
       ncrNumber: this.nextNcrNumber(),
       status: dto.status ?? NcrStatus.OPEN,
       createdBy: user.id,
       updatedBy: user.id,
-      tenantId: user.tenantId ?? undefined,
+      tenantId: scopeTenant,
     } as Partial<NcrRecord>);
     const saved = await this.ncrRepo.save(ncr);
     await this.outboxService.append(EngineeringDomainEventType.NCR_RAISED, 'ncr_record', saved.id, {
@@ -59,24 +69,26 @@ export class NcrService {
       projectId: saved.projectId,
       severity: saved.severity,
       description: saved.description,
-    }, { tenantId: user.tenantId, actorId: user.id });
+    }, { tenantId: scopeTenant, actorId: user.id });
     return saved;
   }
 
   async update(id: string, dto: Record<string, unknown>, user: AuthUser) {
-    await this.findOne(id, user.tenantId ?? undefined);
+    const scopeTenant = this.requireTenant(user.tenantId);
+    await this.findOne(id, scopeTenant);
     const allowed = [
       'description', 'severity', 'ncrType', 'disposition', 'status', 'action',
       'rootCause', 'detectedQty', 'rejectedQty', 'projectId', 'workOrderId',
       'jobCardId', 'operationId', 'materialLot', 'inspectionReportId',
     ];
     const clean = Object.fromEntries(Object.entries(dto).filter(([k]) => allowed.includes(k)));
-    await this.ncrRepo.update(id, { ...clean, updatedBy: user.id } as Partial<NcrRecord>);
-    return this.findOne(id, user.tenantId ?? undefined);
+    await this.ncrRepo.update({ id, tenantId: scopeTenant }, { ...clean, updatedBy: user.id } as Partial<NcrRecord>);
+    return this.findOne(id, scopeTenant);
   }
 
   async transition(id: string, toStatus: NcrStatus, user: AuthUser, dto: { disposition?: string; action?: string; remarks?: string } = {}) {
-    const ncr = await this.findOne(id, user.tenantId ?? undefined);
+    const scopeTenant = this.requireTenant(user.tenantId);
+    const ncr = await this.findOne(id, scopeTenant);
     const allowed: Record<NcrStatus, NcrStatus[]> = {
       [NcrStatus.OPEN]: [NcrStatus.INVESTIGATION, NcrStatus.CLOSED],
       [NcrStatus.INVESTIGATION]: [NcrStatus.ACTION, NcrStatus.CLOSED],
@@ -90,16 +102,16 @@ export class NcrService {
     const patch: Record<string, unknown> = { status: toStatus, updatedBy: user.id };
     if (dto.disposition) patch.disposition = dto.disposition;
     if (toStatus === NcrStatus.CLOSED) patch.closedAt = new Date();
-    await this.ncrRepo.update(id, patch as Partial<NcrRecord>);
+    await this.ncrRepo.update({ id, tenantId: scopeTenant }, patch as Partial<NcrRecord>);
     if (toStatus === NcrStatus.CLOSED) {
       await this.outboxService.append(EngineeringDomainEventType.NCR_CLOSED, 'ncr_record', ncr.id, {
         entityId: ncr.id,
         ncrNumber: ncr.ncrNumber,
         workOrderId: ncr.workOrderId,
         disposition: patch.disposition ?? ncr.disposition,
-      }, { tenantId: user.tenantId, actorId: user.id });
+      }, { tenantId: scopeTenant, actorId: user.id });
     }
-    return this.findOne(id, user.tenantId ?? undefined);
+    return this.findOne(id, scopeTenant);
   }
 
   private nextNcrNumber(): string {

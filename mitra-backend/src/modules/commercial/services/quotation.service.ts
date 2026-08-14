@@ -13,6 +13,8 @@ import {
 import { TenantAwareService } from '@common/services/tenant-aware.service';
 import { AuditService } from '../../audit/services/audit.service';
 import { CommercialAiService } from './commercial-ai.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
+import { CommercialEventType } from '../events/commercial.events';
 import { QuotationPricingService, PricedItem } from './quotation-pricing.service';
 import { QuotationItemService } from './quotation-item.service';
 import { QuotationMarginService } from './quotation-margin.service';
@@ -30,6 +32,7 @@ export class QuotationService extends TenantAwareService<Quotation> {
     private readonly rfqRepo: Repository<Rfq>,
     private readonly auditService: AuditService,
     private readonly aiService: CommercialAiService,
+    private readonly events: CommercialEventPublisherService,
     private readonly pricingService: QuotationPricingService,
     private readonly itemService: QuotationItemService,
     private readonly marginService: QuotationMarginService,
@@ -125,6 +128,20 @@ export class QuotationService extends TenantAwareService<Quotation> {
       totalAmount: saved.totalAmount,
       status: saved.status,
     }, userId, tenantId);
+
+    await this.events.publish({
+      eventType: CommercialEventType.QUOTATION_CREATED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        quotationId: saved.id,
+        quotationNumber,
+        enquiryId: rfq?.enquiryId ?? enquiry?.id ?? null,
+        customerId: dto.customerId ?? null,
+        totalAmount: saved.totalAmount,
+      },
+    });
 
     return this.findOneWithItems(saved.id, tenantId);
   }
@@ -238,6 +255,17 @@ export class QuotationService extends TenantAwareService<Quotation> {
       'quotation.sent', 'Quotation', id, userId ?? 'system', 
       { quotationNumber: saved.quotationNumber, tenantId },
     );
+    await this.events.publish({
+      eventType: CommercialEventType.QUOTATION_SENT,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        quotationId: saved.id,
+        quotationNumber: saved.quotationNumber,
+        customerId: saved.customerId ?? null,
+      },
+    });
     return saved;
   }
 

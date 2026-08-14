@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { InspectionCheckpoint, CheckpointStatus } from '../entities/inspection-checkpoint.entity';
@@ -37,16 +37,25 @@ export class InspectionService {
     return qb.getMany();
   }
 
+  /** Fail-closed tenant guard - mirrors TenantAwareService.requireTenant. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async recordResult(checkpointId: string, user: AuthUser, dto: {
     result: CheckpointStatus;
     measuredValue?: string;
     inspectionReportId?: string;
     remarks?: string;
   }) {
+    const tenantId = this.requireTenant(user.tenantId);
     if (![CheckpointStatus.PASS, CheckpointStatus.FAIL, CheckpointStatus.SKIP, CheckpointStatus.NA].includes(dto.result)) {
       throw new NotFoundException('Invalid checkpoint result');
     }
-    const checkpoint = await this.checkpointRepo.findOne({ where: { id: checkpointId, deletedAt: IsNull() } });
+    const checkpoint = await this.checkpointRepo.findOne({ where: { id: checkpointId, tenantId, deletedAt: IsNull() } });
     if (!checkpoint) throw new NotFoundException('Checkpoint not found');
 
     const patch: Record<string, unknown> = {
@@ -58,11 +67,11 @@ export class InspectionService {
       remarks: dto.remarks ?? null,
       updatedBy: user.id,
     };
-    await this.checkpointRepo.update(checkpoint.id, patch as Partial<InspectionCheckpoint>);
+    await this.checkpointRepo.update({ id: checkpoint.id, tenantId }, patch as Partial<InspectionCheckpoint>);
 
     let ncr = null;
     if (dto.result === CheckpointStatus.FAIL) {
-      const wo = await this.workOrderRepo.findOne({ where: { id: checkpoint.workOrderId, deletedAt: undefined } });
+      const wo = await this.workOrderRepo.findOne({ where: { id: checkpoint.workOrderId, tenantId, deletedAt: undefined } });
       ncr = await this.ncrService.create({
         projectId: wo?.projectId ?? undefined,
         workOrderId: checkpoint.workOrderId,
@@ -87,10 +96,10 @@ export class InspectionService {
         operationId: checkpoint.operationId,
         measuredValue: dto.measuredValue ?? null,
         ncrId: ncr?.id ?? null,
-      }, { tenantId: user.tenantId, actorId: user.id });
+      }, { tenantId, actorId: user.id });
     }
 
-    return this.checkpointRepo.findOne({ where: { id: checkpoint.id } });
+    return this.checkpointRepo.findOne({ where: { id: checkpoint.id, tenantId } });
   }
 
   async summary(workOrderId: string, tenantId?: string) {

@@ -7,6 +7,7 @@ import { Payment, PaymentMethod } from '../entities/payment.entity';
 import { Invoice, InvoiceStatus } from '../entities/invoice.entity';
 import { AuditService } from '../../audit/services/audit.service';
 import { InvoiceService } from './invoice.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
 
 describe('PaymentService', () => {
   let service: PaymentService;
@@ -77,6 +78,7 @@ describe('PaymentService', () => {
         { provide: getRepositoryToken(Invoice), useValue: { findOne: jest.fn() } },
         { provide: InvoiceService, useValue: { applyPaymentAllocation: jest.fn() } },
         { provide: AuditService, useValue: { logBusinessEvent: jest.fn() } },
+        { provide: CommercialEventPublisherService, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
       ],
     }).compile();
 

@@ -993,12 +993,12 @@ To set expectations, MITRA is NOT:
 
 ---
 
-*Document Version: MITRA v3.2*  
-*Date: 2025-06-20*  
-*Total Backend Modules: 30*  
-*Total Frontend Pages: 24*  
-*Total Database Entities: 93*  
-*Total Database Tables: 92*  
-*AI Model: Microsoft Phi-3 (Local via Ollama)*  
-*Target Users: 10-15, Concurrent: 3-5*  
+*Document Version: MITRA v3.2*
+*Date: 2025-06-20*
+*Total Backend Modules: 30*
+*Total Frontend Pages: 24*
+*Total Database Entities: 93*
+*Total Database Tables: 92*
+*AI Model: Microsoft Phi-3 (Local via Ollama)*
+*Target Users: 10-15, Concurrent: 3-5*
 *Deployment: Single-tenant, On-premise, Docker/Podman*

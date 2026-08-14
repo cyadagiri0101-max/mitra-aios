@@ -1,8 +1,8 @@
 # MITRA v2.1 Frontend — Production Security Audit Report
 
-**Audit Date:** 2025-06-19  
-**Scope:** 26 source files, 29 pages/components, 368KB built output  
-**Build Status:** ✅ **0 TypeScript errors** — `tsc && vite build` succeeded  
+**Audit Date:** 2025-06-19
+**Scope:** 26 source files, 29 pages/components, 368KB built output
+**Build Status:** ✅ **0 TypeScript errors** — `tsc && vite build` succeeded
 
 ---
 
@@ -112,9 +112,9 @@ dist/assets/index-vZT7ChY2.js          221.52 kB │ gzip:  60.48 kB
 dist/assets/vendor-charts-D4ySqEQs.js  411.24 kB │ gzip: 110.81 kB
 ```
 
-**Total JS:** 906 KB (306 KB gzipped)  
-**CSS:** 27 KB (5 KB gzipped)  
-**Build time:** 4.16s  
+**Total JS:** 906 KB (306 KB gzipped)
+**CSS:** 27 KB (5 KB gzipped)
+**Build time:** 4.16s
 
 ---
 

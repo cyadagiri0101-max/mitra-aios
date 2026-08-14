@@ -1,6 +1,6 @@
 # PHASE 1 SIGNOFF
 
-**Date:** 2026-06-24  
+**Date:** 2026-06-24
 **Status:** ✅ READY FOR SIGNOFF
 
 ---
@@ -64,5 +64,5 @@ Frontend CAPA page verified via Playwright after login.
 
 Phase 1 objectives are complete and verified with runtime evidence.
 
-**Signed off by:** Kimi Code CLI (automated validation)  
+**Signed off by:** Kimi Code CLI (automated validation)
 **Date:** 2026-06-24

@@ -29,7 +29,7 @@ export class DrawingAnalysisController {
     @Body() dto: UploadDrawingDto,
     @CurrentUser() user: AuthUser,
   ): Promise<DrawingAnalysisResponseDto> {
-    return this.drawingAnalysisService.uploadAndAnalyze(dto);
+    return this.drawingAnalysisService.uploadAndAnalyze(dto, user.tenantId);
   }
 
   @Get(':id')
@@ -41,7 +41,7 @@ export class DrawingAnalysisController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthUser,
   ): Promise<DrawingAnalysisResponseDto> {
-    return this.drawingAnalysisService.getAnalysis(id, user.tenantId ?? undefined);
+    return this.drawingAnalysisService.getAnalysis(id, user.tenantId);
   }
 
   @Get('project/:projectId')
@@ -53,6 +53,6 @@ export class DrawingAnalysisController {
     @Param('projectId', ParseUUIDPipe) projectId: string,
     @CurrentUser() user: AuthUser,
   ): Promise<DrawingAnalysisResponseDto[]> {
-    return this.drawingAnalysisService.getProjectAnalyses(projectId, user.tenantId ?? undefined);
+    return this.drawingAnalysisService.getProjectAnalyses(projectId, user.tenantId);
   }
 }

@@ -93,7 +93,7 @@ describe('EngineeringFileIndexerService.scanAndIndex', () => {
   });
 
   it('indexes BM folders and files with relative metadata', async () => {
-    const result = await service.scanAndIndex(null);
+    const result = await service.scanAndIndex('tenant-1');
 
     expect(result.indexedFolders).toBe(4);
     expect(result.indexedFiles).toBe(4);
@@ -103,8 +103,8 @@ describe('EngineeringFileIndexerService.scanAndIndex', () => {
   });
 
   it('rescans incrementally without duplicating active rows', async () => {
-    await service.scanAndIndex(null);
-    await service.scanAndIndex(null);
+    await service.scanAndIndex('tenant-1');
+    await service.scanAndIndex('tenant-1');
 
     expect(records.filter((record) => !record.deletedAt)).toHaveLength(8);
   });

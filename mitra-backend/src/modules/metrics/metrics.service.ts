@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import {
@@ -24,8 +24,9 @@ import {
  * This endpoint is restricted to ADMIN role — it leaks internal system state.
  */
 @Injectable()
-export class MetricsService implements OnModuleInit {
+export class MetricsService implements OnModuleInit, OnModuleDestroy {
   readonly registry = new Registry();
+  private poolStatsTimer: NodeJS.Timeout | null = null;
 
   readonly httpRequestsTotal = new Counter({
     name: 'http_requests_total',
@@ -73,7 +74,15 @@ export class MetricsService implements OnModuleInit {
     });
 
     // Poll pool stats every 15 seconds
-    setInterval(() => this.pollPoolStats(), 15_000);
+    this.poolStatsTimer = setInterval(() => this.pollPoolStats(), 15_000);
+    this.poolStatsTimer.unref?.();
+  }
+
+  onModuleDestroy() {
+    if (this.poolStatsTimer) {
+      clearInterval(this.poolStatsTimer);
+      this.poolStatsTimer = null;
+    }
   }
 
   private pollPoolStats() {

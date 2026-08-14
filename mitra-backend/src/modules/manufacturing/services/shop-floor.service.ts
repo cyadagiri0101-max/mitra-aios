@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { JobCard, JobCardStatus } from '../entities/jobcard.entity';
@@ -35,8 +35,9 @@ export class ShopFloorService {
 
   // ── Start job ────────────────────────────────────────────────────────────
   async startJob(jobId: string, user: AuthUser, dto: { operatorId?: string; machineId?: string; startTime?: string; shift?: string }) {
+    const tenantId = this.requireTenant(user.tenantId);
     return this.dataSource.transaction(async (em) => {
-      const job = await this.getJob(em, jobId);
+      const job = await this.getJob(em, jobId, tenantId);
       const ctx = this.buildContext(user);
       const instance = await this.workflowService.findInstanceByEntity('job_card', job.id, user.tenantId ?? undefined, em);
       if (!instance) {
@@ -97,8 +98,9 @@ export class ShopFloorService {
     rejectionReason?: string;
     remarks?: string;
   }) {
+    const tenantId = this.requireTenant(user.tenantId);
     return this.dataSource.transaction(async (em) => {
-      const job = await this.getJob(em, jobId);
+      const job = await this.getJob(em, jobId, tenantId);
       if (job.status !== JobCardStatus.IN_PROGRESS && job.status !== JobCardStatus.REWORK) {
         throw new BadRequestException('Production can only be logged against an IN_PROGRESS or REWORK job');
       }
@@ -180,10 +182,11 @@ export class ShopFloorService {
 
   // ── Job transitions (pause/resume/hold/complete/cancel/rework/scrap) ─────
   async transitionJob(jobId: string, transitionKey: keyof typeof JOB_TRANSITIONS, user: AuthUser, dto: { holdReason?: string; remarks?: string }) {
+    const tenantId = this.requireTenant(user.tenantId);
     const transitionId = JOB_TRANSITIONS[transitionKey];
     if (!transitionId) throw new BadRequestException(`Unknown job transition: ${String(transitionKey)}`);
     return this.dataSource.transaction(async (em) => {
-      const job = await this.getJob(em, jobId);
+      const job = await this.getJob(em, jobId, tenantId);
       const ctx = this.buildContext(user);
       const instance = await this.workflowService.findInstanceByEntity('job_card', job.id, user.tenantId ?? undefined, em);
       if (!instance) throw new BadRequestException('Job workflow instance missing');
@@ -225,6 +228,13 @@ export class ShopFloorService {
   }
 
   // ── Query helpers ────────────────────────────────────────────────────────
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async listJobCards(q: { workOrderId?: string; status?: string; machineId?: string }, tenantId?: string) {
     const qb = this.jobCardRepo.createQueryBuilder('jc').where('jc.deleted_at IS NULL');
     if (tenantId) qb.andWhere('jc.tenant_id = :tenantId', { tenantId });
@@ -248,8 +258,9 @@ export class ShopFloorService {
    * terminal state (production history generated automatically, Phase 5).
    */
   private async rollUpWorkOrder(em: EntityManager, workOrderId: string, user: AuthUser) {
-    const jobs = (await em.getRepository(JobCard).find({ where: { workOrderId, deletedAt: undefined } })) as JobCard[];
-    const wo = await em.getRepository(WorkOrder).findOne({ where: { id: workOrderId, deletedAt: undefined } });
+    const tenantId = this.requireTenant(user.tenantId);
+    const jobs = (await em.getRepository(JobCard).find({ where: { workOrderId, tenantId, deletedAt: undefined } })) as JobCard[];
+    const wo = await em.getRepository(WorkOrder).findOne({ where: { id: workOrderId, tenantId, deletedAt: undefined } });
     if (!wo || jobs.length === 0) return;
 
     const produced = jobs.reduce((s, j) => s + Number(j.producedQty || 0), 0);
@@ -294,7 +305,7 @@ export class ShopFloorService {
           }, { tenantId: user.tenantId, actorId: user.id, em });
           if (toState === 'COMPLETED') {
             await em.getRepository(MaterialReservation).update(
-              { workOrderId: wo.id },
+              { workOrderId: wo.id, tenantId },
               { status: 'RELEASED' as ReservationStatus, updatedBy: user.id },
             );
           }
@@ -305,8 +316,8 @@ export class ShopFloorService {
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
-  private async getJob(em: EntityManager, jobId: string) {
-    const job = await em.getRepository(JobCard).findOne({ where: { id: jobId, deletedAt: undefined } });
+  private async getJob(em: EntityManager, jobId: string, tenantId?: string) {
+    const job = await em.getRepository(JobCard).findOne({ where: { id: jobId, tenantId, deletedAt: undefined } });
     if (!job) throw new NotFoundException('Job card not found');
     return job;
   }

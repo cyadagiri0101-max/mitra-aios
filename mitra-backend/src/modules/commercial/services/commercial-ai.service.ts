@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { AiDocumentMetadata } from '../entities/ai-document-metadata.entity';
@@ -21,6 +21,14 @@ export class CommercialAiService {
     private readonly repo: Repository<AiDocumentMetadata>,
   ) {}
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async syncEntityContext(
     entityType: string,
     entityId: string,
@@ -28,8 +36,9 @@ export class CommercialAiService {
     userId?: string,
     tenantId?: string | null,
   ): Promise<AiDocumentMetadata> {
+    const scopeTenant = this.requireTenant(tenantId);
     const existing = await this.repo.findOne({
-      where: { entityType, entityId, deletedAt: IsNull() },
+      where: { entityType, entityId, tenantId: scopeTenant, deletedAt: IsNull() },
     });
 
     const payload = {
@@ -59,7 +68,7 @@ export class CommercialAiService {
         vector: null,
         generatedAt: null,
       },
-      ...(tenantId ? { tenantId } : {}),
+      tenantId: scopeTenant,
       ...(userId ? { createdBy: userId, updatedBy: userId } : {}),
     } as unknown as AiDocumentMetadata);
     return this.repo.save(created);
@@ -70,9 +79,11 @@ export class CommercialAiService {
     entityId: string,
     model: string,
     dimensions: number,
+    tenantId?: string | null,
   ): Promise<AiDocumentMetadata> {
+    const scopeTenant = this.requireTenant(tenantId);
     const existing = await this.repo.findOne({
-      where: { entityType, entityId, deletedAt: IsNull() },
+      where: { entityType, entityId, tenantId: scopeTenant, deletedAt: IsNull() },
     });
     if (!existing) {
       throw new Error(`AI context not found for ${entityType}:${entityId}`);
@@ -91,9 +102,11 @@ export class CommercialAiService {
     entityType: string,
     entityId: string,
     ref: { type: string; id: string; title?: string; similarity?: number },
+    tenantId?: string | null,
   ): Promise<AiDocumentMetadata> {
+    const scopeTenant = this.requireTenant(tenantId);
     const existing = await this.repo.findOne({
-      where: { entityType, entityId, deletedAt: IsNull() },
+      where: { entityType, entityId, tenantId: scopeTenant, deletedAt: IsNull() },
     });
     if (!existing) {
       throw new Error(`AI context not found for ${entityType}:${entityId}`);
@@ -106,14 +119,12 @@ export class CommercialAiService {
   }
 
   async getContext(entityType: string, entityId: string, tenantId?: string | null) {
-    const where: any = { entityType, entityId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { entityType, entityId, tenantId: this.requireTenant(tenantId), deletedAt: IsNull() };
     return this.repo.findOne({ where });
   }
 
   async listByEntityType(entityType: string, tenantId?: string | null, take = 100) {
-    const where: any = { entityType, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const where: any = { entityType, tenantId: this.requireTenant(tenantId), deletedAt: IsNull() };
     return this.repo.find({ where, take, order: { updatedAt: 'DESC' } });
   }
 }

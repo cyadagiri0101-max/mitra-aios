@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { AnalyticsDashboardService } from './analytics-dashboard.service';
 
 @Injectable()
 export class AnalyticsKpiService {
   constructor(private readonly dashboardService: AnalyticsDashboardService) {}
 
-  async getKpis(tenantId?: string, period = '30d') {
+  async getKpis(tenantId?: string | null, period = '30d') {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
     const dashboard = await this.dashboardService.getExecutiveDashboard(tenantId);
 
     const baseDefinitions = [

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { EngineeringChangeService } from '../../ecr-eco/services/engineering-change.service';
 import { EngineeringChangeRequest, ECRStatus } from '../../ecr-eco/entities/engineeringchangerequest.entity';
 import { EngineeringChangeOrder } from '../../ecr-eco/entities/engineeringchangeorder.entity';
@@ -141,5 +141,54 @@ describe('EngineeringChangeService', () => {
   it('rejects updating a closed ECR', async () => {
     ecrRepo.findOne.mockResolvedValue({ ...ecr, status: ECRStatus.CLOSED });
     await expect(service.updateECR('ecr-1', { title: 'x' }, actor)).rejects.toThrow(BadRequestException);
+  });
+
+  describe('tenant isolation', () => {
+    const noTenantActor = { userId: 'u-1', userRole: ['DESIGN'], userPermissions: [], tenantId: null };
+
+    it('rejects tenantless ECR creation (fail closed)', async () => {
+      await expect(service.createECR({ projectId: 'p-1', title: 'x' }, noTenantActor)).rejects.toThrow(ForbiddenException);
+      expect(ecrRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('writes the caller tenant onto created ECR / ECO / ECN', async () => {
+      const ecr = await service.createECR({ projectId: 'p-1', title: 'x' }, actor);
+      expect(ecr.tenantId).toBe('t-1');
+      const eco = await service.createECO({ ecrId: 'ecr-1', projectId: 'p-1' }, actor);
+      expect(eco.tenantId).toBe('t-1');
+      ecoRepo.findOne.mockResolvedValue({ ...eco, id: 'eco-9' });
+      const ecn = await service.issueECN('eco-9', { title: 'Notify' }, actor);
+      expect(ecn.tenantId).toBe('t-1');
+    });
+
+    it('returns 404 for another tenant\'s ECR and never updates it', async () => {
+      ecrRepo.findOne.mockResolvedValue(null);
+      await expect(service.updateECR('ecr-x', { title: 'x' }, { ...actor, tenantId: 't-2' })).rejects.toThrow(NotFoundException);
+      expect(ecrRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('scopes impact mutation to the caller tenant', async () => {
+      impactRepo.findOne.mockResolvedValue(null);
+      await expect(service.updateImpact('ecr-1', 'imp-x', { severity: 'HIGH' }, { ...actor, tenantId: 't-2' })).rejects.toThrow(NotFoundException);
+      expect(impactRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ id: 'imp-x', tenantId: 't-2' }) }),
+      );
+      expect(impactRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('scopes list queries to the caller tenant', async () => {
+      const ecrQb = ecrRepo.createQueryBuilder();
+      ecrRepo.createQueryBuilder = jest.fn(() => ecrQb);
+      await service.findECRs('t-1');
+      expect(ecrQb.andWhere).toHaveBeenCalledWith('e.tenant_id = :tenantId', { tenantId: 't-1' });
+      const ecoQb = ecoRepo.createQueryBuilder();
+      ecoRepo.createQueryBuilder = jest.fn(() => ecoQb);
+      await service.findECOs('t-1');
+      expect(ecoQb.andWhere).toHaveBeenCalledWith('e.tenant_id = :tenantId', { tenantId: 't-1' });
+      const ecnQb = ecnRepo.createQueryBuilder();
+      ecnRepo.createQueryBuilder = jest.fn(() => ecnQb);
+      await service.findECNs('t-1');
+      expect(ecnQb.andWhere).toHaveBeenCalledWith('e.tenant_id = :tenantId', { tenantId: 't-1' });
+    });
   });
 });

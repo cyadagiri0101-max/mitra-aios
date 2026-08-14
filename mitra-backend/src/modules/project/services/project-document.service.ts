@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { ProjectFolder } from '../entities/projectfolder.entity';
@@ -122,10 +122,20 @@ export class ProjectDocumentService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
+  /** Fail-closed tenant guard - mirrors TenantAwareService.requireTenant. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async findOne(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const document = await this.documentRepo.findOne({ where, relations: ['versions'] });
+    const scopeTenant = this.requireTenant(tenantId);
+    const document = await this.documentRepo.findOne({
+      where: { id, tenantId: scopeTenant, deletedAt: IsNull() },
+      relations: ['versions'],
+    });
     if (!document) throw new NotFoundException('Document not found');
     return document;
   }
@@ -149,6 +159,7 @@ export class ProjectDocumentService {
       if (!folder) throw new BadRequestException('Folder not found for this project');
     }
 
+    const scopeTenant = this.requireTenant(tenantId);
     const checksum = file.checksum ?? null;
 
     const document = this.documentRepo.create({
@@ -165,7 +176,7 @@ export class ProjectDocumentService {
       isLatest: true,
       createdBy: userId,
       updatedBy: userId,
-      tenantId: tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     const saved = await this.documentRepo.save(document);
 
@@ -182,7 +193,7 @@ export class ProjectDocumentService {
         checksum,
         createdBy: userId,
         updatedBy: userId,
-        tenantId: tenantId ?? undefined,
+        tenantId: scopeTenant,
       }),
     );
 
@@ -191,11 +202,11 @@ export class ProjectDocumentService {
       eventType: ProjectDomainEventType.DOCUMENT_UPLOADED,
       occurredAt: new Date(),
       projectId,
-      tenantId: tenantId ?? null,
+      tenantId: scopeTenant,
       actorId: userId ?? null,
       payload: { documentId: saved.id, title: saved.title, version: 1 },
     });
-    return this.findOne(saved.id, tenantId);
+    return this.findOne(saved.id, scopeTenant);
   }
 
   /** Metadata-only update (title, description, type, folder). */
@@ -303,9 +314,12 @@ export class ProjectDocumentService {
   }
 
   async versions(documentId: string, tenantId?: string | null) {
-    const where: any = { documentId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    return this.versionRepo.find({ where, order: { versionNumber: 'DESC' } as any, take: 200 });
+    const scopeTenant = this.requireTenant(tenantId);
+    return this.versionRepo.find({
+      where: { documentId, tenantId: scopeTenant, deletedAt: IsNull() },
+      order: { versionNumber: 'DESC' } as any,
+      take: 200,
+    });
   }
 
   /**
@@ -314,9 +328,9 @@ export class ProjectDocumentService {
    * is signed for a limited window (1 day).
    */
   async download(id: string, versionNumber?: number, tenantId?: string | null) {
-    const document = await this.findOne(id, tenantId);
-    const where: any = { documentId: id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const document = await this.findOne(id, scopeTenant);
+    const where: any = { documentId: id, tenantId: scopeTenant, deletedAt: IsNull() };
     if (versionNumber) where.versionNumber = versionNumber;
     const version = await this.versionRepo.findOne({
       where,

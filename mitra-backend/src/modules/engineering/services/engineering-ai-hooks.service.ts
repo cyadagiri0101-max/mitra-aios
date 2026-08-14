@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { EngineeringAiHook } from '../entities/engineering-ai-hook.entity';
@@ -23,29 +23,39 @@ export class EngineeringAiHooksService {
     private readonly hookRepo: Repository<EngineeringAiHook>,
   ) {}
 
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
   async findAll(tenantId?: string | null, page = 1, limit = 50) {
+    const scopeTenant = this.requireTenant(tenantId);
     const qb = this.hookRepo.createQueryBuilder('h')
       .where('h.deleted_at IS NULL')
+      .andWhere('(h.tenant_id = :tenantId OR h.tenant_id IS NULL)', { tenantId: scopeTenant })
       .orderBy('h.hook_code', 'ASC')
       .skip((page - 1) * limit)
       .take(limit);
-    if (tenantId) qb.andWhere('(h.tenant_id = :tenantId OR h.tenant_id IS NULL)', { tenantId });
     const [data, total] = await qb.getManyAndCount();
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     const qb = this.hookRepo.createQueryBuilder('h')
       .where('h.id = :id', { id })
-      .andWhere('h.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('(h.tenant_id = :tenantId OR h.tenant_id IS NULL)', { tenantId });
+      .andWhere('h.deleted_at IS NULL')
+      .andWhere('(h.tenant_id = :tenantId OR h.tenant_id IS NULL)', { tenantId: scopeTenant });
     const hook = await qb.getOne();
     if (!hook) throw new NotFoundException('AI hook not found');
     return hook;
   }
 
   async update(id: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const hook = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const hook = await this.findOne(id, scopeTenant);
     const allowed = ['hookName', 'description', 'isEnabled', 'config', 'notes'];
     for (const key of allowed) {
       if (data[key] !== undefined) (hook as any)[key] = data[key];
@@ -76,10 +86,11 @@ export class EngineeringAiHooksService {
   }
 
   async findByCodes(codes: string[], tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     const qb = this.hookRepo.createQueryBuilder('h')
       .where('h.deleted_at IS NULL')
-      .andWhere('h.hook_code IN (:...codes)', { codes });
-    if (tenantId) qb.andWhere('(h.tenant_id = :tenantId OR h.tenant_id IS NULL)', { tenantId });
+      .andWhere('h.hook_code IN (:...codes)', { codes })
+      .andWhere('(h.tenant_id = :tenantId OR h.tenant_id IS NULL)', { tenantId: scopeTenant });
     return qb.getMany();
   }
 }

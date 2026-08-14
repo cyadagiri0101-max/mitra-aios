@@ -1,6 +1,6 @@
 # CAPA VALIDATION REPORT
 
-**Date:** 2026-06-24  
+**Date:** 2026-06-24
 **Status:** ✅ CAPA MODULE VERIFIED
 
 ---

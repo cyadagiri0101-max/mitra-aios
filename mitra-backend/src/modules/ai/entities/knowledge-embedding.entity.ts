@@ -8,6 +8,14 @@ export enum EmbeddingEntityType {
   KNOWLEDGE    = 'knowledge',
   SERVICE      = 'service',
   WORK_ORDER   = 'work_order',
+  // Commercial domain (Sprint 3, P1-2): indexed from outbox events + full sync.
+  CUSTOMER     = 'customer',
+  ENQUIRY      = 'enquiry',
+  QUOTATION    = 'quotation',
+  SALES_ORDER  = 'sales_order',
+  INVOICE      = 'invoice',
+  PAYMENT      = 'payment',
+  CREDIT_NOTE  = 'credit_note',
 }
 
 /**

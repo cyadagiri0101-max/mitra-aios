@@ -92,8 +92,8 @@ export interface RfqSubmittedEvent {
   payload: {
     enquiryId: string;
     enquiryNumber: string;
-    customerName: string;
-    productName: string;
+    customerName: string | null;
+    productName: string | null;
   };
 }
 
@@ -140,8 +140,8 @@ export interface QuotationCreatedEvent {
   payload: {
     quotationId: string;
     quotationNumber: string;
-    enquiryId: string;
-    customerId: string;
+    enquiryId: string | null;
+    customerId: string | null;
     totalAmount: number;
   };
 }
@@ -154,7 +154,7 @@ export interface QuotationSentEvent {
   payload: {
     quotationId: string;
     quotationNumber: string;
-    customerId: string;
+    customerId: string | null;
   };
 }
 
@@ -166,8 +166,8 @@ export interface QuotationAcceptedEvent {
   payload: {
     quotationId: string;
     quotationNumber: string;
-    customerId: string;
-    projectId: string;
+    customerId: string | null;
+    projectId: string | null;
     projectName: string;
   };
 }
@@ -180,7 +180,7 @@ export interface QuotationRejectedEvent {
   payload: {
     quotationId: string;
     quotationNumber: string;
-    customerId: string;
+    customerId: string | null;
     reason: string;
   };
 }
@@ -195,7 +195,7 @@ export interface ProjectCreatedEvent {
     projectNumber: string;
     name: string;
     quotationId: string;
-    customerId: string;
+    customerId: string | null;
   };
 }
 
@@ -357,6 +357,30 @@ export type CommercialDomainEvent =
   | CreditNoteAppliedEvent
   | CreditNoteCancelledEvent;
 
+/**
+ * Every event type the Commercial Domain can emit. Used by the outbox relays
+ * to route `domain_outbox` rows to the correct in-process bus — the
+ * engineering relay must never cast a commercial row to an engineering event.
+ */
+export const COMMERCIAL_EVENT_TYPES: ReadonlySet<string> = new Set(
+  Object.values(CommercialEventType),
+);
+
+export function isCommercialEventType(eventType: string): boolean {
+  return COMMERCIAL_EVENT_TYPES.has(eventType);
+}
+
+export interface CommercialDomainEventSubscriber {
+  name: string;
+  handle(event: CommercialDomainEvent): Promise<void> | void;
+}
+
+/**
+ * Publisher contract implemented by CommercialEventPublisherService.
+ * Downstream consumers (AI layer, knowledge indexing, integrations) receive
+ * events through the in-process bus or poll the outbox — never by coupling
+ * to the emitting services.
+ */
 export interface EventPublisher {
   publish(event: CommercialDomainEvent): Promise<void>;
   publishMany(events: CommercialDomainEvent[]): Promise<void>;

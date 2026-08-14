@@ -11,6 +11,8 @@ import {
 } from '../dto/credit-note.dto';
 import { TenantAwareService } from '@common/services/tenant-aware.service';
 import { AuditService } from '../../audit/services/audit.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
+import { CommercialEventType } from '../events/commercial.events';
 
 @Injectable()
 export class CreditNoteService extends TenantAwareService<CreditNote> {
@@ -22,6 +24,7 @@ export class CreditNoteService extends TenantAwareService<CreditNote> {
     @InjectRepository(Customer)
     private readonly customerRepo: Repository<Customer>,
     private readonly auditService: AuditService,
+    private readonly events: CommercialEventPublisherService,
   ) {
     super(repo, 'Credit Note');
   }
@@ -81,6 +84,20 @@ export class CreditNoteService extends TenantAwareService<CreditNote> {
         amount: saved.amount, currency: saved.currency, tenantId,
       },
     );
+
+    await this.events.publish({
+      eventType: CommercialEventType.CREDIT_NOTE_CREATED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        creditNoteId: saved.id,
+        creditNoteNumber: number,
+        invoiceId: saved.invoiceId ?? null,
+        customerId: customerId ?? null,
+        amount: saved.amount,
+      },
+    });
 
     return saved;
   }
@@ -166,6 +183,19 @@ export class CreditNoteService extends TenantAwareService<CreditNote> {
       },
     );
 
+    await this.events.publish({
+      eventType: CommercialEventType.CREDIT_NOTE_APPLIED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        creditNoteId: note.id,
+        creditNoteNumber: note.creditNoteNumber,
+        invoiceId: invoice.id,
+        amount: note.amount,
+      },
+    });
+
     return note;
   }
 
@@ -189,6 +219,18 @@ export class CreditNoteService extends TenantAwareService<CreditNote> {
       'credit-note.cancelled', 'CreditNote', note.id, userId ?? 'system',
       { creditNoteNumber: note.creditNoteNumber, reason: dto.reason, tenantId },
     );
+
+    await this.events.publish({
+      eventType: CommercialEventType.CREDIT_NOTE_CANCELLED,
+      timestamp: new Date(),
+      tenantId: tenantId ?? null,
+      actorId: userId ?? null,
+      payload: {
+        creditNoteId: note.id,
+        creditNoteNumber: note.creditNoteNumber,
+        reason: dto.reason,
+      },
+    });
 
     return note;
   }

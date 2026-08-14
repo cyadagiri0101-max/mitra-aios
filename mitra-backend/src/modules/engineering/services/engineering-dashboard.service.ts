@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, Not, In } from 'typeorm';
 import { EngineeringDrawing } from '../entities/engineering-drawing.entity';
@@ -28,16 +28,25 @@ export class EngineeringDashboardService {
     @InjectRepository(EngineeringChangeRequest) private readonly ecrRepo: Repository<EngineeringChangeRequest>,
   ) {}
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async getStats(tenantId?: string | null) {
-    const tenantWhere = (tenantId ? { tenantId } : {}) as any;
+    const scopeTenant = this.requireTenant(tenantId);
+    const tenantWhere = { tenantId: scopeTenant } as any;
 
     const [drawingsByStatus, bomsByStatus, routingsByStatus, docsByType, changesByStatus, pendingReviews, openChanges] =
       await Promise.all([
-        this.groupCount(this.drawingRepo, 'status', tenantId),
-        this.groupCount(this.bomRepo, 'status', tenantId),
-        this.groupCount(this.routingRepo, 'status', tenantId),
-        this.groupCount(this.documentRepo, 'docType', tenantId),
-        this.groupCount(this.ecrRepo, 'status', tenantId),
+        this.groupCount(this.drawingRepo, 'status', scopeTenant),
+        this.groupCount(this.bomRepo, 'status', scopeTenant),
+        this.groupCount(this.routingRepo, 'status', scopeTenant),
+        this.groupCount(this.documentRepo, 'docType', scopeTenant),
+        this.groupCount(this.ecrRepo, 'status', scopeTenant),
         this.reviewRepo.count({
           where: { status: In([ReviewStatus.PENDING, ReviewStatus.IN_REVIEW]), deletedAt: IsNull(), ...tenantWhere },
         }),
@@ -89,18 +98,19 @@ export class EngineeringDashboardService {
 
   /** Pending review queue for the Review Center (any user's pending items). */
   async getPendingReviews(tenantId?: string | null, limit = 50) {
-    const where: any = { status: In([ReviewStatus.PENDING, ReviewStatus.IN_REVIEW]), deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const where: any = { status: In([ReviewStatus.PENDING, ReviewStatus.IN_REVIEW]), deletedAt: IsNull(), tenantId: scopeTenant };
     return this.reviewRepo.find({ where, order: { createdAt: 'ASC' } as any, take: limit });
   }
 
   private async groupCount(repo: Repository<any>, column: string, tenantId?: string | null): Promise<Record<string, number>> {
+    const scopeTenant = this.requireTenant(tenantId);
     const qb = repo.createQueryBuilder('e')
       .select(`e.${column}`, 'key')
       .addSelect('COUNT(*)', 'count')
       .where('e.deleted_at IS NULL')
       .groupBy(`e.${column}`);
-    if (tenantId) qb.andWhere('e.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('e.tenant_id = :tenantId', { tenantId: scopeTenant });
     const rows: { key: string; count: string }[] = await qb.getRawMany();
     const result: Record<string, number> = {};
     for (const row of rows) {

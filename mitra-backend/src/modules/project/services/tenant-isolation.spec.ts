@@ -6,6 +6,7 @@
  * that inspect the TypeORM `where` clauses passed to the repository.
  */
 import { Test, TestingModule } from '@nestjs/testing';
+import { ForbiddenException } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Project } from '../entities/project.entity';
@@ -72,11 +73,9 @@ describe('ProjectService — tenant isolation', () => {
     expect(whereArg).toHaveProperty('tenantId', 'tenant-abc');
   });
 
-  it('findAll() without tenantId does NOT inject a foreign tenant', async () => {
-    await service.findAll(undefined);
-
-    const whereArg = projectRepo.findAndCount.mock.calls[0][0].where;
-    expect(whereArg).not.toHaveProperty('tenantId');
+  it('findAll() fails closed without tenantId — no unfiltered reads (D)', async () => {
+    await expect(service.findAll(undefined)).rejects.toThrow(ForbiddenException);
+    expect(projectRepo.findAndCount).not.toHaveBeenCalled();
   });
 
   it('findAll() always includes deletedAt: IsNull() to exclude soft-deleted rows', async () => {
@@ -89,7 +88,7 @@ describe('ProjectService — tenant isolation', () => {
   });
 
   it('findOne() does not search without a defined id', async () => {
-    await service.findOne('project-uuid').catch(() => { /* NotFoundException expected */ });
+    await service.findOne('project-uuid', 'tenant-abc').catch(() => { /* NotFoundException expected */ });
     const whereArg = projectRepo.findOne.mock.calls[0][0].where;
     expect(whereArg.id).toBe('project-uuid');
   });

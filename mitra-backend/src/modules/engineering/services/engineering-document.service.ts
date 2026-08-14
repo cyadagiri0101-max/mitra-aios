@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, IsNull, Like } from 'typeorm';
 import { EngineeringDocument, EngineeringDocType } from '../entities/engineering-document.entity';
@@ -26,11 +26,21 @@ export class EngineeringDocumentService {
     private readonly aiHooks: EngineeringAiHooksService,
   ) {}
 
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
   async findAllAdvanced(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
-    const qb = this.documentRepo.createQueryBuilder('d').where('d.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('d.tenant_id = :tenantId', { tenantId });
+    const qb = this.documentRepo.createQueryBuilder('d')
+      .where('d.deleted_at IS NULL')
+      .andWhere('d.tenant_id = :tenantId', { tenantId: scopeTenant });
+
     if (query.search) {
       qb.andWhere('(d.document_number ILIKE :search OR d.title ILIKE :search OR d.file_name ILIKE :search)', {
         search: `%${query.search}%`,
@@ -51,29 +61,29 @@ export class EngineeringDocumentService {
   }
 
   async findOne(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const document = await this.documentRepo.findOne({ where });
+    const scopeTenant = this.requireTenant(tenantId);
+    const document = await this.documentRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!document) throw new NotFoundException('Engineering document not found');
     return document;
   }
 
   async create(data: Record<string, any>, userId: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     if (!data.projectId) throw new BadRequestException('projectId is required — no orphan engineering records');
     const document = this.documentRepo.create({
       ...data,
-      documentNumber: await this.generateDocumentNumber(tenantId),
+      documentNumber: await this.generateDocumentNumber(scopeTenant),
       docType: data.docType ?? EngineeringDocType.PDF,
       currentVersion: 1,
       status: 'DRAFT',
       createdBy: userId,
       updatedBy: userId,
-      tenantId: tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     const saved = await this.documentRepo.save(document);
 
     if (data.fileName) {
-      await this.addVersion(saved.id, data, userId, tenantId);
+      await this.addVersion(saved.id, data, userId, scopeTenant);
     }
 
     await this.auditService.logBusinessEvent('engineering.document.created', 'EngineeringDocument', saved.id, userId ?? 'system', {
@@ -87,7 +97,8 @@ export class EngineeringDocumentService {
   }
 
   async update(id: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const document = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const document = await this.findOne(id, scopeTenant);
     Object.assign(document, data, { updatedBy: userId });
     const saved = await this.documentRepo.save(document);
     await this.auditService.logBusinessEvent('engineering.document.updated', 'EngineeringDocument', saved.id, userId ?? 'system', {
@@ -98,14 +109,15 @@ export class EngineeringDocumentService {
   }
 
   async remove(id: string, userId: string, tenantId?: string | null) {
-    const document = await this.findOne(id, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const document = await this.findOne(id, scopeTenant);
     await this.dataSource.transaction(async (em) => {
       const now = new Date();
       document.deletedAt = now;
       document.updatedBy = userId;
       await em.getRepository(EngineeringDocument).save(document);
       await em.getRepository(EngineeringDocumentVersion).update(
-        { documentId: id, deletedAt: IsNull() },
+        { documentId: id, deletedAt: IsNull(), tenantId: scopeTenant },
         { deletedAt: now, updatedBy: userId },
       );
     });
@@ -119,18 +131,18 @@ export class EngineeringDocumentService {
   // ── Versions ─────────────────────────────────────────────────────────────
 
   async listVersions(documentId: string, tenantId?: string | null) {
-    await this.findOne(documentId, tenantId);
-    const where: any = { documentId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    return this.versionRepo.find({ where, order: { versionNumber: 'DESC' } });
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(documentId, scopeTenant);
+    return this.versionRepo.find({ where: { documentId, deletedAt: IsNull(), tenantId: scopeTenant }, order: { versionNumber: 'DESC' } });
   }
 
   /** Append a new immutable version to the document. */
   async addVersion(documentId: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const document = await this.findOne(documentId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    const document = await this.findOne(documentId, scopeTenant);
     if (!data.fileName) throw new BadRequestException('fileName is required to version a document');
     const last = await this.versionRepo.findOne({
-      where: { documentId, deletedAt: IsNull() },
+      where: { documentId, deletedAt: IsNull(), tenantId: scopeTenant },
       order: { versionNumber: 'DESC' },
     });
     const versionNumber = (last?.versionNumber ?? 0) + 1;
@@ -148,7 +160,7 @@ export class EngineeringDocumentService {
       notes: data.notes ?? null,
       createdBy: userId,
       updatedBy: userId,
-      tenantId: document.tenantId ?? tenantId ?? undefined,
+      tenantId: scopeTenant,
     });
     const saved = await this.versionRepo.save(version);
 
@@ -171,11 +183,10 @@ export class EngineeringDocumentService {
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   private async generateDocumentNumber(tenantId?: string | null): Promise<string> {
+    const scopeTenant = this.requireTenant(tenantId);
     const year = new Date().getFullYear();
     const prefix = `EDOC-${year}-`;
-    const where: any = { documentNumber: Like(`${prefix}%`) };
-    if (tenantId) where.tenantId = tenantId;
-    const count = await this.documentRepo.count({ where });
+    const count = await this.documentRepo.count({ where: { documentNumber: Like(`${prefix}%`), tenantId: scopeTenant } });
     return `${prefix}${String(count + 1).padStart(4, '0')}`;
   }
 

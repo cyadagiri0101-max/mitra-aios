@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { ProjectService } from '../../project/services/project.service';
@@ -24,16 +24,25 @@ export class AnalyticsDashboardService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getExecutiveDashboard(tenantId?: string) {
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
+  async getExecutiveDashboard(tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     const [projectStats, leadPipeline, marginSummary, engStats, productionStatus, ncrRows, serviceRequests, eventSnapshot] = await Promise.all([
-      this.projectService.getDashboardStats(tenantId),
-      this.leadService.getPipelineSummary(tenantId),
-      this.quotationMarginService.getMarginSummary(tenantId),
-      this.engineeringDashboardService.getStats(tenantId),
-      this.productionTrackingService.dashboard({}, tenantId),
-      this.ncrRepo.find({ where: { deletedAt: IsNull(), tenantId: tenantId ?? undefined } }),
-      this.serviceRequestRepo.find({ where: { deletedAt: IsNull(), tenantId: tenantId ?? undefined } }),
-      this.getOutboxSnapshot(tenantId),
+      this.projectService.getDashboardStats(scopeTenant),
+      this.leadService.getPipelineSummary(scopeTenant),
+      this.quotationMarginService.getMarginSummary(scopeTenant),
+      this.engineeringDashboardService.getStats(scopeTenant),
+      this.productionTrackingService.dashboard({}, scopeTenant),
+      this.ncrRepo.find({ where: { deletedAt: IsNull(), tenantId: scopeTenant } }),
+      this.serviceRequestRepo.find({ where: { deletedAt: IsNull(), tenantId: scopeTenant } }),
+      this.getOutboxSnapshot(scopeTenant),
     ]);
 
     const totalNcrs = ncrRows.length;
@@ -53,7 +62,7 @@ export class AnalyticsDashboardService {
 
     return {
       companyOverview: {
-        tenantId: tenantId ?? 'all',
+        tenantId: scopeTenant,
         totalProjects: projectStats.total,
         totalActiveProjects: projectStats.active,
         revenue,
@@ -123,15 +132,16 @@ export class AnalyticsDashboardService {
   }
 
   private async getOutboxSnapshot(tenantId?: string) {
+    const scopeTenant = this.requireTenant(tenantId);
     const rows = await this.dataSource.query(
       `SELECT event_type AS "eventType", COUNT(*)::int AS count
        FROM domain_outbox
        WHERE deleted_at IS NULL
-       ${tenantId ? 'AND tenant_id = $1' : ''}
+         AND tenant_id = $1
        GROUP BY event_type
        ORDER BY count DESC
        LIMIT 5`,
-      tenantId ? [tenantId] : undefined,
+      [scopeTenant],
     );
 
     return rows.map((row: any) => ({ eventType: row.eventType, count: Number(row.count) }));

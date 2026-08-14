@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EnquiryService } from './enquiry.service';
 import { Enquiry, EnquiryStatus } from '../entities/enquiry.entity';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('EnquiryService', () => {
@@ -55,6 +56,7 @@ describe('EnquiryService', () => {
       providers: [
         EnquiryService,
         { provide: getRepositoryToken(Enquiry), useValue: mockRepo },
+        { provide: CommercialEventPublisherService, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
       ],
     }).compile();
 

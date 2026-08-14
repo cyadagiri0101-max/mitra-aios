@@ -1,8 +1,8 @@
 # MITRA AIOS v1.2-rc2 — Release Readiness Review
 
-**Date:** 2026-07-17  
-**Review Board:** Chief Release Architect, Principal QA Engineer, Platform Reliability Engineer, Security Review Lead, DevOps Lead, Software Quality Auditor  
-**Scope:** MITRA AIOS v1.2 (EOS Convergence)  
+**Date:** 2026-07-17
+**Review Board:** Chief Release Architect, Principal QA Engineer, Platform Reliability Engineer, Security Review Lead, DevOps Lead, Software Quality Auditor
+**Scope:** MITRA AIOS v1.2 (EOS Convergence)
 **Evidence Base:** Inspected source code, test output, CI configuration, benchmarks, documentation
 
 ---

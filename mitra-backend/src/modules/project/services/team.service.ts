@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { ProjectTeam } from '../entities/projectteam.entity';
@@ -21,6 +21,14 @@ export class TeamService {
   ) {}
 
   // ── Teams ──────────────────────────────────────────────────────────────────
+
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
 
   /**
    * List teams with members. `skill` (case-insensitive) filters members by
@@ -109,11 +117,17 @@ export class TeamService {
   // ── Members ────────────────────────────────────────────────────────────────
 
   async addMember(teamId: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const team = await this.findOne(teamId, tenantId);
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    const team = await this.teamRepo.findOne({
+      where: { id: teamId, tenantId, deletedAt: IsNull() },
+    });
+    if (!team) throw new NotFoundException('Team not found');
 
     if (data.userId) {
       const dup = await this.memberRepo.findOne({
-        where: { teamId, userId: data.userId, deletedAt: IsNull() },
+        where: { teamId, tenantId, userId: data.userId, deletedAt: IsNull() },
       });
       if (dup) throw new BadRequestException('User is already a member of this team');
     }
@@ -122,7 +136,7 @@ export class TeamService {
 
     const isLead = data.isLead ?? false;
     if (isLead) {
-      await this.memberRepo.update({ teamId, isLead: true, deletedAt: IsNull() }, { isLead: false });
+      await this.memberRepo.update({ teamId, tenantId, isLead: true, deletedAt: IsNull() }, { isLead: false });
     }
 
     const member = this.memberRepo.create({
@@ -146,14 +160,14 @@ export class TeamService {
   }
 
   async updateMember(memberId: string, data: Record<string, any>, userId: string, tenantId?: string | null) {
-    const where: any = { id: memberId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const where: any = { id: memberId, tenantId: scopeTenant, deletedAt: IsNull() };
     const member = await this.memberRepo.findOne({ where });
     if (!member) throw new NotFoundException('Team member not found');
 
     const becomingLead = data.isLead === true && !member.isLead;
     if (becomingLead) {
-      await this.memberRepo.update({ teamId: member.teamId, isLead: true, deletedAt: IsNull() }, { isLead: false });
+      await this.memberRepo.update({ teamId: member.teamId, tenantId: scopeTenant, isLead: true, deletedAt: IsNull() }, { isLead: false });
     }
 
     if (data.skills !== undefined) {
@@ -164,10 +178,10 @@ export class TeamService {
     const saved = await this.memberRepo.save(member);
 
     if (becomingLead) {
-      const team = await this.teamRepo.findOne({ where: { id: member.teamId, deletedAt: IsNull() } });
+      const team = await this.teamRepo.findOne({ where: { id: member.teamId, tenantId: scopeTenant, deletedAt: IsNull() } });
       if (team) await this.syncTeamLead(team, saved);
     }
-    await this.logActivity(member.projectId, 'team.member_updated', `Member updated: ${saved.userName}`, userId, tenantId);
+    await this.logActivity(member.projectId, 'team.member_updated', `Member updated: ${saved.userName}`, userId, scopeTenant);
     return saved;
   }
 
@@ -201,20 +215,20 @@ export class TeamService {
   }
 
   async removeMember(memberId: string, userId: string, tenantId?: string | null) {
-    const where: any = { id: memberId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const where: any = { id: memberId, tenantId: scopeTenant, deletedAt: IsNull() };
     const member = await this.memberRepo.findOne({ where });
     if (!member) throw new NotFoundException('Team member not found');
     member.deletedAt = new Date();
     member.updatedBy = userId;
     const saved = await this.memberRepo.save(member);
-    const team = await this.teamRepo.findOne({ where: { id: member.teamId, deletedAt: IsNull() } });
+    const team = await this.teamRepo.findOne({ where: { id: member.teamId, tenantId: scopeTenant, deletedAt: IsNull() } });
     await this.logActivity(
       team?.projectId ?? member.projectId,
       'team.member_removed',
       `Member removed: ${saved.userName}`,
       userId,
-      tenantId,
+      scopeTenant,
     );
     return { deleted: true, id: memberId };
   }

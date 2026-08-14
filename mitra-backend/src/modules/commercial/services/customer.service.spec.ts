@@ -15,6 +15,7 @@ import { CustomerActivityService } from './customer-activity.service';
 import { CustomerContactService } from './customer-contact.service';
 import { CustomerAddressService } from './customer-address.service';
 import { CustomerNoteService } from './customer-note.service';
+import { CommercialEventPublisherService } from './commercial-event-publisher.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('CustomerService', () => {
@@ -163,6 +164,7 @@ describe('CustomerService', () => {
           provide: CommercialAiService,
           useValue: { syncEntityContext: jest.fn().mockResolvedValue({}) },
         },
+        { provide: CommercialEventPublisherService, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
       ],
     }).compile();
 

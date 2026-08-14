@@ -1,6 +1,6 @@
 # Commercial Domain — End-to-End Validation
 
-**Date:** 2026-07-28  
+**Date:** 2026-07-28
 **Workflow:** Customer → Contact → RFQ → Review → Quotation → Send → Accept → Project
 
 ---

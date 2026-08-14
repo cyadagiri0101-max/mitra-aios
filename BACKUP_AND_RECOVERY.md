@@ -1,9 +1,9 @@
 # BACKUP AND RECOVERY - MITRA v3.2
 
-**Purpose**: Comprehensive backup and disaster recovery procedures  
-**Audience**: System Administrators, DevOps, Site Reliability Engineers  
-**Last Updated**: June 24, 2026  
-**RTO**: 1-4 hours  
+**Purpose**: Comprehensive backup and disaster recovery procedures
+**Audience**: System Administrators, DevOps, Site Reliability Engineers
+**Last Updated**: June 24, 2026
+**RTO**: 1-4 hours
 **RPO**: 24 hours
 
 ---

@@ -48,6 +48,7 @@ import { EngineeringDashboardService } from './services/engineering-dashboard.se
 import { EngineeringWorkflowService } from './services/engineering-workflow.service';
 import { EngineeringUomConversionService } from './services/engineering-uom-conversion.service';
 import { EngineeringOutboxRelayService } from './services/engineering-outbox-relay.service';
+import { EngineeringOutboxRelayScheduler } from './services/engineering-outbox-relay-scheduler.service';
 import { EngineeringDrawingController } from './controllers/engineering-drawing.controller';
 import { EngineeringBomController } from './controllers/engineering-bom.controller';
 import { EngineeringProcessPlanningController } from './controllers/engineering-process-planning.controller';
@@ -131,6 +132,7 @@ import { EngineeringOutboxController } from './controllers/engineering-outbox.co
     EngineeringWorkflowService,
     EngineeringUomConversionService,
     EngineeringOutboxRelayService,
+    EngineeringOutboxRelayScheduler,
   ],
   exports: [
     EngineeringEventBus,

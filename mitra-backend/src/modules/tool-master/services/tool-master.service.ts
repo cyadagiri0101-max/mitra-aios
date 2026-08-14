@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import * as path from 'path';
@@ -16,6 +16,14 @@ export class ToolMasterService {
     private readonly engineeringIndexerService?: EngineeringFileIndexerService,
   ) {}
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async findAll(
     tenantId?: string | null,
     page = 1,
@@ -29,10 +37,10 @@ export class ToolMasterService {
     sortBy?: string,
     sortOrder?: string,
   ) {
+    const scopeTenant = this.requireTenant(tenantId);
     const qb = this.repo.createQueryBuilder('tool');
     qb.where('tool.deletedAt IS NULL');
-
-    if (tenantId) qb.andWhere('tool.tenantId = :tenantId', { tenantId });
+    qb.andWhere('tool.tenantId = :tenantId', { tenantId: scopeTenant });
     if (toolType) qb.andWhere('tool.toolType = :toolType', { toolType });
     if (status) qb.andWhere('tool.status ILIKE :status', { status: `%${status}%` });
 
@@ -68,6 +76,7 @@ export class ToolMasterService {
   }
 
   async create(data: Record<string, any>, userId?: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     const metadata = data.folderName ? this.metadataService.parseFolderName(data.folderName) : {} as any;
     const entity = this.repo.create({
       ...data,
@@ -81,7 +90,7 @@ export class ToolMasterService {
       capacity: data.capacity ?? metadata.capacity,
       material: data.material ?? metadata.material,
       neckType: data.neckType ?? metadata.neckType,
-      tenantId: tenantId ?? undefined,
+      tenantId: scopeTenant,
       createdBy: userId ?? undefined,
       updatedBy: userId ?? undefined,
     });
@@ -89,6 +98,7 @@ export class ToolMasterService {
   }
 
   async update(id: string, data: Record<string, any>, userId?: string, tenantId?: string | null) {
+    this.requireTenant(tenantId);
     const entity = await this.findOne(id, tenantId);
     const metadata = data.folderName ? this.metadataService.parseFolderName(data.folderName) : {} as any;
     Object.assign(entity, {
@@ -108,6 +118,7 @@ export class ToolMasterService {
   }
 
   async remove(id: string, userId?: string, tenantId?: string | null) {
+    this.requireTenant(tenantId);
     const entity = await this.findOne(id, tenantId);
     entity.deletedAt = new Date();
     entity.updatedBy = userId ?? entity.updatedBy;
@@ -189,13 +200,12 @@ export class ToolMasterService {
   }
 
   private async resolveToolRecord(id: string, tenantId?: string | null) {
-    const byIdWhere: any = { id, deletedAt: IsNull() };
-    if (tenantId) byIdWhere.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const byIdWhere: any = { id, deletedAt: IsNull(), tenantId: scopeTenant };
     const byId = await this.repo.findOne({ where: byIdWhere });
     if (byId) return byId;
 
-    const byToolNoWhere: any = { toolNo: id, deletedAt: IsNull() };
-    if (tenantId) byToolNoWhere.tenantId = tenantId;
+    const byToolNoWhere: any = { toolNo: id, deletedAt: IsNull(), tenantId: scopeTenant };
     return this.repo.findOne({ where: byToolNoWhere });
   }
 

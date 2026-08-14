@@ -102,6 +102,63 @@ export class EmbeddingService {
                FROM knowledge_articles
                WHERE tenant_id = $1 AND deleted_at IS NULL AND status = 'PUBLISHED' LIMIT 500`,
       },
+      // Commercial domain (Sprint 3, P1-2) — same full-sync semantics.
+      {
+        type: EmbeddingEntityType.CUSTOMER,
+        sql:  `SELECT id,
+                 name || ' ' || COALESCE(code,'') || ' ' || COALESCE(industry,'') AS content,
+                 json_build_object('code', code, 'status', status, 'industry', industry) AS meta
+               FROM customers
+               WHERE tenant_id = $1 AND deleted_at IS NULL LIMIT 1000`,
+      },
+      {
+        type: EmbeddingEntityType.ENQUIRY,
+        sql:  `SELECT id,
+                 enquiry_number || ' ' || COALESCE(customer_name,'') || ' ' || COALESCE(product_name,'') AS content,
+                 json_build_object('enquiry_number', enquiry_number, 'status', status, 'customer_name', customer_name) AS meta
+               FROM enquiries
+               WHERE tenant_id = $1 AND deleted_at IS NULL AND status <> 'DRAFT' LIMIT 1000`,
+      },
+      {
+        type: EmbeddingEntityType.QUOTATION,
+        sql:  `SELECT id,
+                 quotation_number || ' ' || COALESCE(customer_name,'') AS content,
+                 json_build_object('quotation_number', quotation_number, 'status', status, 'total_amount', total_amount) AS meta
+               FROM quotations
+               WHERE tenant_id = $1 AND deleted_at IS NULL AND status <> 'DRAFT' LIMIT 1000`,
+      },
+      {
+        type: EmbeddingEntityType.SALES_ORDER,
+        sql:  `SELECT id,
+                 sales_order_number || ' ' || COALESCE(customer_name,'') AS content,
+                 json_build_object('sales_order_number', sales_order_number, 'status', status, 'total_amount', total_amount) AS meta
+               FROM sales_orders
+               WHERE tenant_id = $1 AND deleted_at IS NULL AND status <> 'DRAFT' LIMIT 1000`,
+      },
+      {
+        type: EmbeddingEntityType.INVOICE,
+        sql:  `SELECT id,
+                 invoice_number || ' ' || COALESCE(customer_name,'') AS content,
+                 json_build_object('invoice_number', invoice_number, 'status', status, 'total_amount', total_amount) AS meta
+               FROM invoices
+               WHERE tenant_id = $1 AND deleted_at IS NULL AND status <> 'DRAFT' LIMIT 1000`,
+      },
+      {
+        type: EmbeddingEntityType.PAYMENT,
+        sql:  `SELECT id,
+                 payment_number || ' ' || COALESCE(reference_number,'') AS content,
+                 json_build_object('payment_number', payment_number, 'amount', amount, 'currency', currency, 'method', method) AS meta
+               FROM payments
+               WHERE tenant_id = $1 AND deleted_at IS NULL LIMIT 1000`,
+      },
+      {
+        type: EmbeddingEntityType.CREDIT_NOTE,
+        sql:  `SELECT id,
+                 credit_note_number || ' ' || COALESCE(reason,'') AS content,
+                 json_build_object('credit_note_number', credit_note_number, 'status', status, 'amount', amount) AS meta
+               FROM credit_notes
+               WHERE tenant_id = $1 AND deleted_at IS NULL AND status <> 'OPEN' LIMIT 1000`,
+      },
     ];
 
     for (const task of tasks) {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, IsNull, Repository } from 'typeorm';
 import { WorkOrder, WorkOrderStatus } from '../entities/workorder.entity';
@@ -23,9 +23,18 @@ export class ProductionTrackingService {
     private readonly dataSource: DataSource,
   ) {}
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async dashboard(q: { projectId?: string; from?: string; to?: string }, tenantId?: string) {
+    const scopeTenant = this.requireTenant(tenantId);
     const qb = this.workOrderRepo.createQueryBuilder('wo').where('wo.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('wo.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('wo.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (q.projectId) qb.andWhere('wo.project_id = :projectId', { projectId: q.projectId });
     if (q.from) qb.andWhere('wo.created_at >= :from', { from: new Date(q.from) });
     if (q.to) qb.andWhere('wo.created_at <= :to', { to: new Date(q.to) });
@@ -84,10 +93,11 @@ export class ProductionTrackingService {
 
   /** Work-order board grouped by status, each with its job cards. */
   async board(q: { projectId?: string; status?: WorkOrderStatus }, tenantId?: string) {
+    const scopeTenant = this.requireTenant(tenantId);
     const qb = this.workOrderRepo.createQueryBuilder('wo')
       .where('wo.deleted_at IS NULL')
       .orderBy('wo.created_at', 'DESC');
-    if (tenantId) qb.andWhere('wo.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('wo.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (q.projectId) qb.andWhere('wo.project_id = :projectId', { projectId: q.projectId });
     if (q.status) qb.andWhere('wo.status = :status', { status: q.status });
     const wos = await qb.getMany();
@@ -145,7 +155,8 @@ export class ProductionTrackingService {
 
   /** Full execution timeline of a work order (jobs + operation logs). */
   async history(workOrderId: string, tenantId?: string) {
-    const wo = await this.workOrderRepo.findOne({ where: { id: workOrderId, deletedAt: IsNull(), tenantId: tenantId ?? undefined } });
+    const scopeTenant = this.requireTenant(tenantId);
+    const wo = await this.workOrderRepo.findOne({ where: { id: workOrderId, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!wo) return null;
     const jobs = await this.jobCardRepo.find({ where: { workOrderId, deletedAt: IsNull() }, order: { operationNumber: 'ASC', createdAt: 'ASC' } as any });
     const logs = await this.operationLogRepo.find({ where: { workOrderId, deletedAt: IsNull() }, order: { createdAt: 'ASC' } });

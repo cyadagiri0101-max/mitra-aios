@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { Customer } from '../entities/customer.entity';
@@ -14,10 +14,15 @@ export class CustomerAddressService {
     private readonly customerRepo: Repository<Customer>,
   ) {}
 
-  private async assertCustomerExists(customerId: string, tenantId?: string | null): Promise<void> {
-    const where: any = { id: customerId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
-    const customer = await this.customerRepo.findOne({ where });
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
+  private async assertCustomerExists(customerId: string, tenantId: string): Promise<void> {
+    const customer = await this.customerRepo.findOne({ where: { id: customerId, tenantId, deletedAt: IsNull() } });
     if (!customer) throw new NotFoundException('Customer not found');
   }
 
@@ -27,6 +32,8 @@ export class CustomerAddressService {
     userId?: string,
     tenantId?: string | null,
   ): Promise<void> {
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.assertCustomerExists(customerId, scopeTenant);
     for (const a of addresses) {
       await this.addressRepo.save(this.addressRepo.create({
         customerId,
@@ -39,7 +46,7 @@ export class CustomerAddressService {
         postalCode: a.postalCode ?? null,
         country: a.country ?? 'India',
         isDefault: a.isDefault ?? false,
-        ...(tenantId ? { tenantId } : {}),
+        tenantId: scopeTenant,
         ...(userId ? { createdBy: userId, updatedBy: userId } : {}),
       } as unknown as CustomerAddress));
     }
@@ -51,8 +58,9 @@ export class CustomerAddressService {
     userId?: string,
     tenantId?: string | null,
   ): Promise<void> {
-    await this.addressRepo.update({ customerId, deletedAt: IsNull() }, { deletedAt: new Date() });
-    await this.createAddresses(customerId, addresses, userId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.addressRepo.update({ customerId, tenantId: scopeTenant, deletedAt: IsNull() }, { deletedAt: new Date() });
+    await this.createAddresses(customerId, addresses, userId, scopeTenant);
   }
 
   async addAddress(
@@ -61,10 +69,11 @@ export class CustomerAddressService {
     userId?: string,
     tenantId?: string | null,
   ): Promise<CustomerAddress> {
-    await this.assertCustomerExists(customerId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.assertCustomerExists(customerId, scopeTenant);
     if (dto.isDefault) {
       await this.addressRepo.update(
-        { customerId, isDefault: true, deletedAt: IsNull() },
+        { customerId, tenantId: scopeTenant, isDefault: true, deletedAt: IsNull() },
         { isDefault: false },
       );
     }
@@ -79,16 +88,17 @@ export class CustomerAddressService {
       postalCode: dto.postalCode ?? null,
       country: dto.country ?? 'India',
       isDefault: dto.isDefault ?? false,
-      ...(tenantId ? { tenantId } : {}),
+      tenantId: scopeTenant,
       ...(userId ? { createdBy: userId, updatedBy: userId } : {}),
     } as unknown as CustomerAddress);
     return this.addressRepo.save(address);
   }
 
   async removeAddress(customerId: string, addressId: string, tenantId?: string | null) {
-    await this.assertCustomerExists(customerId, tenantId);
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.assertCustomerExists(customerId, scopeTenant);
     const address = await this.addressRepo.findOne({
-      where: { id: addressId, customerId, deletedAt: IsNull() },
+      where: { id: addressId, customerId, deletedAt: IsNull(), tenantId: scopeTenant },
     });
     if (!address) throw new NotFoundException('Address not found');
     address.deletedAt = new Date();

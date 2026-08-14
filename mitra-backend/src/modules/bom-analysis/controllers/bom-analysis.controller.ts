@@ -29,7 +29,7 @@ export class BomAnalysisController {
     @Body() dto: AnalyzeBomDto,
     @CurrentUser() user: AuthUser,
   ): Promise<BomAnalysisResponseDto> {
-    return this.bomAnalysisService.analyzeBOM(dto.projectId, dto.bomData);
+    return this.bomAnalysisService.analyzeBOM(dto.projectId, dto.bomData, user.tenantId);
   }
 
   @Get(':id')
@@ -41,7 +41,7 @@ export class BomAnalysisController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthUser,
   ): Promise<BomAnalysisResponseDto> {
-    return this.bomAnalysisService.getAnalysis(id, user.tenantId ?? undefined);
+    return this.bomAnalysisService.getAnalysis(id, user.tenantId);
   }
 
   @Get('project/:projectId')
@@ -53,6 +53,6 @@ export class BomAnalysisController {
     @Param('projectId', ParseUUIDPipe) projectId: string,
     @CurrentUser() user: AuthUser,
   ): Promise<BomAnalysisResponseDto[]> {
-    return this.bomAnalysisService.getProjectAnalyses(projectId, user.tenantId ?? undefined);
+    return this.bomAnalysisService.getProjectAnalyses(projectId, user.tenantId);
   }
 }

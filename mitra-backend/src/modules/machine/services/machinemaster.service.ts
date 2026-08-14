@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { MachineMaster, MachineStatus } from '../entities/machinemaster.entity';
@@ -30,11 +30,20 @@ export class MachineMasterService {
   ) {}
 
   // ── Machine master ───────────────────────────────────────────────────────
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async findAll(q: { page?: number; limit?: number; status?: MachineStatus; machineTypeId?: string }, tenantId?: string) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(q.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(q.limit ?? 20)));
     const qb = this.machineRepo.createQueryBuilder('m').where('m.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('m.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('m.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (q.status) qb.andWhere('m.status = :status', { status: q.status });
     if (q.machineTypeId) qb.andWhere('m.machine_type_id = :machineTypeId', { machineTypeId: q.machineTypeId });
     qb.orderBy('m.machine_number', 'ASC');
@@ -43,37 +52,42 @@ export class MachineMasterService {
   }
 
   async findOne(id: string, tenantId?: string) {
-    const machine = await this.machineRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: tenantId ?? undefined } });
+    const scopeTenant = this.requireTenant(tenantId);
+    const machine = await this.machineRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!machine) throw new NotFoundException('Machine not found');
     return machine;
   }
 
   async create(dto: Record<string, unknown>, user: AuthUser) {
+    const scopeTenant = this.requireTenant(user.tenantId);
     const machine = this.machineRepo.create({
       ...dto,
       status: (dto.status as MachineStatus) ?? MachineStatus.ACTIVE,
       createdBy: user.id,
       updatedBy: user.id,
-      tenantId: user.tenantId ?? undefined,
+      tenantId: scopeTenant,
     } as Partial<MachineMaster>);
     return this.machineRepo.save(machine);
   }
 
   async update(id: string, dto: Partial<Record<string, unknown>>, user: AuthUser) {
-    await this.findOne(id, user.tenantId ?? undefined);
+    const scopeTenant = this.requireTenant(user.tenantId);
+    await this.findOne(id, scopeTenant);
     await this.machineRepo.update(id, { ...dto, updatedBy: user.id } as Partial<MachineMaster>);
-    return this.findOne(id, user.tenantId ?? undefined);
+    return this.findOne(id, scopeTenant);
   }
 
   async remove(id: string, user: AuthUser) {
-    const machine = await this.findOne(id, user.tenantId ?? undefined);
+    const scopeTenant = this.requireTenant(user.tenantId);
+    const machine = await this.findOne(id, scopeTenant);
     await this.machineRepo.update(id, { deletedAt: new Date(), updatedBy: user.id, status: MachineStatus.DECOMMISSIONED } as Partial<MachineMaster>);
     return machine;
   }
 
   /** Toggle a machine in/out of maintenance; emits MACHINE_MAINTENANCE events. */
   async setMaintenance(id: string, user: AuthUser, dto: { maintenance: boolean; plannedDate?: string; remarks?: string }) {
-    const machine = await this.findOne(id, user.tenantId ?? undefined);
+    const scopeTenant = this.requireTenant(user.tenantId);
+    const machine = await this.findOne(id, scopeTenant);
     const now = new Date();
     const patch: Record<string, unknown> = {
       status: dto.maintenance ? MachineStatus.UNDER_MAINTENANCE : MachineStatus.ACTIVE,
@@ -96,15 +110,16 @@ export class MachineMasterService {
         maintenance: dto.maintenance,
         nextMaintenanceDate: patch.nextMaintenanceDate ?? null,
       },
-      { tenantId: user.tenantId, actorId: user.id },
+      { tenantId: scopeTenant, actorId: user.id },
     );
-    return this.findOne(id, user.tenantId ?? undefined);
+    return this.findOne(id, scopeTenant);
   }
 
   // ── Calendars ────────────────────────────────────────────────────────────
   async listCalendars(machineId: string, q: { from?: string; to?: string }, tenantId?: string) {
+    const scopeTenant = this.requireTenant(tenantId);
     const qb = this.calendarRepo.createQueryBuilder('c').where('c.deleted_at IS NULL').andWhere('c.machine_id = :machineId', { machineId });
-    if (tenantId) qb.andWhere('c.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('c.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (q.from) qb.andWhere('c.calendar_date >= :from', { from: q.from });
     if (q.to) qb.andWhere('c.calendar_date <= :to', { to: q.to });
     qb.orderBy('c.calendar_date', 'ASC');
@@ -112,9 +127,10 @@ export class MachineMasterService {
   }
 
   async upsertCalendar(machineId: string, dto: Record<string, unknown>, user: AuthUser) {
-    await this.findOne(machineId, user.tenantId ?? undefined);
+    const scopeTenant = this.requireTenant(user.tenantId);
+    await this.findOne(machineId, scopeTenant);
     const date = (dto.calendarDate ?? dto.calendar_date) as Date;
-    const existing = await this.calendarRepo.findOne({ where: { machineId, calendarDate: new Date(date as any) as any, deletedAt: IsNull(), tenantId: user.tenantId ?? undefined } as any });
+    const existing = await this.calendarRepo.findOne({ where: { machineId, calendarDate: new Date(date as any) as any, deletedAt: IsNull(), tenantId: scopeTenant } as any });
     if (existing) {
       await this.calendarRepo.update(existing.id, { ...dto, updatedBy: user.id } as Partial<MachineCalendar>);
       return this.calendarRepo.findOne({ where: { id: existing.id } });
@@ -124,20 +140,24 @@ export class MachineMasterService {
       machineId,
       createdBy: user.id,
       updatedBy: user.id,
-      tenantId: user.tenantId ?? undefined,
+      tenantId: scopeTenant,
     } as Partial<MachineCalendar>);
     return this.calendarRepo.save(calendar);
   }
 
   async deleteCalendar(id: string, user: AuthUser) {
+    const scopeTenant = this.requireTenant(user.tenantId);
+    const calendar = await this.calendarRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
+    if (!calendar) throw new NotFoundException('Calendar not found');
     await this.calendarRepo.update(id, { deletedAt: new Date(), updatedBy: user.id } as Partial<MachineCalendar>);
     return { id, deleted: true };
   }
 
   // ── Bookings ─────────────────────────────────────────────────────────────
   async listBookings(q: { machineId?: string; workOrderId?: string; projectId?: string; from?: string; to?: string; status?: BookingStatus }, tenantId?: string) {
+    const scopeTenant = this.requireTenant(tenantId);
     const qb = this.bookingRepo.createQueryBuilder('b').where('b.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('b.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('b.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (q.machineId) qb.andWhere('b.machine_id = :machineId', { machineId: q.machineId });
     if (q.workOrderId) qb.andWhere('b.work_order_id = :workOrderId', { workOrderId: q.workOrderId });
     if (q.projectId) qb.andWhere('b.project_id = :projectId', { projectId: q.projectId });
@@ -149,8 +169,9 @@ export class MachineMasterService {
   }
 
   async createBooking(dto: Record<string, unknown>, user: AuthUser) {
-    await this.findOne(dto.machineId as string, user.tenantId ?? undefined);
-    this.assertNoOverlap(dto.machineId as string, dto.startDatetime as Date, dto.endDatetime as Date, null, user.tenantId ?? undefined);
+    const scopeTenant = this.requireTenant(user.tenantId);
+    await this.findOne(dto.machineId as string, scopeTenant);
+    this.assertNoOverlap(dto.machineId as string, dto.startDatetime as Date, dto.endDatetime as Date, null, scopeTenant);
     const booking = this.bookingRepo.create({
       ...dto,
       bookingNumber: this.nextBookingNumber(),
@@ -158,28 +179,33 @@ export class MachineMasterService {
       bookedBy: user.id,
       createdBy: user.id,
       updatedBy: user.id,
-      tenantId: user.tenantId ?? undefined,
+      tenantId: scopeTenant,
     } as Partial<MachineBooking>);
     return this.bookingRepo.save(booking);
   }
 
   async updateBooking(id: string, dto: Partial<Record<string, unknown>>, user: AuthUser) {
-    const booking = await this.bookingRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: user.tenantId ?? undefined } });
+    const scopeTenant = this.requireTenant(user.tenantId);
+    const booking = await this.bookingRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
     if (!booking) throw new NotFoundException('Booking not found');
     const start = (dto.startDatetime ?? booking.startDatetime) as Date;
     const end = (dto.endDatetime ?? booking.endDatetime) as Date;
-    this.assertNoOverlap(booking.machineId, start, end, booking.id, user.tenantId ?? undefined);
+    this.assertNoOverlap(booking.machineId, start, end, booking.id, scopeTenant);
     await this.bookingRepo.update(id, { ...dto, updatedBy: user.id } as Partial<MachineBooking>);
     return this.bookingRepo.findOne({ where: { id } });
   }
 
   async deleteBooking(id: string, user: AuthUser) {
+    const scopeTenant = this.requireTenant(user.tenantId);
+    const booking = await this.bookingRepo.findOne({ where: { id, deletedAt: IsNull(), tenantId: scopeTenant } });
+    if (!booking) throw new NotFoundException('Booking not found');
     await this.bookingRepo.update(id, { deletedAt: new Date(), updatedBy: user.id } as Partial<MachineBooking>);
     return { id, deleted: true };
   }
 
   // ── Shop-floor queue (raw reads across modules) ──────────────────────────
   async queue(machineId: string, tenantId?: string) {
+    this.requireTenant(tenantId);
     const rows = await this.dataSource.query(
       `SELECT jc.id, jc.job_card_number, jc.status, jc.operation_number, jc.operation_code,
               jc.qty_planned, jc.produced_qty, jc.rejected_qty, jc.rework_qty, jc.scrap_qty,
@@ -200,6 +226,7 @@ export class MachineMasterService {
 
   /** Utilisation % over a date range: booked/available hours per machine. */
   async utilization(machineId: string, q: { from?: string; to?: string }, tenantId?: string) {
+    this.requireTenant(tenantId);
     const from = q.from ?? new Date().toISOString().slice(0, 10);
     const to = q.to ?? from;
     const rows = await this.dataSource.query(
@@ -235,7 +262,8 @@ export class MachineMasterService {
 
   /** Earliest gap large enough for a booking, or null. */
   async nextAvailable(machineId: string, durationMinutes: number, tenantId?: string) {
-    await this.findOne(machineId, tenantId ?? undefined);
+    const scopeTenant = this.requireTenant(tenantId);
+    await this.findOne(machineId, scopeTenant);
     const rows = await this.dataSource.query(
       `SELECT b.start_datetime, b.end_datetime
          FROM machine_bookings b

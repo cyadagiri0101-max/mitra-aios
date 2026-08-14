@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { EngineeringDrawingService } from './engineering-drawing.service';
 import { EngineeringDrawing, DrawingType } from '../entities/engineering-drawing.entity';
 import { EngineeringDrawingRevision } from '../entities/engineering-drawing-revision.entity';
@@ -115,5 +115,35 @@ describe('EngineeringDrawingService', () => {
     const checkedOut = { ...drawing, checkedOutBy: 'u-2', checkedOutAt: new Date() };
     drawingRepo.findOne.mockResolvedValue(checkedOut);
     await expect(service.checkIn('d-1', { revision: 'B' }, 'u-1', 't-1')).rejects.toThrow(ConflictException);
+  });
+
+  describe('tenant isolation', () => {
+    it('rejects tenantless creation (fail closed)', async () => {
+      await expect(service.create({ projectId: 'p-1', title: 'Plate' }, 'u-1', null)).rejects.toThrow(ForbiddenException);
+      expect(drawingRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('writes the caller tenant onto the created drawing', async () => {
+      const result = await service.create({ projectId: 'p-1', title: 'Plate' }, 'u-1', 't-1');
+      expect(result.tenantId).toBe('t-1');
+    });
+
+    it('rejects tenantless findOne (fail closed)', async () => {
+      await expect(service.findOne('d-1', null)).rejects.toThrow(ForbiddenException);
+      expect(drawingRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 for another tenant\'s drawing and never mutates it', async () => {
+      drawingRepo.findOne.mockResolvedValue(null);
+      await expect(service.update('d-x', { title: 'hijacked' }, 'u-1', 't-2')).rejects.toThrow(NotFoundException);
+      expect(drawingRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('scopes the lookup to the caller tenant', async () => {
+      await service.findOne('d-1', 't-1');
+      expect(drawingRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ id: 'd-1', tenantId: 't-1' }) }),
+      );
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { BomAnalysis } from '../entities/bom-analysis.entity';
@@ -16,7 +16,15 @@ export class BomAnalysisService {
     private readonly itemRepo: Repository<BomItem>,
   ) {}
 
-  async analyzeBOM(projectId: string, bomData: Record<string, any>): Promise<BomAnalysisResponseDto> {
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new ForbiddenException('Tenant context is required');
+    }
+    return tenantId;
+  }
+
+  async analyzeBOM(projectId: string, bomData: Record<string, any>, tenantId?: string | null): Promise<BomAnalysisResponseDto> {
+    const scopeTenant = this.requireTenant(tenantId);
     const t0 = Date.now();
 
     // Simulate AI analysis
@@ -27,6 +35,7 @@ export class BomAnalysisService {
 
     const analysis = this.analysisRepo.create({
       projectId,
+      tenantId: scopeTenant,
       bomData,
       complexityScore,
       riskAreas,
@@ -57,22 +66,20 @@ export class BomAnalysisService {
     return this.mapToResponse(saved, items);
   }
 
-  async getAnalysis(id: string, tenantId?: string): Promise<BomAnalysisResponseDto> {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+  async getAnalysis(id: string, tenantId?: string | null): Promise<BomAnalysisResponseDto> {
+    const scopeTenant = this.requireTenant(tenantId);
     const analysis = await this.analysisRepo.findOne({
-      where,
+      where: { id, deletedAt: IsNull(), tenantId: scopeTenant },
       relations: ['items'],
     });
     if (!analysis) throw new NotFoundException(`BOM Analysis ${id} not found`);
     return this.mapToResponse(analysis, analysis.items ?? []);
   }
 
-  async getProjectAnalyses(projectId: string, tenantId?: string): Promise<BomAnalysisResponseDto[]> {
-    const where: any = { projectId, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+  async getProjectAnalyses(projectId: string, tenantId?: string | null): Promise<BomAnalysisResponseDto[]> {
+    const scopeTenant = this.requireTenant(tenantId);
     const analyses = await this.analysisRepo.find({
-      where,
+      where: { projectId, deletedAt: IsNull(), tenantId: scopeTenant },
       relations: ['items'],
       order: { createdAt: 'DESC' },
     });

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { WorkOrder, WorkOrderStatus } from '../entities/workorder.entity';
@@ -51,7 +51,7 @@ export class WorkOrderEngineService {
     if (!data.routingId) {
       throw new BadRequestException('A released routing is required to generate a work order');
     }
-    const routing = await this.workOrderService.assertReleased('engineering_routings', data.routingId, 'Routing');
+    const routing = await this.workOrderService.assertReleased('engineering_routings', data.routingId, 'Routing', user.tenantId);
 
     const generated: Record<string, unknown> = {
       ...data,
@@ -75,9 +75,10 @@ export class WorkOrderEngineService {
 
   // ── Release (Phase 2) — immutable execution package ─────────────────────
   async release(workOrderId: string, user: AuthUser) {
+    const tenantId = this.requireTenant(user.tenantId);
     return this.dataSource.transaction(async (em) => {
       const wo = await em.getRepository(WorkOrder).findOne({
-        where: { id: workOrderId, deletedAt: undefined },
+        where: { id: workOrderId, tenantId, deletedAt: undefined },
       });
       if (!wo) throw new NotFoundException('Work order not found');
       if (wo.status !== WorkOrderStatus.DRAFT) {
@@ -85,7 +86,7 @@ export class WorkOrderEngineService {
       }
 
       const ctx = this.buildContext(user);
-      const instance = await this.workflowService.findInstanceByEntity('work_order', wo.id, user.tenantId ?? undefined, em)
+      const instance = await this.workflowService.findInstanceByEntity('work_order', wo.id, tenantId, em)
         ?? await this.workflowService.createInstance(WORK_ORDER_WORKFLOW_TYPE, 'work_order', wo.id, ctx, em);
       const transition = await this.workflowService.executeTransition(instance.id, WORK_ORDER_TRANSITIONS.RELEASE, ctx, em);
 
@@ -140,14 +141,15 @@ export class WorkOrderEngineService {
   async transition(workOrderId: string, transitionKey: keyof typeof WORK_ORDER_TRANSITIONS, user: AuthUser, remarks?: string) {
     const transitionId = WORK_ORDER_TRANSITIONS[transitionKey];
     if (!transitionId) throw new BadRequestException(`Unknown work order transition: ${String(transitionKey)}`);
+    const tenantId = this.requireTenant(user.tenantId);
     return this.dataSource.transaction(async (em) => {
       const wo = await em.getRepository(WorkOrder).findOne({
-        where: { id: workOrderId, deletedAt: undefined },
+        where: { id: workOrderId, tenantId, deletedAt: undefined },
       });
       if (!wo) throw new NotFoundException('Work order not found');
 
       const ctx = this.buildContext(user);
-      const instance = await this.workflowService.findInstanceByEntity('work_order', wo.id, user.tenantId ?? undefined, em);
+      const instance = await this.workflowService.findInstanceByEntity('work_order', wo.id, tenantId, em);
       if (!instance) throw new BadRequestException('Work order workflow instance not found — release the work order first');
       const transition = await this.workflowService.executeTransition(
         instance.id,
@@ -163,11 +165,11 @@ export class WorkOrderEngineService {
       }
       if (toState === WorkOrderStatus.COMPLETED) {
         patch.actualEndDate = new Date();
-        const jobCards = await em.getRepository(JobCard).find({ where: { workOrderId: wo.id, deletedAt: undefined } });
+        const jobCards = await em.getRepository(JobCard).find({ where: { workOrderId: wo.id, tenantId, deletedAt: undefined } });
         patch.completedQty = jobCards.reduce((s, j) => s + Number(j.producedQty || 0) - Number(j.rejectedQty || 0) - Number(j.scrapQty || 0), 0);
         patch.actualHours = jobCards.reduce((s, j) => s + Number(j.actualHours || 0), 0);
         await em.getRepository(MaterialReservation).update(
-          { workOrderId: wo.id },
+          { workOrderId: wo.id, tenantId },
           { status: 'RELEASED' as any, updatedBy: user.id },
         );
       }
@@ -204,24 +206,35 @@ export class WorkOrderEngineService {
 
   // ── Reads ────────────────────────────────────────────────────────────────
   async listJobCards(workOrderId: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     return this.jobCardRepo.find({
-      where: { workOrderId, deletedAt: undefined },
+      where: { workOrderId, tenantId: scopeTenant, deletedAt: undefined },
       order: { operationNumber: 'ASC', createdAt: 'ASC' } as any,
     });
   }
 
   async listReservations(workOrderId: string, tenantId?: string | null) {
-    return this.reservationRepo.find({ where: { workOrderId, deletedAt: undefined } });
+    const scopeTenant = this.requireTenant(tenantId);
+    return this.reservationRepo.find({ where: { workOrderId, tenantId: scopeTenant, deletedAt: undefined } });
   }
 
   async listCheckpoints(workOrderId: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     return this.checkpointRepo.find({
-      where: { workOrderId, deletedAt: undefined },
+      where: { workOrderId, tenantId: scopeTenant, deletedAt: undefined },
       order: { operationNumber: 'ASC', checkpointNumber: 'ASC' } as any,
     });
   }
 
   // ── Private helpers ──────────────────────────────────────────────────────
+  /** Fail-closed tenant guard - mirrors TenantAwareService.requireTenant. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   private buildContext(user: AuthUser) {
     return {
       userId: user.id,

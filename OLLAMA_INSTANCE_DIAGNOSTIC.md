@@ -29,9 +29,9 @@
 
 ## Container Models (podman exec mitra30_ollama_1 ollama list)
 ```
-NAME                       ID              SIZE      MODIFIED       
-nomic-embed-text:latest    0a109f422b47    274 MB    21 minutes ago    
-phi3:latest                4f2222927938    2.2 GB    4 hours ago       
+NAME                       ID              SIZE      MODIFIED
+nomic-embed-text:latest    0a109f422b47    274 MB    21 minutes ago
+phi3:latest                4f2222927938    2.2 GB    4 hours ago
 ```
 
 ## Conclusion

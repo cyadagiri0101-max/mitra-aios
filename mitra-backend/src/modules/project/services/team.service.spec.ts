@@ -1,6 +1,6 @@
 ﻿import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { TeamService } from './team.service';
 import { ProjectTeam } from '../entities/projectteam.entity';
 import { ProjectTeamMember } from '../entities/projectteammember.entity';
@@ -118,6 +118,25 @@ describe('TeamService', () => {
       expect(saved.projectId).toBe('p-1');
     });
 
+    it('scopes the team lookup to the caller\'s tenant', async () => {
+      teamRepo.findOne.mockResolvedValue({ ...team });
+      memberRepo.findOne.mockResolvedValue(null);
+      await service.addMember('team-1', { userId: 'u-2', userName: 'B' }, 'u-1', 't-1');
+      expect(teamRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ id: 'team-1', tenantId: 't-1' }) }),
+      );
+    });
+
+    it('rejects tenantless member addition (fail closed)', async () => {
+      await expect(service.addMember('team-1', { userId: 'u-2' }, 'u-1', null)).rejects.toThrow(ForbiddenException);
+      expect(teamRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('rejects adding a member to another tenant\'s team with 404', async () => {
+      teamRepo.findOne.mockResolvedValue(null);
+      await expect(service.addMember('team-1', { userId: 'u-2' }, 'u-1', 't-2')).rejects.toThrow(NotFoundException);
+    });
+
     it('sanitizes skills: trims, dedupes, caps at 30 and drops empties', async () => {
       teamRepo.findOne.mockResolvedValue({ ...team });
       memberRepo.findOne.mockResolvedValue(null);
@@ -168,11 +187,34 @@ describe('TeamService', () => {
 
       const saved = await service.updateMember('mem-2', { isLead: true }, 'u-1', 't-1');
       expect(memberRepo.update).toHaveBeenCalledWith(
-        expect.objectContaining({ teamId: 'team-1', isLead: true }),
+        expect.objectContaining({ teamId: 'team-1', tenantId: 't-1', isLead: true }),
         { isLead: false },
       );
       expect(saved.isLead).toBe(true);
+      expect(teamRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ id: 'team-1', tenantId: 't-1' }) }),
+      );
       expect(teamRepo.save).toHaveBeenCalledWith(expect.objectContaining({ leadUserId: 'u-2' }));
+    });
+
+    it('rejects tenantless member update (fail closed)', async () => {
+      await expect(service.updateMember('mem-2', { isLead: true }, 'u-1', null)).rejects.toThrow(ForbiddenException);
+      expect(memberRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 for another tenant\'s member and never mutates it', async () => {
+      memberRepo.findOne.mockResolvedValue(null);
+      memberRepo.save = jest.fn();
+      await expect(service.updateMember('mem-x', { isLead: true }, 'u-1', 't-2')).rejects.toThrow(NotFoundException);
+      expect(memberRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('scopes the member lookup to the caller tenant', async () => {
+      memberRepo.findOne.mockResolvedValue({ id: 'mem-2', teamId: 'team-1', userId: 'u-2', isLead: false });
+      await service.updateMember('mem-2', { capacityPct: 50 }, 'u-1', 't-1');
+      expect(memberRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ id: 'mem-2', tenantId: 't-1' }) }),
+      );
     });
   });
 

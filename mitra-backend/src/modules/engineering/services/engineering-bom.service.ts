@@ -1,5 +1,5 @@
 import {
-  Injectable, NotFoundException, BadRequestException,
+  Injectable, NotFoundException, BadRequestException, ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, IsNull, Like, In } from 'typeorm';
@@ -44,11 +44,20 @@ export class EngineeringBomService {
     private readonly outboxService: OutboxService,
   ) {}
 
+  /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
+  private requireTenant(tenantId?: string | null): string {
+    if (!tenantId) {
+      throw new ForbiddenException('Tenant context required for tenant-scoped operation');
+    }
+    return tenantId;
+  }
+
   async findAllAdvanced(tenantId?: string | null, query: Record<string, any> = {}) {
+    const scopeTenant = this.requireTenant(tenantId);
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 20)));
     const qb = this.bomRepo.createQueryBuilder('b').where('b.deleted_at IS NULL');
-    if (tenantId) qb.andWhere('b.tenant_id = :tenantId', { tenantId });
+    qb.andWhere('b.tenant_id = :tenantId', { tenantId: scopeTenant });
     if (query.search) {
       qb.andWhere('(b.bom_number ILIKE :search OR b.name ILIKE :search)', { search: `%${query.search}%` });
     }
@@ -68,20 +77,21 @@ export class EngineeringBomService {
   }
 
   async findOne(id: string, tenantId?: string | null) {
-    const where: any = { id, deletedAt: IsNull() };
-    if (tenantId) where.tenantId = tenantId;
+    const scopeTenant = this.requireTenant(tenantId);
+    const where: any = { id, deletedAt: IsNull(), tenantId: scopeTenant };
     const bom = await this.bomRepo.findOne({ where });
     if (!bom) throw new NotFoundException('Engineering BOM not found');
     return bom;
   }
 
   async create(data: Record<string, any>, userId: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
     if (!data.projectId) throw new BadRequestException('projectId is required — no orphan engineering records');
 
     let saved: EngineeringBom | undefined;
     let lastErr: any;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const bomNumber = await this.generateBomNumber(tenantId, attempt);
+      const bomNumber = await this.generateBomNumber(scopeTenant, attempt);
       const bom = this.bomRepo.create({
         ...data,
         bomNumber,
@@ -91,7 +101,7 @@ export class EngineeringBomService {
         isCurrent: true,
         createdBy: userId,
         updatedBy: userId,
-        tenantId: tenantId ?? undefined,
+        tenantId: scopeTenant,
       });
       try {
         saved = await this.bomRepo.save(bom);
@@ -105,7 +115,7 @@ export class EngineeringBomService {
 
     try {
       const instance = await this.workflowService.createInstance(BOM_WORKFLOW_TYPE, 'bom', saved.id, {
-        userId, userRole: [], userPermissions: [], tenantId: tenantId ?? saved.tenantId ?? undefined,
+        userId, userRole: [], userPermissions: [], tenantId: scopeTenant,
       });
       saved.workflowInstanceId = instance.id;
       await this.bomRepo.save(saved);

@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ForbiddenException } from '@nestjs/common';
 import { InspectionService } from './inspection.service';
 import { InspectionCheckpoint, CheckpointStatus } from '../entities/inspection-checkpoint.entity';
 import { WorkOrder } from '../entities/workorder.entity';
@@ -64,7 +65,7 @@ describe('InspectionService', () => {
       const cpRepo = (service as any).checkpointRepo;
       cpRepo.findOne.mockResolvedValue({ ...checkpoint });
       await service.recordResult('cp-1', user, { result: CheckpointStatus.PASS, measuredValue: '50.01' });
-      expect(cpRepo.update).toHaveBeenCalledWith('cp-1', expect.objectContaining({ status: 'PASS', inspectedBy: 'u-1' }));
+      expect(cpRepo.update).toHaveBeenCalledWith({ id: 'cp-1', tenantId: 't-1' }, expect.objectContaining({ status: 'PASS', inspectedBy: 'u-1' }));
       expect(ncrService.create).not.toHaveBeenCalled();
     });
 
@@ -90,6 +91,13 @@ describe('InspectionService', () => {
       expect(result.counts.FAIL).toBe(1);
       expect(result.criticalFails).toBe(1);
       expect(result.allPassed).toBe(false);
+    });
+  });
+
+  describe('tenant isolation', () => {
+    it('rejects recordResult without tenant context', async () => {
+      const tenantless = { id: 'u-1', email: 'qc@mitra.io', role: 'QUALITY', tenantId: null, permissions: [] };
+      await expect(service.recordResult('cp-1', tenantless, { result: CheckpointStatus.PASS })).rejects.toThrow(ForbiddenException);
     });
   });
 });

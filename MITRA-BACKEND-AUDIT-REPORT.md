@@ -1,7 +1,7 @@
 # MITRA Backend — Database & Entity Audit Report
 
-**Audit Date:** 2026-01-18  
-**Scope:** All TypeORM entities, migrations (`database/migrations/`), data-source, seed script, and schema validator.  
+**Audit Date:** 2026-01-18
+**Scope:** All TypeORM entities, migrations (`database/migrations/`), data-source, seed script, and schema validator.
 **Method:** Manual entity↔migration cross-reference, constraint & index verification, type normalization, and PII/sensitive-data review.
 
 ---
@@ -63,7 +63,7 @@ Repeat the same pattern for the remaining 5 tables.
 
 ### 2. Missing Column in Migration: `audit_logs.event_type`
 
-**Entity:** `modules/audit/entities/audit-log.entity.ts` (line 30)  
+**Entity:** `modules/audit/entities/audit-log.entity.ts` (line 30)
 **Migration:** `database/migrations/1700000000000-InitialSchema.ts` (lines 237–258)
 
 The entity declares:
@@ -222,7 +222,7 @@ name: string;
 
 ### 6. Missing `CHECK` / Enum Declaration: `DispatchPlan.status`
 
-**Entity:** `modules/dispatch/entities/dispatchplan.entity.ts` line 25–26  
+**Entity:** `modules/dispatch/entities/dispatchplan.entity.ts` line 25–26
 **Migration:** `database/migrations/1700000000003-DispatchPlans.ts` line 25
 
 The entity defines `DispatchStatus` enum but then uses a plain `varchar`:
