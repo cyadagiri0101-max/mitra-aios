@@ -37,7 +37,11 @@ function loadStoredUser(): User | null {
 
 function loadStoredToken(): string | null {
   try {
-    return localStorage.getItem('mitra_access_token');
+    const token = localStorage.getItem('mitra_access_token');
+    if (token) {
+      setAccessToken(token);
+    }
+    return token;
   } catch { return null; }
 }
 
