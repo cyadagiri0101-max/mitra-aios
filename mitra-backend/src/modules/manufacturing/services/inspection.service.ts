@@ -46,20 +46,22 @@ export class InspectionService {
   }
 
   async recordResult(checkpointId: string, user: AuthUser, dto: {
-    result: CheckpointStatus;
+    result?: CheckpointStatus;
+    status?: CheckpointStatus;
     measuredValue?: string;
     inspectionReportId?: string;
     remarks?: string;
   }) {
     const tenantId = this.requireTenant(user.tenantId);
-    if (![CheckpointStatus.PASS, CheckpointStatus.FAIL, CheckpointStatus.SKIP, CheckpointStatus.NA].includes(dto.result)) {
+    const targetStatus = dto.result ?? dto.status;
+    if (!targetStatus || ![CheckpointStatus.PASS, CheckpointStatus.FAIL, CheckpointStatus.SKIP, CheckpointStatus.NA].includes(targetStatus)) {
       throw new NotFoundException('Invalid checkpoint result');
     }
     const checkpoint = await this.checkpointRepo.findOne({ where: { id: checkpointId, tenantId, deletedAt: IsNull() } });
     if (!checkpoint) throw new NotFoundException('Checkpoint not found');
 
     const patch: Record<string, unknown> = {
-      status: dto.result,
+      status: targetStatus,
       measuredValue: dto.measuredValue ?? null,
       inspectionReportId: dto.inspectionReportId ?? null,
       inspectedBy: user.id,
@@ -70,7 +72,7 @@ export class InspectionService {
     await this.checkpointRepo.update({ id: checkpoint.id, tenantId }, patch as Partial<InspectionCheckpoint>);
 
     let ncr = null;
-    if (dto.result === CheckpointStatus.FAIL) {
+    if (targetStatus === CheckpointStatus.FAIL) {
       const wo = await this.workOrderRepo.findOne({ where: { id: checkpoint.workOrderId, tenantId, deletedAt: undefined } });
       ncr = await this.ncrService.create({
         projectId: wo?.projectId ?? undefined,
@@ -112,6 +114,11 @@ export class InspectionService {
       workOrderId,
       total: checkpoints.length,
       counts,
+      passed: counts.PASS,
+      failed: counts.FAIL,
+      pending: counts.PENDING,
+      skipped: counts.SKIP,
+      na: counts.NA,
       criticalFails: checkpoints.filter((c) => c.status === CheckpointStatus.FAIL && c.isCritical).length,
       allPassed: checkpoints.length > 0 && checkpoints.every((c) => c.status !== CheckpointStatus.PENDING && c.status !== CheckpointStatus.FAIL),
     };

@@ -34,4 +34,17 @@ export class EngineeringTraceabilityController {
   ) {
     return this.service.byEntity(entityType, entityId, user.tenantId);
   }
+
+  @Get('revision-impact')
+  @Roles(...ENGINEERING_READ_ROLES)
+  @Permissions('engineering:traceability:read')
+  @ApiOperation({ summary: 'Trace manufacturing and quality impact of an engineering revision' })
+  async getRevisionImpact(
+    @Query('entityType') entityType: string,
+    @Query('entityId', ParseUUIDPipe) entityId: string,
+    @Query('revision') revision: string | undefined,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.getRevisionImpact(entityType, entityId, revision, user.tenantId);
+  }
 }

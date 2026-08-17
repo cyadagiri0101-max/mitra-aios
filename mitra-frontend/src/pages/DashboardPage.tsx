@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '../utils/api';
-import { Clock, CheckCircle, RotateCcw, FolderKanban, FileText } from 'lucide-react';
+import { Clock, CheckCircle, FolderKanban, FileText } from 'lucide-react';
 import { HeroSection } from '../components/Dashboard/HeroSection';
 import { KpiCard } from '../components/KpiCard';
 import { KPI_MOCK, AI_INSIGHTS, RECENT_ACTIVITIES } from './dashboardMockData';
@@ -174,8 +174,6 @@ export function DashboardPage() {
     WORKFLOW_STAGES.find((stage) => stage.status === 'current')?.code ?? WORKFLOW_STAGES[0].code,
   );
 
-  const queryClient = useQueryClient();
-
   const { isLoading: isKpiLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => api.get('/project/dashboard/stats').then((r) => r.data),
@@ -184,17 +182,17 @@ export function DashboardPage() {
   });
 
   const { data: eklWidgets, isLoading: isEklLoading } = useQuery({
-    queryKey: ['ekl-dashboard'],
-    queryFn: () => api.get('/ekl/dashboard/widgets').then((r) => r.data),
+    queryKey: ['knowledge-repo-stats'],
+    queryFn: () => api.get('/knowledge/search', { params: { limit: 1 } }).then((r) => r.data),
     refetchInterval: 5 * 60 * 1000,
     retry: 1,
   });
 
-  const syncMutation = useMutation({
-    mutationFn: () => api.post('/ekl/sync'),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ekl-dashboard'] });
-    },
+  const { data: engWidgets, isLoading: isEngLoading } = useQuery({
+    queryKey: ['knowledge-repo-stats-eng'],
+    queryFn: () => api.get('/knowledge/search', { params: { limit: 1, domain: 'ENGINEERING' } }).then((r) => r.data),
+    refetchInterval: 5 * 60 * 1000,
+    retry: 1,
   });
 
   // Auto-refresh simulation: update activity feed every 30 seconds
@@ -241,17 +239,8 @@ export function DashboardPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-200">Engineering Knowledge</p>
-              <h3 id="ekl-dashboard-heading" className="mt-2 text-xl font-semibold text-white">EKL Dashboard widgets</h3>
+              <h3 id="ekl-dashboard-heading" className="mt-2 text-xl font-semibold text-white">Knowledge Repository Index</h3>
             </div>
-            <button
-              type="button"
-              onClick={() => syncMutation.mutate()}
-              disabled={syncMutation.status === 'pending'}
-              className="btn-secondary inline-flex items-center gap-2"
-            >
-              <RotateCcw className="w-4 h-4" />
-              {syncMutation.status === 'pending' ? 'Syncing…' : 'Refresh EKL'}
-            </button>
           </div>
 
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -259,8 +248,8 @@ export function DashboardPage() {
               <div className="flex items-center gap-3">
                 <FolderKanban className="w-5 h-5 text-cyan-400" />
                 <div>
-                  <p className="text-sm text-slate-400">Total EKL Projects</p>
-                  <p className="mt-2 text-3xl font-semibold text-white">{eklWidgets?.totalProjects ?? '—'}</p>
+                  <p className="text-sm text-slate-400">Indexed Knowledge Records</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{eklWidgets?.total ?? '—'}</p>
                 </div>
               </div>
             </div>
@@ -268,8 +257,8 @@ export function DashboardPage() {
               <div className="flex items-center gap-3">
                 <FileText className="w-5 h-5 text-cyan-400" />
                 <div>
-                  <p className="text-sm text-slate-400">Total EKL Documents</p>
-                  <p className="mt-2 text-3xl font-semibold text-white">{eklWidgets?.totalDocuments ?? '—'}</p>
+                  <p className="text-sm text-slate-400">Engineering Documents &amp; Articles</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{engWidgets?.total ?? (isEngLoading ? 'Loading…' : '—')}</p>
                 </div>
               </div>
             </div>
@@ -277,8 +266,8 @@ export function DashboardPage() {
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-cyan-400" />
                 <div>
-                  <p className="text-sm text-slate-400">EKL sync status</p>
-                  <p className="mt-2 text-3xl font-semibold text-white">{eklWidgets?.status ?? (isEklLoading ? 'Loading…' : '—')}</p>
+                  <p className="text-sm text-slate-400">Search Engine</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{isEklLoading ? 'Loading…' : 'Native'}</p>
                 </div>
               </div>
             </div>

@@ -11,6 +11,7 @@ import { KnowledgeCategory } from './entities/knowledgecategory.entity';
 import { KnowledgeTag } from './entities/knowledgetag.entity';
 import { KnowledgeCatalogEntry } from './entities/knowledge-catalog.entity';
 import { KnowledgeGraphEdge } from './entities/knowledge-graph-edge.entity';
+import { EngineeringDocument } from '../engineering/entities/engineering-document.entity';
 import { KnowledgeArticleService } from './services/knowledgearticle.service';
 import { KnowledgeArticleController } from './controllers/knowledgearticle.controller';
 import { KnowledgeCatalogService } from './services/knowledgecatalog.service';
@@ -31,6 +32,7 @@ import { KnowledgeGraphService } from './services/knowledge-graph.service';
       KnowledgeTag,
       KnowledgeCatalogEntry,
       KnowledgeGraphEdge,
+      EngineeringDocument,
       Tenant,
     ]),
     forwardRef(() => AiModule),
@@ -58,4 +60,3 @@ import { KnowledgeGraphService } from './services/knowledge-graph.service';
   ],
 })
 export class KnowledgeModule {}
-

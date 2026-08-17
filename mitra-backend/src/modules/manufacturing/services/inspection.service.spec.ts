@@ -81,14 +81,22 @@ describe('InspectionService', () => {
       await service.recordResult('cp-1', user, { result: CheckpointStatus.FAIL });
       expect(ncrService.create).toHaveBeenCalledWith(expect.objectContaining({ severity: NcrSeverity.CRITICAL }), user);
     });
+    it('records a PASS using the status payload alias', async () => {
+      const cpRepo = (service as any).checkpointRepo;
+      cpRepo.findOne.mockResolvedValue({ ...checkpoint });
+      await service.recordResult('cp-1', user, { status: CheckpointStatus.PASS, measuredValue: '50.01' });
+      expect(cpRepo.update).toHaveBeenCalledWith({ id: 'cp-1', tenantId: 't-1' }, expect.objectContaining({ status: 'PASS', inspectedBy: 'u-1' }));
+    });
   });
 
   describe('summary', () => {
-    it('counts checkpoint statuses and flags critical fails', async () => {
+    it('counts checkpoint statuses and flags critical fails with top-level fields', async () => {
       const result = await service.summary('wo-1', 't-1');
       expect(result.total).toBe(2);
       expect(result.counts.PASS).toBe(1);
       expect(result.counts.FAIL).toBe(1);
+      expect(result.passed).toBe(1);
+      expect(result.failed).toBe(1);
       expect(result.criticalFails).toBe(1);
       expect(result.allPassed).toBe(false);
     });

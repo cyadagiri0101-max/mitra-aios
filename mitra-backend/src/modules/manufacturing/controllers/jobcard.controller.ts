@@ -37,7 +37,38 @@ export class JobCardController {
   @UseGuards(RolesGuard)
   @Roles(...FLOOR_ROLES)
   @Post(':id/transition')
-  async transition(@Param('id', ParseUUIDPipe) id: string, @Body() dto: { transition: string; holdReason?: string; remarks?: string }, @CurrentUser() user: AuthUser) {
+  async transition(@Param('id', ParseUUIDPipe) id: string, @Body() dto: {
+    transition: string;
+    holdReason?: string;
+    remarks?: string;
+    qtyProduced?: number;
+    completedQuantity?: number;
+    qtyScrap?: number;
+    scrapQuantity?: number;
+    qtyRejected?: number;
+    rejectedQuantity?: number;
+    operatorId?: string;
+    machineId?: string;
+  }, @CurrentUser() user: AuthUser) {
+    return this.service.transitionJob(id, dto.transition as keyof typeof import('../manufacturing.constants').JOB_TRANSITIONS, user, dto);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(...FLOOR_ROLES)
+  @Patch(':id/transition')
+  async patchTransition(@Param('id', ParseUUIDPipe) id: string, @Body() dto: {
+    transition: string;
+    holdReason?: string;
+    remarks?: string;
+    qtyProduced?: number;
+    completedQuantity?: number;
+    qtyScrap?: number;
+    scrapQuantity?: number;
+    qtyRejected?: number;
+    rejectedQuantity?: number;
+    operatorId?: string;
+    machineId?: string;
+  }, @CurrentUser() user: AuthUser) {
     return this.service.transitionJob(id, dto.transition as keyof typeof import('../manufacturing.constants').JOB_TRANSITIONS, user, dto);
   }
 

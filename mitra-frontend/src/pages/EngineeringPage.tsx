@@ -66,6 +66,7 @@ function BomsTab() {
   const queryClient = useQueryClient();
   const [selectedBomId, setSelectedBomId] = useState<string | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [compareRev, setCompareRev] = useState<{ a: string; b: string } | null>(null);
   const [subModal, setSubModal] = useState(false);
   const [subForm, setSubForm] = useState({ substituteBomItemId: '', type: 'ALTERNATE', reason: '', priority: 'MEDIUM' });
 
@@ -80,6 +81,37 @@ function BomsTab() {
     queryFn: () => api.get(`/engineering/boms/${selectedBomId}/tree`).then((r: any) => r.data),
     enabled: !!selectedBomId,
     staleTime: 60 * 1000,
+  });
+
+  const { data: bomRevisions } = useQuery({
+    queryKey: ['eng-bom-revisions', selectedBomId],
+    queryFn: () => api.get(`/engineering/boms/${selectedBomId}/revisions`).then(unwrap),
+    enabled: !!selectedBomId,
+    staleTime: 30 * 1000,
+  });
+
+  const { data: bomDiff } = useQuery({
+    queryKey: ['eng-bom-diff', selectedBomId, compareRev],
+    queryFn: () => api.get(`/engineering/boms/${selectedBomId}/compare/${compareRev!.a}/${compareRev!.b}`).then((r: any) => r.data),
+    enabled: !!selectedBomId && !!compareRev,
+    staleTime: 30 * 1000,
+  });
+
+  const { data: bomImpact } = useQuery({
+    queryKey: ['eng-bom-impact', selectedBomId, compareRev?.b],
+    queryFn: () => api.get(`/engineering/traceability/revision-impact?entityType=BOM&entityId=${selectedBomId}&revision=${compareRev?.b ?? 'A'}`).then((r: any) => r.data),
+    enabled: !!selectedBomId && !!compareRev,
+    staleTime: 30 * 1000,
+  });
+
+  const createBomRev = useMutation({
+    mutationFn: () => api.post(`/engineering/boms/${selectedBomId}/revisions`, { bumpRevision: true, changeSummary: 'New revision from UI' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['eng-bom-revisions'] });
+      queryClient.invalidateQueries({ queryKey: ['eng-boms'] });
+      toast.success('BOM revision created');
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to create BOM revision'),
   });
 
   const items = selectedItemId
@@ -117,13 +149,21 @@ function BomsTab() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>BOMs</CardTitle>
+          <CardTitle>BOMs &amp; Revisions</CardTitle>
+          {selectedBomId && (
+            <button
+              onClick={() => createBomRev.mutate()}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 text-sm font-medium"
+            >
+              <GitBranch className="w-4 h-4" /> Bump Revision
+            </button>
+          )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <DataTable
             loading={isLoading}
             data={boms ?? []}
-            onRowClick={(b: any) => { setSelectedBomId(b.id); setSelectedItemId(null); }}
+            onRowClick={(b: any) => { setSelectedBomId(b.id); setSelectedItemId(null); setCompareRev(null); }}
             columns={[
               { key: 'bomNumber', header: 'BOM #' },
               { key: 'name', header: 'Name' },
@@ -135,6 +175,49 @@ function BomsTab() {
               )},
             ]}
           />
+
+          {bomRevisions && bomRevisions.length > 1 && (
+            <div className="pt-2 border-t border-white/10 space-y-2">
+              <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Revision History &amp; Comparison</h4>
+              <div className="flex gap-2">
+                <select
+                  aria-label="Compare baseline revision"
+                  className="bg-slate-900 border border-white/10 rounded-lg px-2 py-1 text-xs text-white"
+                  value={compareRev?.a ?? bomRevisions[1]?.revision ?? 'A'}
+                  onChange={(e) => setCompareRev({ a: e.target.value, b: compareRev?.b ?? bomRevisions[0]?.revision ?? 'B' })}
+                >
+                  {bomRevisions.map((r: any) => <option key={r.id} value={r.revision}>Rev {r.revision} (v{r.versionNumber})</option>)}
+                </select>
+                <span className="text-slate-400 text-xs self-center">vs</span>
+                <select
+                  aria-label="Compare target revision"
+                  className="bg-slate-900 border border-white/10 rounded-lg px-2 py-1 text-xs text-white"
+                  value={compareRev?.b ?? bomRevisions[0]?.revision ?? 'B'}
+                  onChange={(e) => setCompareRev({ a: compareRev?.a ?? bomRevisions[1]?.revision ?? 'A', b: e.target.value })}
+                >
+                  {bomRevisions.map((r: any) => <option key={r.id} value={r.revision}>Rev {r.revision} (v{r.versionNumber})</option>)}
+                </select>
+              </div>
+
+              {bomDiff && (
+                <div className="p-3 bg-slate-900 border border-white/10 rounded-xl space-y-2 text-xs">
+                  <div className="flex items-center gap-3">
+                    <span className="text-emerald-400 font-medium">Added: +{bomDiff.added ?? 0}</span>
+                    <span className="text-red-400 font-medium">Removed: -{bomDiff.removed ?? 0}</span>
+                    <span className="text-amber-400 font-medium">Changed: ~{bomDiff.changed ?? 0}</span>
+                  </div>
+                  {bomImpact && (
+                    <div className="text-slate-400 border-t border-white/5 pt-2">
+                      <span>Impact: </span>
+                      <span className="text-cyan-300 font-medium">{bomImpact.impact?.workOrdersCount ?? 0} Work Orders</span>,{' '}
+                      <span className="text-cyan-300 font-medium">{bomImpact.impact?.jobCardsCount ?? 0} Job Cards</span>,{' '}
+                      <span className="text-cyan-300 font-medium">{bomImpact.impact?.inspectionPlansCount ?? 0} Quality Plans</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -307,7 +390,8 @@ function RoutingsTab() {
             ]}
           />
           {revisions && revisions.length > 0 && (
-            <>
+            <div className="pt-2 border-t border-white/10 space-y-3">
+              <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Revision History &amp; Diff</h4>
               <DataTable
                 data={revisions}
                 columns={[
@@ -316,7 +400,7 @@ function RoutingsTab() {
                   { key: 'compare', header: '', render: (r: any) => (
                     <button
                       onClick={() => setCompare(compare?.b === String(r.version) ? null : { a: compare?.a ?? String(r.version), b: String(r.version) })}
-                      className="text-cyan-400 hover:text-cyan-300 text-xs"
+                      className="text-cyan-400 hover:text-cyan-300 text-xs font-medium"
                     >
                       {compare?.b === String(r.version) ? 'Clear' : 'Compare vs current'}
                     </button>
@@ -324,11 +408,24 @@ function RoutingsTab() {
                 ]}
               />
               {diff && (
-                <pre className="text-xs text-slate-300 bg-slate-900 border border-white/10 rounded-xl p-3 overflow-auto max-h-64">
-                  {JSON.stringify(diff, null, 2)}
-                </pre>
+                <div className="p-3 bg-slate-900 border border-white/10 rounded-xl space-y-2 text-xs">
+                  <div className="flex items-center gap-3">
+                    <span className="text-emerald-400 font-medium">Added Operations: +{diff.added ?? 0}</span>
+                    <span className="text-red-400 font-medium">Removed: -{diff.removed ?? 0}</span>
+                    <span className="text-amber-400 font-medium">Changed: ~{diff.changed ?? 0}</span>
+                  </div>
+                  {diff.operations?.changed && diff.operations.changed.length > 0 && (
+                    <div className="text-slate-400 space-y-1">
+                      {diff.operations.changed.map((c: any, idx: number) => (
+                        <div key={idx} className="font-mono text-[11px] text-amber-300">
+                          Op {c.operation?.operationNumber ?? '—'} ({c.operation?.operationCode ?? ''}): Changed [{c.fields?.join(', ')}]
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
-            </>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -13,11 +13,26 @@ export class KnowledgeSearchController {
   constructor(private readonly service: KnowledgeSearchService) {}
 
   @Get('search')
-  @ApiOperation({ summary: 'Semantic knowledge search' })
-  @ApiQuery({ name: 'q', required: true, type: String })
+  @ApiOperation({ summary: 'Unified engineering knowledge & document search' })
+  @ApiQuery({ name: 'q', required: false, type: String })
+  @ApiQuery({ name: 'domain', required: false, type: String })
+  @ApiQuery({ name: 'articleType', required: false, type: String })
+  @ApiQuery({ name: 'projectId', required: false, type: String })
+  @ApiQuery({ name: 'material', required: false, type: String })
+  @ApiQuery({ name: 'process', required: false, type: String })
+  @ApiQuery({ name: 'status', required: false, type: String })
+  @ApiQuery({ name: 'topK', required: false, type: String })
+  @ApiQuery({ name: 'page', required: false, type: String })
+  @ApiQuery({ name: 'limit', required: false, type: String })
   async search(
-    @Query('q') q: string,
     @CurrentUser() user: AuthUser,
+    @Query('q') q?: string,
+    @Query('domain') domain?: string,
+    @Query('articleType') articleType?: string,
+    @Query('projectId') projectId?: string,
+    @Query('material') material?: string,
+    @Query('process') process?: string,
+    @Query('status') status?: string,
     @Query('topK') topK?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -25,7 +40,13 @@ export class KnowledgeSearchController {
     return this.service.search({
       query: q,
       tenantId: user.tenantId ?? 'default',
-      topK: Number(topK ?? 8),
+      domain,
+      articleType,
+      projectId,
+      material,
+      process,
+      status,
+      topK: topK ? Number(topK) : undefined,
       page: Number(page ?? 1),
       limit: Number(limit ?? 10),
     });

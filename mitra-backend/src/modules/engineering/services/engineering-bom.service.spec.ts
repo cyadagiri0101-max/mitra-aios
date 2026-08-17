@@ -133,6 +133,21 @@ describe('EngineeringBomService', () => {
     await expect(service.findOne('missing', 't-1')).rejects.toThrow(NotFoundException);
   });
 
+  it('computes parametric tooling cost rollup with explainable material, machining and margin breakdown', async () => {
+    itemRepo.find.mockResolvedValue([
+      makeItem({ id: 'i1', partNumber: 'INSERT-CAVITY-01', partName: 'H13 Cavity Insert Block', itemType: BomItemType.RAW_MATERIAL, quantity: 2, unitCost: 0 }),
+      makeItem({ id: 'i2', partNumber: 'EJECTOR-DIN1530-01', partName: 'DIN 1530 Ejector Pin D6x150', itemType: BomItemType.STANDARD_COMPONENT, quantity: 8, unitCost: 450 }),
+    ]);
+    const res = await service.calculateParametricCostRollup('b-1', 't-1');
+    expect(res.bomId).toBe('b-1');
+    expect(res.itemCount).toBe(2);
+    expect(res.summary.totalRawMaterialCost).toBeGreaterThan(0);
+    expect(res.summary.totalStandardPartsCost).toBe(8 * 450);
+    expect(res.summary.totalMachiningCost).toBeGreaterThan(0);
+    expect(res.summary.recommendedToolingPrice).toBeGreaterThan(res.summary.netManufacturingCost);
+    expect(res.machiningBreakdown.length).toBe(5);
+  });
+
   it('exports CSV with header + rows', async () => {
     const csv = await service.exportCsv('b-1', 't-1');
     expect(csv).toContain('partNumber');

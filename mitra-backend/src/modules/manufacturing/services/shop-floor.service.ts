@@ -181,7 +181,18 @@ export class ShopFloorService {
   }
 
   // ── Job transitions (pause/resume/hold/complete/cancel/rework/scrap) ─────
-  async transitionJob(jobId: string, transitionKey: keyof typeof JOB_TRANSITIONS, user: AuthUser, dto: { holdReason?: string; remarks?: string }) {
+  async transitionJob(jobId: string, transitionKey: keyof typeof JOB_TRANSITIONS, user: AuthUser, dto: {
+    holdReason?: string;
+    remarks?: string;
+    qtyProduced?: number;
+    completedQuantity?: number;
+    qtyScrap?: number;
+    scrapQuantity?: number;
+    qtyRejected?: number;
+    rejectedQuantity?: number;
+    operatorId?: string;
+    machineId?: string;
+  }) {
     const tenantId = this.requireTenant(user.tenantId);
     const transitionId = JOB_TRANSITIONS[transitionKey];
     if (!transitionId) throw new BadRequestException(`Unknown job transition: ${String(transitionKey)}`);
@@ -201,6 +212,58 @@ export class ShopFloorService {
       const patch: Record<string, unknown> = { status: toState, updatedBy: user.id };
       if (toState === JobCardStatus.COMPLETED) patch.completedAt = new Date();
       if (toState === JobCardStatus.ON_HOLD) patch.holdReason = dto.holdReason ?? null;
+      if (dto.operatorId) patch.operatorId = dto.operatorId;
+      if (dto.machineId) patch.machineId = dto.machineId;
+
+      const produced = dto.qtyProduced ?? dto.completedQuantity;
+      const scrap = dto.qtyScrap ?? dto.scrapQuantity;
+      const rejected = dto.qtyRejected ?? dto.rejectedQuantity;
+
+      if (produced !== undefined || scrap !== undefined || rejected !== undefined) {
+        const now = new Date();
+        const startTime = job.startedAt ?? now;
+        const durationMinutes = Math.max(0, Math.round((now.getTime() - new Date(startTime).getTime()) / 60000));
+
+        await em.getRepository(OperationLog).save(em.getRepository(OperationLog).create({
+          workOrderId: job.workOrderId,
+          jobCardId: job.id,
+          operationId: job.operationId,
+          operatorId: dto.operatorId ?? job.operatorId,
+          machineId: dto.machineId ?? job.machineId,
+          logDate: now,
+          startTime,
+          endTime: now,
+          durationMinutes,
+          qtyProduced: produced ?? 0,
+          qtyRejected: rejected ?? 0,
+          reworkQty: 0,
+          scrapQty: scrap ?? 0,
+          remarks: dto.remarks ?? null,
+          createdBy: user.id,
+          updatedBy: user.id,
+          tenantId: user.tenantId,
+        } as any));
+
+        const logs = await em.getRepository(OperationLog).find({ where: { jobCardId: job.id, deletedAt: undefined } });
+        const sums = logs.reduce((acc, l) => ({
+          produced: acc.produced + Number(l.qtyProduced || 0),
+          rejected: acc.rejected + Number(l.qtyRejected || 0),
+          rework: acc.rework + Number(l.reworkQty || 0),
+          scrap: acc.scrap + Number(l.scrapQty || 0),
+          downtime: acc.downtime + Number(l.machineDowntimeMinutes || 0),
+          setup: acc.setup + Number(l.setupTimeMinutes || 0),
+          duration: acc.duration + Number(l.durationMinutes || 0),
+        }), { produced: 0, rejected: 0, rework: 0, scrap: 0, downtime: 0, setup: 0, duration: 0 });
+
+        patch.producedQty = sums.produced;
+        patch.rejectedQty = sums.rejected;
+        patch.reworkQty = sums.rework;
+        patch.scrapQty = sums.scrap;
+        patch.downtimeMinutes = sums.downtime;
+        patch.setupTimeMinutes = sums.setup;
+        patch.actualHours = Number((sums.duration / 60).toFixed(2));
+      }
+
       await em.getRepository(JobCard).update(job.id, patch);
 
       const eventMap: Record<string, EngineeringDomainEventType> = {
@@ -218,6 +281,8 @@ export class ShopFloorService {
           entityNumber: job.jobCardNumber,
           workOrderId: job.workOrderId,
           holdReason: dto.holdReason,
+          producedQty: patch.producedQty ?? job.producedQty,
+          scrapQty: patch.scrapQty ?? job.scrapQty,
         }, { tenantId: user.tenantId, actorId: user.id, em });
       }
 

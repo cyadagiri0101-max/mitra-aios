@@ -68,6 +68,15 @@ export class EngineeringBomController {
     return this.service.rollupCost(id, user.tenantId);
   }
 
+  @Get(':id/cost-rollup')
+  @UseGuards(RolesGuard)
+  @Roles(...ENGINEERING_READ_ROLES)
+  @Permissions('engineering:bom:rollup')
+  @ApiOperation({ summary: 'Parametric Tooling Cost Estimation Engine breakdown' })
+  async getParametricCostRollup(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser) {
+    return this.service.calculateParametricCostRollup(id, user.tenantId);
+  }
+
   @Get(':id/revisions')
   @UseGuards(RolesGuard)
   @Roles(...ENGINEERING_READ_ROLES)

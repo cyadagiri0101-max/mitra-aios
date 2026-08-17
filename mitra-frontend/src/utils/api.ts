@@ -182,34 +182,6 @@ export function trackAIUsage(data: { prompt: string; modelName: string; response
   return api.post('/ai-usage/track', data);
 }
 
-export function searchEkl(query: string) {
-  return api.get('/ekl/search', { params: { q: query } });
-}
-
-export function getEklProjects() {
-  return api.get('/ekl/projects');
-}
-
-export function getEklProject(id: string) {
-  return api.get(`/ekl/projects/${encodeURIComponent(id)}`);
-}
-
-export function getEklDocuments() {
-  return api.get('/ekl/documents');
-}
-
-export function getEklDocument(id: string) {
-  return api.get(`/ekl/documents/${encodeURIComponent(id)}`);
-}
-
-export function getEklDashboard() {
-  return api.get('/ekl/dashboard/widgets');
-}
-
-export function syncEkl() {
-  return api.post('/ekl/sync');
-}
-
-export function getEklSyncStatus() {
-  return api.get('/ekl/sync/status');
+export function searchKnowledge(query: string, params: Record<string, any> = {}) {
+  return api.get('/knowledge/search', { params: { q: query, ...params } });
 }

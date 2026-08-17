@@ -82,7 +82,7 @@ export class EngineeringTraceabilityService {
         [projectId, scopeTenant],
       ).catch(() => []),
       this.dataSource.query(
-        `SELECT id, trial_number, trial_type, status, trial_date
+        `SELECT id, trial_number, trial_type, result AS status, trial_date
          FROM trial_observations WHERE project_id = $1 AND tenant_id = $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 200`,
         [projectId, scopeTenant],
       ).catch(() => []),
@@ -169,5 +169,90 @@ export class EngineeringTraceabilityService {
     }
 
     return { entityType: type, entityId, links };
+  }
+
+  /**
+   * Revision Impact Analysis (MITRA v4.2 Increment 4):
+   * Maps an engineering revision (Drawing, BOM, or Routing) directly down to
+   * impacted manufacturing Work Orders, Job Cards, and Quality Inspection Plans.
+   */
+  async getRevisionImpact(entityType: string, entityId: string, revision?: string, tenantId?: string | null) {
+    const scopeTenant = this.requireTenant(tenantId);
+    let projectId: string | null = null;
+
+    try {
+      const trace = await this.byEntity(entityType, entityId, scopeTenant);
+      projectId = trace.links.upstream?.projectId ?? null;
+    } catch {
+      projectId = await this.findProjectId(entityType, entityId, scopeTenant);
+    }
+
+    if (!projectId) {
+      projectId = await this.findProjectId(entityType, entityId, scopeTenant);
+    }
+
+    let workOrders: any[] = [];
+    let jobCards: any[] = [];
+    let inspectionPlans: any[] = [];
+
+    if (projectId) {
+      workOrders = await this.dataSource.query(
+        `SELECT id, wo_number, part_name, operation_type, status, planned_qty, completed_qty, created_at
+         FROM work_orders WHERE project_id = $1 AND tenant_id = $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 50`,
+        [projectId, scopeTenant],
+      ).catch(() => []);
+
+      const woIds = workOrders.map((w: any) => w.id).filter(Boolean);
+      if (woIds.length > 0) {
+        jobCards = await this.dataSource.query(
+          `SELECT id, job_card_number, work_order_id, operation_number, operation_code, status, qty_planned, qty_completed, scrap_qty
+           FROM job_cards WHERE work_order_id = ANY($1::uuid[]) AND tenant_id = $2 AND deleted_at IS NULL ORDER BY operation_number ASC LIMIT 100`,
+          [woIds, scopeTenant],
+        ).catch(() => []);
+      }
+
+      inspectionPlans = await this.dataSource.query(
+        `SELECT id, plan_number, title, status, inspection_type
+         FROM inspection_plans WHERE project_id = $1 AND tenant_id = $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 50`,
+        [projectId, scopeTenant],
+      ).catch(() => []);
+    }
+
+    return {
+      entityType: entityType.toUpperCase(),
+      entityId,
+      revision: revision ?? 'CURRENT',
+      projectId,
+      impact: {
+        workOrdersCount: workOrders.length,
+        jobCardsCount: jobCards.length,
+        inspectionPlansCount: inspectionPlans.length,
+        workOrders,
+        jobCards,
+        inspectionPlans,
+      },
+    };
+  }
+
+  private async findProjectId(entityType: string, entityId: string, tenantId: string): Promise<string | null> {
+    const type = entityType.toUpperCase();
+    const where = { id: entityId, tenantId, deletedAt: IsNull() } as any;
+    try {
+      if (type === 'DRAWING') {
+        const d = await this.drawingRepo.findOne({ where, select: ['projectId'] });
+        return d?.projectId ?? null;
+      }
+      if (type === 'BOM') {
+        const b = await this.bomRepo.findOne({ where, select: ['projectId'] });
+        return b?.projectId ?? null;
+      }
+      if (type === 'ROUTING') {
+        const r = await this.routingRepo.findOne({ where, select: ['projectId'] });
+        return r?.projectId ?? null;
+      }
+    } catch {
+      return null;
+    }
+    return null;
   }
 }

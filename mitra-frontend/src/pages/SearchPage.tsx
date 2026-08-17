@@ -26,8 +26,8 @@ export function SearchPage() {
     error: eklError,
     refetch: refetchEkl,
   } = useQuery({
-    queryKey: ['ekl-search', query],
-    queryFn: () => api.get(`/ekl/search`, { params: { q: query } }).then(r => r.data),
+    queryKey: ['knowledge-search', query],
+    queryFn: () => api.get('/knowledge/search', { params: { q: query } }).then(r => r.data),
     enabled: query.length > 2,
     retry: 1,
   });
@@ -81,15 +81,15 @@ export function SearchPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {eklError && <div className="text-sm text-red-600">EKL search failed. Please try again later.</div>}
-            {isEklLoading && <div className="text-sm text-gray-500">Loading engineering library results…</div>}
-            {!isEklLoading && !eklError && (!eklResults?.results || eklResults.results.length === 0) && (
-              <div className="text-sm text-gray-500">No engineering library results found.</div>
+            {eklError && <div className="text-sm text-red-600">Knowledge search failed. Please try again later.</div>}
+            {isEklLoading && <div className="text-sm text-gray-500">Loading engineering knowledge results…</div>}
+            {!isEklLoading && !eklError && (!eklResults?.data || eklResults.data.length === 0) && (
+              <div className="text-sm text-gray-500">No engineering knowledge results found.</div>
             )}
-            {!isEklLoading && eklResults?.results?.map((item: any, index: number) => (
+            {!isEklLoading && eklResults?.data?.map((item: any, index: number) => (
               <div key={index} className="p-3 rounded-lg border border-gray-100 hover:bg-gray-50">
                 <p className="font-medium text-gray-900">{item.title || item.name || item.summary || 'Result'}</p>
-                <p className="text-sm text-gray-500">{item.description || item.summary || item.type || 'No description available'}</p>
+                <p className="text-sm text-gray-500">{item.summary || item.contentSnippet || item.entityType || 'No description available'}</p>
               </div>
             ))}
           </CardContent>

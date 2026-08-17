@@ -103,4 +103,19 @@ describe('EngineeringTraceabilityService', () => {
       expect.objectContaining({ where: expect.objectContaining({ id: 'd-1', tenantId: 't-1' }) }),
     );
   });
+
+  it('renders revision impact with work orders, job cards, and inspection plans', async () => {
+    dataSource.query = jest.fn()
+      .mockResolvedValueOnce([{ id: 'wo-1', wo_number: 'WO-101', status: 'RELEASED' }])
+      .mockResolvedValueOnce([{ id: 'jc-1', job_card_number: 'JC-101', status: 'IN_PROGRESS' }])
+      .mockResolvedValueOnce([{ id: 'ip-1', plan_number: 'IP-2026-0001', status: 'RELEASED' }]);
+
+    const impact = await service.getRevisionImpact('DRAWING', 'd-1', 'B', 't-1');
+    expect(impact.entityType).toBe('DRAWING');
+    expect(impact.entityId).toBe('d-1');
+    expect(impact.revision).toBe('B');
+    expect(impact.impact.workOrdersCount).toBe(1);
+    expect(impact.impact.jobCardsCount).toBe(1);
+    expect(impact.impact.inspectionPlansCount).toBe(1);
+  });
 });

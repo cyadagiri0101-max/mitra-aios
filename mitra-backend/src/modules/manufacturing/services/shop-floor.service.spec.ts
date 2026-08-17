@@ -141,6 +141,24 @@ describe('ShopFloorService', () => {
       await service.transitionJob('job-1', 'COMPLETE', user, {});
       expect(outboxRows.some((r) => r.eventType === EngineeringDomainEventType.JOB_COMPLETED)).toBe(true);
     });
+
+    it('captures completedQuantity and scrapQuantity during completion and saves operation log', async () => {
+      workflow.executeTransition.mockResolvedValue({ id: 'wf-1', currentState: { stateCode: 'COMPLETED' } });
+      const logRepo = (service as any).operationLogRepo;
+      logRepo.find.mockResolvedValue([
+        { qtyProduced: 9, qtyRejected: 0, reworkQty: 0, scrapQty: 1, machineDowntimeMinutes: 0, setupTimeMinutes: 0, durationMinutes: 45 },
+      ]);
+      const result = await service.transitionJob('job-1', 'COMPLETE', user, {
+        completedQuantity: 9,
+        scrapQuantity: 1,
+        remarks: 'Finished machining batch cleanly',
+      });
+      expect(result.status).toBe('COMPLETED');
+      expect(savedLogs.length).toBeGreaterThan(0);
+      const lastLog = savedLogs[savedLogs.length - 1];
+      expect(lastLog.qtyProduced).toBe(9);
+      expect(lastLog.scrapQty).toBe(1);
+    });
   });
 
   describe('roll-up auto-complete', () => {
