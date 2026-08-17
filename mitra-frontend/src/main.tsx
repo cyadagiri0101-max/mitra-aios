@@ -1,3 +1,4 @@
+import 'regenerator-runtime/runtime';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';

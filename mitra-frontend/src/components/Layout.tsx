@@ -12,7 +12,7 @@
  * to avoid breaking any existing search-result references.
  */
 
-import { lazy, Suspense, useState } from 'react';
+import { Component, ErrorInfo, ReactNode, lazy, Suspense, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
@@ -22,6 +22,37 @@ import {
   AIWorkspaceProvider,
   useAIWorkspace,
 } from '../context/AIWorkspaceContext';
+
+interface ComponentErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+interface ComponentErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ComponentErrorBoundary extends Component<ComponentErrorBoundaryProps, ComponentErrorBoundaryState> {
+  constructor(props: ComponentErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): ComponentErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.warn('[AIDock] Optional AI component suppressed error:', error.message, errorInfo.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback ?? null;
+    }
+    return this.props.children;
+  }
+}
 
 // AI overlays are heavy (three.js robot, speech recognition) — load on demand
 const AIDock = lazy(() => import('./AI/AIDock').then((m) => ({ default: m.AIDock })));
@@ -80,9 +111,11 @@ function LayoutInner() {
         />
       </div>
 
-      {/* Existing right-rail AI assistant — unchanged */}
+      {/* Existing right-rail AI assistant — isolated with ComponentErrorBoundary */}
       <Suspense fallback={null}>
-        <AIDock />
+        <ComponentErrorBoundary fallback={null}>
+          <AIDock />
+        </ComponentErrorBoundary>
       </Suspense>
 
       {/* SearchOverlay: kept for programmatic access */}
