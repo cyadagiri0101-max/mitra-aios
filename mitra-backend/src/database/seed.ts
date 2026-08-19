@@ -156,6 +156,55 @@ async function seed(dataSource: DataSource) {
     { resource: 'creditNote', action: 'create' },
     { resource: 'creditNote', action: 'apply' },
     { resource: 'creditNote', action: 'cancel' },
+    // M1 Sprint 1 — People master (employees, skills, matrix, availability)
+    { resource: 'employee', action: 'read' },
+    { resource: 'employee', action: 'create' },
+    { resource: 'employee', action: 'update' },
+    { resource: 'employee', action: 'delete' },
+    { resource: 'skill', action: 'read' },
+    { resource: 'skill', action: 'create' },
+    { resource: 'skill', action: 'update' },
+    { resource: 'skill', action: 'delete' },
+    { resource: 'employee_skill', action: 'read' },
+    { resource: 'employee_skill', action: 'assign' },
+    { resource: 'employee_skill', action: 'update' },
+    { resource: 'employee_skill', action: 'remove' },
+    { resource: 'availability', action: 'read' },
+    { resource: 'availability', action: 'create' },
+    { resource: 'availability', action: 'update' },
+    { resource: 'availability', action: 'delete' },
+    // M1 Sprint 1 — Engineering Decision Log
+    { resource: 'engineering_decision', action: 'read' },
+    { resource: 'engineering_decision', action: 'create' },
+    { resource: 'engineering_decision', action: 'update' },
+    { resource: 'engineering_decision', action: 'submit' },
+    { resource: 'engineering_decision', action: 'approve' },
+    { resource: 'engineering_decision', action: 'reject' },
+    { resource: 'engineering_decision', action: 'cancel' },
+    { resource: 'engineering_decision', action: 'supersede' },
+    // M2 Sprint 1 — Design Load Foundation
+    { resource: 'design_standard', action: 'read' },
+    { resource: 'design_standard', action: 'create' },
+    { resource: 'design_standard', action: 'update' },
+    { resource: 'design_standard', action: 'delete' },
+    { resource: 'design_load', action: 'read' },
+    { resource: 'design_load', action: 'create' },
+    { resource: 'design_load', action: 'update' },
+    { resource: 'design_load', action: 'delete' },
+    { resource: 'design_load', action: 'estimate' },
+    { resource: 'design_system', action: 'read' },
+    { resource: 'design_system', action: 'create' },
+    { resource: 'design_system', action: 'update' },
+    { resource: 'design_system', action: 'delete' },
+    // M2 Sprint 2 — Schedule Baselines & Capacity Intelligence
+    { resource: 'baseline', action: 'read' },
+    { resource: 'baseline', action: 'create' },
+    { resource: 'baseline', action: 'update' },
+    { resource: 'baseline', action: 'activate' },
+    { resource: 'baseline', action: 'compare' },
+    { resource: 'baseline', action: 'delete' },
+    { resource: 'capacity', action: 'read' },
+    { resource: 'capacity', action: 'simulate' },
   ];
 
   const permRepo = dataSource.getRepository(Permission);
@@ -200,6 +249,18 @@ async function seed(dataSource: DataSource) {
       'invoice:read', 'invoice:create', 'invoice:update', 'invoice:delete', 'invoice:approve',
       'payment:read', 'payment:create', 'payment:verify',
       'creditNote:read', 'creditNote:create', 'creditNote:apply', 'creditNote:cancel',
+      // M1 Sprint 1 — people master + decision log (full operational access)
+      'employee:read', 'employee:create', 'employee:update', 'employee:delete',
+      'skill:read', 'skill:create', 'skill:update', 'skill:delete',
+      'employee_skill:read', 'employee_skill:assign', 'employee_skill:update', 'employee_skill:remove',
+      'availability:read', 'availability:create', 'availability:update', 'availability:delete',
+      'engineering_decision:read', 'engineering_decision:create', 'engineering_decision:update',
+      'engineering_decision:submit', 'engineering_decision:approve', 'engineering_decision:reject',
+      'engineering_decision:cancel', 'engineering_decision:supersede',
+      // M2 Sprint 1 — design standards & load
+      'design_standard:read', 'design_standard:create', 'design_standard:update', 'design_standard:delete',
+      'design_load:read', 'design_load:create', 'design_load:update', 'design_load:delete', 'design_load:estimate',
+      'design_system:read', 'design_system:create', 'design_system:update', 'design_system:delete',
     ],
     SALES: [
       'project:read', 'project:create', 'project:update', 'project:transition',
@@ -219,6 +280,9 @@ async function seed(dataSource: DataSource) {
       'invoice:read', 'invoice:create',
       'payment:read', 'payment:create',
       'creditNote:read', 'creditNote:create',
+      // M1 Sprint 1 — people + decisions (read-only)
+      'employee:read', 'skill:read', 'employee_skill:read', 'availability:read',
+      'engineering_decision:read',
     ],
     DESIGN: [
       'project:read', 'project:update',
@@ -236,6 +300,18 @@ async function seed(dataSource: DataSource) {
       'customer:read', 'contact:read', 'lead:read',
       'rfq:read', 'rfq:update',
       'quotation:read',
+      // M1 Sprint 1 — people + decisions
+      'employee:read', 'skill:read', 'employee_skill:read', 'employee_skill:assign', 'employee_skill:update',
+      'availability:read',
+      'engineering_decision:read', 'engineering_decision:create', 'engineering_decision:update',
+      'engineering_decision:submit', 'engineering_decision:supersede',
+      // M2 Sprint 1 — design standards & load
+      'design_standard:read', 'design_standard:create', 'design_standard:update',
+      'design_load:read', 'design_load:create', 'design_load:update', 'design_load:estimate',
+      'design_system:read',
+      // M2 Sprint 2 — Baselines & Capacity
+      'baseline:read', 'baseline:create', 'baseline:update', 'baseline:activate', 'baseline:compare',
+      'capacity:read', 'capacity:simulate',
     ],
     PLANNING: [
       'project:read', 'project:update', 'project:transition',
@@ -252,6 +328,16 @@ async function seed(dataSource: DataSource) {
       'customer:read', 'contact:read', 'lead:read',
       'rfq:read', 'rfq:update',
       'quotation:read',
+      // M1 Sprint 1 — people + decisions (planning owns availability data)
+      'employee:read', 'skill:read', 'employee_skill:read',
+      'availability:read', 'availability:create', 'availability:update',
+      'engineering_decision:read',
+      // M2 Sprint 1 — design standards & load
+      'design_standard:read', 'design_load:read', 'design_load:create', 'design_load:update', 'design_load:estimate',
+      'design_system:read', 'design_system:create', 'design_system:update',
+      // M2 Sprint 2 — Baselines & Capacity
+      'baseline:read', 'baseline:create', 'baseline:update', 'baseline:activate', 'baseline:compare', 'baseline:delete',
+      'capacity:read', 'capacity:simulate',
     ],
     PRODUCTION: [
       'project:read',
@@ -269,6 +355,9 @@ async function seed(dataSource: DataSource) {
       'customer:read', 'contact:read', 'lead:read',
       'rfq:read',
       'quotation:read',
+      // M1 Sprint 1 — people + decisions (read)
+      'employee:read', 'skill:read', 'employee_skill:read', 'availability:read',
+      'engineering_decision:read',
     ],
     QUALITY: [
       'project:read',
@@ -287,6 +376,10 @@ async function seed(dataSource: DataSource) {
       'customer:read', 'contact:read', 'lead:read',
       'rfq:read', 'rfq:update',
       'quotation:read',
+      // M1 Sprint 1 — people + decisions (read; quality authors decisions)
+      'employee:read', 'skill:read', 'employee_skill:read', 'availability:read',
+      'engineering_decision:read', 'engineering_decision:create', 'engineering_decision:update',
+      'engineering_decision:submit',
     ],
     CUSTOMER: [
       'project:read',

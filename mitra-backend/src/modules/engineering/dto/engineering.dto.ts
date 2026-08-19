@@ -12,9 +12,10 @@ export class ProjectScopeDto {
 
 export class CreateDrawingDto extends ProjectScopeDto {
   @ApiPropertyOptional() @IsOptional() @IsString() title?: string;
-  @ApiPropertyOptional({ enum: ['PART', 'ASSEMBLY', 'SUB_ASSEMBLY', 'TOOL', 'FIXTURE', 'GAUGE', 'STANDARD', 'OTHER'] })
+  @ApiPropertyOptional({ enum: ['PART', 'ASSEMBLY', 'SUB_ASSEMBLY', 'TOOL', 'FIXTURE', 'GAUGE', 'STANDARD', 'OTHER', 'MOLD_BASE', 'CAVITY', 'CORE', 'ELECTRODE', 'LAYOUT'] })
   @IsOptional() @IsString() drawingType?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() partNumber?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() currentRevision?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() cadFileType?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() cadAppName?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() cadAppVersion?: string;
@@ -29,7 +30,8 @@ export class CreateDrawingDto extends ProjectScopeDto {
 
 export class UpdateDrawingDto {
   @ApiPropertyOptional() @IsOptional() @IsString() title?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() drawingType?: string;
+  @ApiPropertyOptional({ enum: ['PART', 'ASSEMBLY', 'SUB_ASSEMBLY', 'TOOL', 'FIXTURE', 'GAUGE', 'STANDARD', 'OTHER', 'MOLD_BASE', 'CAVITY', 'CORE', 'ELECTRODE', 'LAYOUT'] })
+  @IsOptional() @IsString() drawingType?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() partNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() lengthMm?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() widthMm?: number;
@@ -53,8 +55,16 @@ export class CreateDrawingRevisionDto {
 export class CheckInDrawingDto {
   @ApiProperty() @IsString() revision: string;
   @ApiPropertyOptional() @IsOptional() @IsString() changeSummary?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() fileName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() filePath?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() mimeType?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() fileSize?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() fileSizeBytes?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() checksum?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() fileChecksum?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() cadFileType?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() cadAppName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() cadAppVersion?: string;
 }
 
 // ── BOM ─────────────────────────────────────────────────────────────────────
@@ -64,6 +74,7 @@ export class CreateBomDto extends ProjectScopeDto {
   @ApiPropertyOptional() @IsOptional() @IsUUID() drawingId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() revisionCode?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() status?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() currency?: string;
   @ApiPropertyOptional() @IsOptional() @IsObject() metadata?: Record<string, any>;
 }
 
@@ -77,6 +88,7 @@ export class AddBomItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() materialSpec?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() quantityPer?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() unit?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() uom?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() unitCost?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() currency?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
@@ -89,6 +101,7 @@ export class UpdateBomItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() itemType?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() quantityPer?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() unit?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() uom?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() unitCost?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() currency?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
@@ -96,8 +109,11 @@ export class UpdateBomItemDto {
 }
 
 export class BomRevisionDto {
-  @ApiProperty() @IsString() revisionCode: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() revisionCode?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() revision?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() changeNotes?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() changeSummary?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() bumpRevision?: boolean;
 }
 
 // ── BOM substitutions (Sprint 2.3.1 G-3) ────────────────────────────────────

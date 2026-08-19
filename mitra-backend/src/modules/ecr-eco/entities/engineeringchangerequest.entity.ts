@@ -89,4 +89,8 @@ export class EngineeringChangeRequest extends IndustrialBaseEntity {
   @Column({ name: 'routing_id', type: 'uuid', nullable: true })
   @Index()
   routingId: string | null;
+
+  @Column({ name: 'decision_id', type: 'uuid', nullable: true })
+  @Index()
+  decisionId: string | null;
 }

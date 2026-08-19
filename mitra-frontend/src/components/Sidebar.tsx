@@ -6,6 +6,7 @@ import {
   Factory, ShieldCheck, FlaskConical, AlertTriangle, Truck, Wrench, Bot,
   BarChart3, FileStack, Users, GitPullRequest, Workflow, Search, Settings,
   ChevronLeft, ChevronRight, Boxes, Layers, Ruler, Target, ClipboardList, Cog,
+  GitCommit, History, Cpu,
 } from 'lucide-react';
 
 type NavItem = { path: string; label: string; icon: React.ElementType; roles: string[]; badge?: string };
@@ -19,6 +20,11 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/quotations',    label: 'Quotations',    icon: FileText,        roles: ['SALES','ADMIN','MANAGEMENT'] },
   { path: '/design',        label: 'Design',        icon: PenTool,         roles: ['DESIGN','ADMIN','MANAGEMENT'] },
   { path: '/planning',      label: 'Planning',      icon: Calendar,        roles: ['PLANNING','ADMIN','MANAGEMENT'] },
+  { path: '/planning/baselines', label: 'Baselines', icon: History,        roles: ['PLANNING','DESIGN','ADMIN','MANAGEMENT'], badge: 'M2' },
+  { path: '/planning/capacity',  label: 'Capacity',  icon: Cpu,            roles: ['PLANNING','DESIGN','ADMIN','MANAGEMENT'], badge: 'M2' },
+  { path: '/employees',     label: 'People & Skills', icon: Users,         roles: ['all'], badge: 'M1' },
+  { path: '/engineering-decisions', label: 'Decision Log', icon: GitCommit, roles: ['all'], badge: 'M1' },
+  { path: '/design-loads',  label: 'Design Loads',  icon: Layers,          roles: ['DESIGN','PLANNING','ADMIN','MANAGEMENT'], badge: 'M2' },
   { path: '/manufacturing', label: 'Manufacturing', icon: Factory,         roles: ['PRODUCTION','ADMIN','MANAGEMENT'] },
   { path: '/quality',       label: 'Quality',       icon: ShieldCheck,     roles: ['QUALITY','ADMIN','MANAGEMENT'] },
   { path: '/trials',        label: 'Trials',        icon: FlaskConical,    roles: ['QUALITY','PRODUCTION','ADMIN','MANAGEMENT'] },

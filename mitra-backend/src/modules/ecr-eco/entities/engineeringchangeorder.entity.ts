@@ -66,4 +66,8 @@ export class EngineeringChangeOrder extends IndustrialBaseEntity {
   @Column({ name: 'bom_id', type: 'uuid', nullable: true })
   @Index()
   bomId: string | null;
+
+  @Column({ name: 'decision_id', type: 'uuid', nullable: true })
+  @Index()
+  decisionId: string | null;
 }

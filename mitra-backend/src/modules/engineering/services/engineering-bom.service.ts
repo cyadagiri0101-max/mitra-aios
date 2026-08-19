@@ -638,7 +638,7 @@ export class EngineeringBomService {
       order: { versionNumber: 'DESC' },
     });
     const versionNumber = (last?.versionNumber ?? 0) + 1;
-    const revision = data.bumpRevision ? this.nextRevisionLetter(bom.revision) : bom.revision;
+    const revision = data.revision || data.revisionCode || (data.bumpRevision ? this.nextRevisionLetter(bom.revision) : bom.revision);
 
     const snapshot = {
       bom: { id: bom.id, bomNumber: bom.bomNumber, name: bom.name, projectId: bom.projectId, drawingId: bom.drawingId },
@@ -678,7 +678,11 @@ export class EngineeringBomService {
     return saved;
   }
 
-  /** Compare two revision snapshots item-by-item. */
+  /**
+   * Deterministic BOM Revision Comparison Engine (M3 Vision-100 G6).
+   * Compares two revision snapshots item-by-item across identity, quantity,
+   * unit cost, extended cost, material, and substitutes.
+   */
   async compareRevisions(bomId: string, revisionA: string, revisionB: string, tenantId?: string | null) {
     await this.findOne(bomId, tenantId);
     const find = async (revision: string) => {
@@ -691,32 +695,128 @@ export class EngineeringBomService {
     };
     const a = await find(revisionA);
     const b = await find(revisionB);
-    const itemsA = a.snapshot?.items ?? [];
-    const itemsB = b.snapshot?.items ?? [];
-    const byId = new Map<string, any>(itemsB.map((i: any) => [i.id, i] as [string, any]));
+    const itemsA: any[] = a.snapshot?.items ?? [];
+    const itemsB: any[] = b.snapshot?.items ?? [];
+
+    // Map by unique part identity (partNumber preferred, fallback to id or lineNumber)
+    const getItemKey = (item: any) => item.partNumber || item.id || item.lineNumber;
+    const mapB = new Map<string, any>(itemsB.map((i: any) => [getItemKey(i), i]));
 
     const added: any[] = [];
     const removed: any[] = [];
-    const changed: { item: any; fields: string[] }[] = [];
+    const modified: Array<{
+      itemA: any;
+      itemB: any;
+      fieldDeltas: Record<string, { from: any; to: any }>;
+    }> = [];
+    const unchanged: any[] = [];
+
+    const quantityChanges: Array<{ partNumber: string; partName: string; fromQty: number; toQty: number }> = [];
+    const materialChanges: Array<{ partNumber: string; partName: string; fromMaterial: string; toMaterial: string }> = [];
+    const substituteChanges: Array<{ partNumber: string; partName: string; changes: string }> = [];
+
     for (const itemA of itemsA) {
-      const itemB = byId.get(itemA.id);
-      if (!itemB) { removed.push(itemA); continue; }
-      const fields = Object.keys(itemB).filter(
-        (k) => itemB[k] !== itemA[k] && k !== 'extendedCost',
-      );
-      if (fields.length) changed.push({ item: itemA, fields });
-      byId.delete(itemA.id);
+      const keyA = getItemKey(itemA);
+      const itemB = mapB.get(keyA);
+
+      if (!itemB) {
+        removed.push(itemA);
+        continue;
+      }
+
+      // Check fields for delta
+      const fieldDeltas: Record<string, { from: any; to: any }> = {};
+      const fieldsToCheck = [
+        'partName',
+        'itemType',
+        'sourceType',
+        'quantityPer',
+        'quantity',
+        'uom',
+        'unitCost',
+        'material',
+        'reference',
+      ];
+
+      for (const f of fieldsToCheck) {
+        const valA = itemA[f] !== undefined ? itemA[f] : null;
+        const valB = itemB[f] !== undefined ? itemB[f] : null;
+        if (String(valA ?? '') !== String(valB ?? '')) {
+          fieldDeltas[f] = { from: valA, to: valB };
+        }
+      }
+
+      if (Object.keys(fieldDeltas).length > 0) {
+        modified.push({ itemA, itemB, fieldDeltas });
+        if (fieldDeltas['quantityPer'] || fieldDeltas['quantity']) {
+          quantityChanges.push({
+            partNumber: itemA.partNumber,
+            partName: itemA.partName,
+            fromQty: Number(itemA.quantity ?? itemA.quantityPer ?? 1),
+            toQty: Number(itemB.quantity ?? itemB.quantityPer ?? 1),
+          });
+        }
+        if (fieldDeltas['material']) {
+          materialChanges.push({
+            partNumber: itemA.partNumber,
+            partName: itemA.partName,
+            fromMaterial: String(itemA.material ?? 'N/A'),
+            toMaterial: String(itemB.material ?? 'N/A'),
+          });
+        }
+      } else {
+        unchanged.push(itemA);
+      }
+
+      mapB.delete(keyA);
     }
-    for (const rest of byId.values()) added.push(rest);
+
+    // Remaining items in B are newly added
+    for (const itemB of mapB.values()) {
+      added.push(itemB);
+    }
+
+    const previousTotalCost = Number(a.totalCost ?? 0);
+    const newTotalCost = Number(b.totalCost ?? 0);
+    const costDelta = Number((newTotalCost - previousTotalCost).toFixed(2));
 
     return {
       bomId,
-      revisionA: { revision: a.revision, versionNumber: a.versionNumber, totalCost: a.totalCost },
-      revisionB: { revision: b.revision, versionNumber: b.versionNumber, totalCost: b.totalCost },
-      added: added.length,
-      removed: removed.length,
-      changed: changed.length,
-      items: { added, removed, changed },
+      revisionA: {
+        revision: a.revision,
+        versionNumber: a.versionNumber,
+        totalCost: previousTotalCost,
+        releasedAt: a.releasedAt,
+      },
+      revisionB: {
+        revision: b.revision,
+        versionNumber: b.versionNumber,
+        totalCost: newTotalCost,
+        releasedAt: b.releasedAt,
+      },
+      summary: {
+        addedCount: added.length,
+        removedCount: removed.length,
+        modifiedCount: modified.length,
+        unchangedCount: unchanged.length,
+        totalItemsA: itemsA.length,
+        totalItemsB: itemsB.length,
+        previousTotalCost,
+        newTotalCost,
+        costDelta,
+        costDeltaPercentage: previousTotalCost > 0
+          ? Number(((costDelta / previousTotalCost) * 100).toFixed(2))
+          : 0,
+      },
+      details: {
+        added,
+        removed,
+        modified,
+        unchanged,
+        quantityChanges,
+        materialChanges,
+        substituteChanges,
+      },
     };
   }
 

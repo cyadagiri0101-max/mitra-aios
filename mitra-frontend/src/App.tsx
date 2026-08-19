@@ -46,6 +46,11 @@ const ProjectTimelinePage = lazy(() => import('./pages/ProjectTimelinePage').the
 const ProjectTeamsPage = lazy(() => import('./pages/ProjectTeamsPage').then((m) => ({ default: m.ProjectTeamsPage })));
 const ProjectRisksPage = lazy(() => import('./pages/ProjectRisksPage').then((m) => ({ default: m.ProjectRisksPage })));
 const ProjectDocumentsPage = lazy(() => import('./pages/ProjectDocumentsPage').then((m) => ({ default: m.ProjectDocumentsPage })));
+const EmployeesPage = lazy(() => import('./pages/EmployeesPage').then((m) => ({ default: m.EmployeesPage })));
+const EngineeringDecisionsPage = lazy(() => import('./pages/EngineeringDecisionsPage').then((m) => ({ default: m.EngineeringDecisionsPage })));
+const DesignLoadPage = lazy(() => import('./pages/DesignLoadPage').then((m) => ({ default: m.DesignLoadPage })));
+const ScheduleBaselinesPage = lazy(() => import('./pages/ScheduleBaselinesPage').then((m) => ({ default: m.ScheduleBaselinesPage })));
+const CapacityPlanningPage = lazy(() => import('./pages/CapacityPlanningPage').then((m) => ({ default: m.CapacityPlanningPage })));
 
 function PageFallback() {
   return (
@@ -77,10 +82,19 @@ function App() {
               <Route path="/projects/:id/teams" element={<ProjectTeamsPage />} />
               <Route path="/projects/:id/risks" element={<ProjectRisksPage />} />
               <Route path="/projects/:id/documents" element={<ProjectDocumentsPage />} />
+              <Route path="/projects/:id/decisions" element={<EngineeringDecisionsPage />} />
+              <Route path="/projects/:id/baselines" element={<ScheduleBaselinesPage />} />
               <Route path="/enquiries" element={<EnquiriesPage />} />
               <Route path="/quotations" element={<QuotationsPage />} />
               <Route path="/design" element={<DesignPage />} />
               <Route path="/planning" element={<PlanningPage />} />
+              <Route path="/planning/baselines" element={<ScheduleBaselinesPage />} />
+              <Route path="/baselines" element={<ScheduleBaselinesPage />} />
+              <Route path="/planning/capacity" element={<CapacityPlanningPage />} />
+              <Route path="/planning/workload" element={<CapacityPlanningPage />} />
+              <Route path="/planning/utilization" element={<CapacityPlanningPage />} />
+              <Route path="/planning/what-if" element={<CapacityPlanningPage />} />
+              <Route path="/capacity" element={<CapacityPlanningPage />} />
               <Route path="/manufacturing" element={<ManufacturingPage />} />
               <Route path="/quality" element={<QualityPage />} />
               <Route path="/trials" element={<TrialsPage />} />
@@ -90,6 +104,13 @@ function App() {
               <Route path="/tool-master" element={<ToolMasterPage />} />
               <Route path="/tool-master/:id" element={<ToolMasterDetailsPage />} />
               <Route path="/engineering-file-indexer" element={<EngineeringFileIndexerPage />} />
+              <Route path="/employees" element={<EmployeesPage />} />
+              <Route path="/people" element={<EmployeesPage />} />
+              <Route path="/engineering-decisions" element={<EngineeringDecisionsPage />} />
+              <Route path="/design-loads" element={<DesignLoadPage />} />
+              <Route path="/design-load" element={<DesignLoadPage />} />
+              <Route path="/design-standards" element={<DesignLoadPage />} />
+              <Route path="/design-systems" element={<DesignLoadPage />} />
               <Route path="/dispatch" element={<DispatchPage />} />
               <Route path="/service" element={<ServicePage />} />
               <Route path="/bom-analysis" element={<BomAnalysisPage />} />

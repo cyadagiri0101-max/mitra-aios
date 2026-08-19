@@ -16,3 +16,5 @@ export { ProjectFolder } from './projectfolder.entity';
 export { ProjectDocument, ProjectDocumentType, ProjectDocumentStatus } from './projectdocument.entity';
 export { ProjectDocumentVersion } from './projectdocumentversion.entity';
 export { ProjectActivityLog } from './projectactivitylog.entity';
+export { ScheduleBaseline, BaselineStatus } from './schedule-baseline.entity';
+export { ScheduleBaselineItem, BaselineItemType } from './schedule-baseline-item.entity';

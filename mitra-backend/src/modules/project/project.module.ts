@@ -19,6 +19,10 @@ import { ProjectDocument } from './entities/projectdocument.entity';
 import { ProjectDocumentVersion } from './entities/projectdocumentversion.entity';
 import { ProjectActivityLog } from './entities/projectactivitylog.entity';
 
+import { ScheduleBaseline } from './entities/schedule-baseline.entity';
+import { ScheduleBaselineItem } from './entities/schedule-baseline-item.entity';
+import { ProjectDesignLoad } from '../design-load/entities/project-design-load.entity';
+
 import { ProjectService } from './services/project.service';
 import { MilestoneService } from './services/milestone.service';
 import { TaskService } from './services/task.service';
@@ -31,6 +35,7 @@ import { ProjectFactoryService } from './services/project-factory.service';
 import { ProjectWorkflowService } from './services/project-workflow.service';
 import { DomainEventBus } from './services/domain-event-bus.service';
 import { AiProjectionService } from './services/ai-projection.service';
+import { ScheduleBaselineService } from './services/schedule-baseline.service';
 
 import { ProjectController } from './controllers/project.controller';
 import { MilestoneController } from './controllers/milestone.controller';
@@ -40,6 +45,7 @@ import { RiskController } from './controllers/risk.controller';
 import { ProjectDocumentController } from './controllers/project-document.controller';
 import { TimelineController } from './controllers/timeline.controller';
 import { AiProjectionController } from './controllers/ai-projection.controller';
+import { ScheduleBaselineController } from './controllers/schedule-baseline.controller';
 
 import { WorkflowModule } from '../workflow/workflow.module';
 import { AuditModule } from '../audit/audit.module';
@@ -53,6 +59,7 @@ import { PlatformModule } from '../platform/platform.module';
       ProjectTask, TaskDependency, TaskComment, TaskAttachment,
       Department, ProjectTeam, ProjectTeamMember, ProjectRisk,
       ProjectFolder, ProjectDocument, ProjectDocumentVersion, ProjectActivityLog,
+      ScheduleBaseline, ScheduleBaselineItem, ProjectDesignLoad,
     ]),
     WorkflowModule,
     AuditModule,
@@ -67,6 +74,7 @@ import { PlatformModule } from '../platform/platform.module';
     ProjectDocumentController,
     TimelineController,
     AiProjectionController,
+    ScheduleBaselineController,
   ],
   providers: [
     DomainEventBus,
@@ -81,11 +89,13 @@ import { PlatformModule } from '../platform/platform.module';
     TimelineService,
     ProjectActivityService,
     AiProjectionService,
+    ScheduleBaselineService,
   ],
   exports: [
     ProjectService,
     ProjectFactoryService,
     ProjectWorkflowService,
+    ScheduleBaselineService,
     DomainEventBus,
     TypeOrmModule,
   ],

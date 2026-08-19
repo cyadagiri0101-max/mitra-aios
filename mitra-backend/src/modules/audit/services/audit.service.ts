@@ -11,6 +11,7 @@ export interface AuditLogInput {
   userId?: string;
   userEmail?: string;
   tenantId?: string;
+  projectId?: string;
   beforeState?: Record<string, unknown>;
   afterState?: Record<string, unknown>;
   reason?: string;
@@ -49,6 +50,7 @@ export class AuditService {
       userId: toUuidOrNull(input.userId),
       userEmail: input.userEmail ?? null,
       tenantId: toUuidOrNull(input.tenantId),
+      projectId: toUuidOrNull(input.projectId),
       beforeState: input.beforeState ?? null,
       afterState: input.afterState ?? null,
       reason: input.reason ?? null,
@@ -66,6 +68,8 @@ export class AuditService {
     userId: string,
     metadata?: Record<string, any>,
     em?: EntityManager,
+    projectId?: string,
+    tenantId?: string,
   ): Promise<AuditLog> {
     return this.log({
       entityType: entity,
@@ -73,7 +77,9 @@ export class AuditService {
       action,
       eventType: AuditEventType.BUSINESS,
       userId,
+      tenantId: tenantId ?? (metadata?.tenantId as string | undefined),
       metadata,
+      projectId,
     }, em);
   }
 

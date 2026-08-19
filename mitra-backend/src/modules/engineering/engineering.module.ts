@@ -62,6 +62,8 @@ import { EngineeringAiHooksController } from './controllers/engineering-ai-hooks
 import { EngineeringWorkflowController } from './controllers/engineering-workflow.controller';
 import { EngineeringUomController } from './controllers/engineering-uom.controller';
 import { EngineeringOutboxController } from './controllers/engineering-outbox.controller';
+import { EngineeringReleaseService } from './services/engineering-release.service';
+import { EngineeringReleaseController } from './controllers/engineering-release.controller';
 
 @Module({
   imports: [
@@ -115,6 +117,7 @@ import { EngineeringOutboxController } from './controllers/engineering-outbox.co
     EngineeringChangeController,
     EngineeringUomController,
     EngineeringOutboxController,
+    EngineeringReleaseController,
   ],
   providers: [
     EngineeringEventBus,
@@ -133,6 +136,7 @@ import { EngineeringOutboxController } from './controllers/engineering-outbox.co
     EngineeringUomConversionService,
     EngineeringOutboxRelayService,
     EngineeringOutboxRelayScheduler,
+    EngineeringReleaseService,
   ],
   exports: [
     EngineeringEventBus,
@@ -149,6 +153,7 @@ import { EngineeringOutboxController } from './controllers/engineering-outbox.co
     EngineeringWorkflowService,
     EngineeringUomConversionService,
     EngineeringOutboxRelayService,
+    EngineeringReleaseService,
   ],
 })
 export class EngineeringModule {}

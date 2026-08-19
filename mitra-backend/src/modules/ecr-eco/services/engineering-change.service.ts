@@ -196,6 +196,25 @@ export class EngineeringChangeService {
     return { deleted: true, id };
   }
 
+  /**
+   * Explicitly link an Engineering Decision to an ECR (M3 Change Intelligence G5).
+   */
+  async linkDecision(ecrId: string, decisionId: string, actor: ChangeActor) {
+    const ecr = await this.findECR(ecrId, actor.tenantId);
+    ecr.decisionId = decisionId;
+    ecr.updatedBy = actor.userId;
+    const saved = await this.ecrRepo.save(ecr);
+
+    await this.auditService.logBusinessEvent('engineering.change.decision_linked', 'EngineeringChangeRequest', saved.id, actor.userId ?? 'system', {
+      ecrNumber: saved.ecrNumber,
+      decisionId,
+      projectId: saved.projectId,
+      tenantId: saved.tenantId,
+    }, undefined, saved.projectId ?? undefined);
+
+    return saved;
+  }
+
   // ── Impact analysis ───────────────────────────────────────────────────────
 
   async listImpacts(ecrId: string, tenantId?: string | null) {

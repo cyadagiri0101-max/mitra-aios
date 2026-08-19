@@ -40,6 +40,10 @@ export class AuditLog {
   @Column({ name: 'tenant_id', type: 'uuid', nullable: true })
   tenantId: string | null;
 
+  @Column({ name: 'project_id', type: 'uuid', nullable: true })
+  @Index(['projectId', 'createdAt'])
+  projectId: string | null;
+
   @Column({ name: 'before_state', type: 'jsonb', nullable: true })
   beforeState: Record<string, unknown> | null;
 

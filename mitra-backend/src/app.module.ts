@@ -49,6 +49,9 @@ import { ToolMasterModule } from './modules/tool-master/tool-master.module';
 import { EngineeringFileIndexerModule } from './modules/engineering-file-indexer/engineering-file-indexer.module';
 import { EngineeringLibraryModule } from './modules/engineering-library/engineering-library.module';
 import { EngineeringModule } from './modules/engineering/engineering.module';
+import { PeopleModule } from './modules/people/people.module';
+import { EngineeringDecisionsModule } from './modules/engineering-decisions/engineering-decisions.module';
+import { DesignLoadModule } from './modules/design-load/design-load.module';
 import { SchemaIntegrityService } from './common/services/schema-integrity.service';
 import { OptimisticLockFilter } from './common/filters/optimistic-lock.filter';
 
@@ -124,6 +127,9 @@ import { OptimisticLockFilter } from './common/filters/optimistic-lock.filter';
     EngineeringFileIndexerModule,
     EngineeringLibraryModule,
     EngineeringModule,
+    PeopleModule,
+    EngineeringDecisionsModule,
+    DesignLoadModule,
   ],
   providers: [
     IndustrialSubscriber,

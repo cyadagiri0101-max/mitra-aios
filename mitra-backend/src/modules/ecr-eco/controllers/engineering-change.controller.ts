@@ -60,6 +60,18 @@ export class EngineeringChangeController {
     return this.service.removeECR(id, this.actor(user));
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(...CHANGE_ROLES)
+  @Post('ecr/:id/link-decision')
+  @HttpCode(200)
+  async linkDecision(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { decisionId: string },
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.linkDecision(id, body.decisionId, this.actor(user));
+  }
+
   @Get('ecr/:id/workflow')
   async getWorkflow(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser) {
     return this.service.getWorkflow(id, this.actor(user));
