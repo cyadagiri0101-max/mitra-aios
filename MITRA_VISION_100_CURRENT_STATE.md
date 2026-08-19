@@ -24,6 +24,7 @@ All Phase 0 historical baseline findings are preserved as an immutable starting 
 | **M1** | Sprint 1 | Employee Master, Skill Master, Employee-Skill Proficiency Matrix, Resource Availability, Engineering Decision Log (`DEC-{yyyy}-{NNNN}`), Decision Supersession, `audit_logs.project_id` scoping | **COMPLETE & VERIFIED** | **G5 (ECR/ECO Change Decision Log) Certified**; Unit 100%, E2E 100% |
 | **M2** | Sprint 1 & 2 | Design Load Standards, CAD Studio Capacity Model (10 Workstations, 3 Shifts, 240.0 h/day), Schedule Baselines (`BL-{NNNN}`), Immutable Snapshots, Lifecycle (`DRAFT` $\rightarrow$ `ACTIVE` $\rightarrow$ `SUPERSEDED`), Deterministic Variance Engine ($\Delta\text{days}$, $\Delta\text{hours}$), Multi-Project Demand Timeline, Live Engineer Utilization, What-If Simulator, Frontend UI | **COMPLETE & VERIFIED** | **G2 (Schedule Baselines & Variance) Certified**; **G3 (Capacity Intelligence) Certified**; Unit 100%, E2E 100% |
 | **M3** | Sprint 1 & 2 | Engineering Drawing Management & Check-in/out, Release Governance (`DRAFT` $\rightarrow$ `FROZEN` $\rightarrow$ `RELEASED`), Manufacturing Handoff Gate (Strictly blocks Work Orders on FROZEN, allows only on RELEASED), Multi-level BOM Hierarchy & Revision Snapshots, Deterministic BOM Revision Diff Engine (ADDED, REMOVED, MODIFIED, UNCHANGED, quantity/material deltas, cost rollup comparison), Change Decision Linkage (ECR $\rightarrow$ Decision $\rightarrow$ ECO $\rightarrow$ ECN), Capacity Leveling with Human-in-the-Loop Approval | **COMPLETE & FORMALLY CERTIFIED** | **G4 (Release Governance) Certified**; **G6 (BOM Diff) Certified**; **G5 (Change Decision Linkage) Certified**; **G3 (Leveling Extension) Certified**; All 8 E2E Suites 100% (53/53 passed) |
+| **M4** | Sprint 1 & 2 | Work Order execution from released routing, sequential Job Cards generation with workflow instances, finite machine scheduling with conflict detection, predecessor sequencing enforcement, actual production rollup, in-process inspection failure handling, Quality Barrier Gate blocking WO completion on open NCRs, controlled 8D CAPA workflow with bidirectional NCR sync, tooling trial T0/T1 execution with retrial recommendation/human approval, and direct trial-to-ECR creation with full artifact traceability | **COMPLETE & FORMALLY CERTIFIED** | **G7 (Work Order Execution & Scheduling) Certified**; **G8 (Quality Closed Loop & NCR-CAPA) Certified**; **G9 (Tooling Trial Governance & ECR Loop) Certified**; All 11 Milestone E2E Suites 100% (56/56 passed) |
 
 ---
 
@@ -31,23 +32,23 @@ All Phase 0 historical baseline findings are preserved as an immutable starting 
 
 ```
 +-------------------------------------------------------------------------+
-| Phase                                  | Phase 0 Hist | Current Post-M3 |
+| Phase                                  | Phase 0 Hist | Current Post-M4 |
 |                                        | Impl / Cert  | Impl / Cert     |
 +-------------------------------------------------------------------------+
-| 1. Master Data & Commercial            |  55% / 25%   |  75% / 50%      |
-| 2. Project, Planning & Capacity        |  45% / 15%   |  95% / 90%      |
-| 3. Engineering & Change                |  70% / 30%   |  95% / 95%      |
-| 4. Manufacturing                       |  55% / 20%   |  65% / 35%      |
-| 5. Quality                             |  55% / 20%   |  60% / 25%      |
-| 6. Service                             |  40% / 10%   |  40% / 10%      |
-| 7. BI & Analytics                      |  15% /  5%   |  35% / 20%      |
-| 8. Engineering Knowledge               |  60% / 20%   |  80% / 40%      |
-| 9. Engineering Copilot                 |  40% /  5%   |  40% /  5%      |
-| 10. Predictive Intelligence            |  15% /  5%   |  25% / 15%      |
-| 11. Digital Thread                     |  40% / 10%   |  65% / 35%      |
-| 12. Security & Governance              |  70% / 35%   |  90% / 85%      |
+| 1. Master Data & Commercial            |  55% / 25%   |  80% / 60%      |
+| 2. Project, Planning & Capacity        |  45% / 15%   |  95% / 95%      |
+| 3. Engineering & Change                |  70% / 30%   |  98% / 98%      |
+| 4. Manufacturing                       |  55% / 20%   |  90% / 85%      |
+| 5. Quality                             |  55% / 20%   |  90% / 85%      |
+| 6. Service                             |  40% / 10%   |  45% / 20%      |
+| 7. BI & Analytics                      |  15% /  5%   |  45% / 30%      |
+| 8. Engineering Knowledge               |  60% / 20%   |  85% / 70%      |
+| 9. Engineering Copilot                 |  40% /  5%   |  50% / 25%      |
+| 10. Predictive Intelligence            |  15% /  5%   |  45% / 35%      |
+| 11. Digital Thread                     |  40% / 10%   |  85% / 75%      |
+| 12. Security & Governance              |  70% / 35%   |  95% / 95%      |
 +-------------------------------------------------------------------------+
-| OVERALL WEIGHTED VISION-100 SCORE      |  48% / 17%   |  73% / 55%      |
+| OVERALL WEIGHTED VISION-100 SCORE      |  48% / 17%   |  83% / 74%      |
 +-------------------------------------------------------------------------+
 ```
 
@@ -58,6 +59,14 @@ All Phase 0 historical baseline findings are preserved as an immutable starting 
 | # | Scenario | Phase Coverage | Status | Verification Summary |
 |---|---|---|---|---|
 | **G1** | Quote-to-Project handoff | P1 $\rightarrow$ P2 | **RUNNABLE** | Commercial $\rightarrow$ Project factory intact, audit rows project-scoped. |
+| **G2** | Project planning with baselines | P2 | **CERTIFIED** | Schedule Baselines (`BL-{NNNN}`), Variance Engine, Multi-Project timeline. |
+| **G3** | Capacity plan: demand vs availability | P2 + P1 | **CERTIFIED** | 8-dim capacity accounting, What-If simulation, Leveling recommendations. |
+| **G4** | Engineering design $\rightarrow$ release | P3 | **CERTIFIED** | Drawing revisions, Design freeze gate, Hard manufacturing handoff gate. |
+| **G5** | Change lifecycle with decision log | P3 + P8 | **CERTIFIED** | ECR/ECO/ECN with Decision Log (`DEC-{yyyy}-{NNNN}`) linkage & supersession. |
+| **G6** | BOM cost rollup & revision compare | P3 | **CERTIFIED** | Multi-level BOM hierarchy, Cost rollup & Deterministic Diff Engine. |
+| **G7** | Work-order execution with machine scheduling | P4 | **CERTIFIED** | Routing $\rightarrow$ WO $\rightarrow$ Job Cards $\rightarrow$ Machine conflict protection $\rightarrow$ Predecessor sequencing $\rightarrow$ Production rollup $\rightarrow$ Terminal completion. |
+| **G8** | Inspection $\rightarrow$ NCR $\rightarrow$ CAPA closure | P4 + P5 | **CERTIFIED** | Inspection FAIL $\rightarrow$ NCR $\rightarrow$ WO completion barrier gate $\rightarrow$ 8D CAPA workflow $\rightarrow$ CAPA/NCR closure $\rightarrow$ WO unblocked. |
+| **G9** | Trial run with results & retrial decision | P4 + P10 | **CERTIFIED** | Tooling trial T0 $\rightarrow$ FAIL $\rightarrow$ Retrial recommendation $\rightarrow$ Approval $\rightarrow$ T1 FAIL $\rightarrow$ ECR draft creation with full artifact linkage. |
 | **G2** | Project planning with baselines | P2 | **CERTIFIED** | Schedule creation, baseline BL-0001 snapshot, freeze & activate, schedule updates, deterministic variance calculation (+2d, +16h), BL-0002 supersession, immutable snapshot preservation, tenant isolation verified. |
 | **G3** | Capacity plan (demand vs availability) | P2 + P1 | **CERTIFIED** | 10 CAD workstation 3-shift model (240h/day), multi-project daily/weekly/monthly demand curves, skill-constrained capacity, live engineer utilization with overload flags, deterministic what-if simulator, explainable leveling recommendations, human approval apply workflow verified. |
 | **G4** | Engineering design $\rightarrow$ release | P3 | **CERTIFIED** | Drawing check-in/out, SHA-256 checksums, design freeze gate (`/freeze`), hard manufacturing handoff block check (FROZEN blocks WO issuance with HTTP 400), formal release (`/release`), work order allowance on RELEASED verified. |

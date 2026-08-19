@@ -51,4 +51,11 @@ export class NcrController {
   async transition(@Param('id', ParseUUIDPipe) id: string, @Body() dto: { toStatus: NcrStatus; disposition?: string; action?: string; remarks?: string }, @CurrentUser() user: AuthUser) {
     return this.service.transition(id, dto.toStatus, user, dto);
   }
+
+  @UseGuards(RolesGuard)
+  @Roles(...QUALITY_ROLES)
+  @Post(':id/escalate-capa')
+  async escalateToCapa(@Param('id', ParseUUIDPipe) id: string, @Body() dto: Record<string, any>, @CurrentUser() user: AuthUser) {
+    return this.service.escalateToCapa(id, user, dto);
+  }
 }

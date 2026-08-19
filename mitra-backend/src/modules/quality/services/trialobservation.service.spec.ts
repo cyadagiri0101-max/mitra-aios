@@ -2,8 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TrialObservationService } from './trialobservation.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { TrialObservation } from '../entities/trialobservation.entity';
+import { Retrial } from '../entities/retrial.entity';
 import { DataSource } from 'typeorm';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { OutboxService } from '@modules/platform/services/outbox.service';
 
 const makeRepo = () => ({
   findOne: jest.fn(),
@@ -16,16 +18,22 @@ const makeRepo = () => ({
 describe('TrialObservationService', () => {
   let service: TrialObservationService;
   let repo: ReturnType<typeof makeRepo>;
+  let retrialRepo: ReturnType<typeof makeRepo>;
   let dsQuery: jest.Mock;
+  let outbox: any;
 
   beforeEach(async () => {
     repo = makeRepo();
+    retrialRepo = makeRepo();
     dsQuery = jest.fn().mockResolvedValue([{ id: 'x' }]);
+    outbox = { append: jest.fn().mockResolvedValue({ id: 'o-1' }) };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TrialObservationService,
         { provide: getRepositoryToken(TrialObservation), useValue: repo },
+        { provide: getRepositoryToken(Retrial), useValue: retrialRepo },
         { provide: DataSource, useValue: { query: dsQuery } },
+        { provide: OutboxService, useValue: outbox },
       ],
     }).compile();
     service = module.get<TrialObservationService>(TrialObservationService);

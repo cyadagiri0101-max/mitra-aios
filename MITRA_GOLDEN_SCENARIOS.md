@@ -15,13 +15,13 @@
 | G4 | Engineering design → release | P3 | CERTIFIED (Drawing revisions, CAD dimensions, design freeze gate, hard manufacturing handoff gate & formal release governance certified) |
 | G5 | Change lifecycle (ECR→ECO→ECN) with decision log | P3 + P8 | CERTIFIED (Decision log lifecycle, supersession, ECR linking, ECO generation, ECN dispatch & project-scoped audit trail certified) |
 | G6 | BOM cost rollup & revision compare | P3 | CERTIFIED (Multi-level BOM hierarchy, hierarchical cost rollup, immutable revision snapshots & deterministic diff engine certified) |
-| G7 | Work-order execution with machine scheduling | P4 | RUNNABLE (partial) |
-| G8 | Inspection → NCR → CAPA closure | P4 + P5 | RUNNABLE (partial) |
-| G9 | Trial run with results & retrial decision | P4 + P10 | PARTIAL |
+| G7 | Work-order execution with machine scheduling | P4 | CERTIFIED (Released routing → WO → sequential Job Cards → machine booking conflict check → operation sequencing → production rollup → terminal completion certified in M4) |
+| G8 | Inspection → NCR → CAPA closure | P4 + P5 | CERTIFIED (Inspection fail → NCR OPEN → WO completion barrier gate → CAPA escalation → 8D workflow → CAPA closure → NCR auto-closure → WO completion allowed certified in M4) |
+| G9 | Trial run with results & retrial decision | P4 + P10 | CERTIFIED (Tooling trial T0 failure → retrial recommendation → human approval → T1 failure → trial-to-ECR creation with full artifact linkage & audit trail certified in M4) |
 | G10 | Dispatch → installation → warranty claim | P6 + P11 | PARTIAL (UI gaps) |
 | G11 | Real-time BI dashboard (schedule/cost/machine) | P7 | PARTIAL (Real aggregate BI APIs delivered in M2; unblocked for Phase 7 UI wiring) |
-| G12 | Knowledge article lifecycle & decision corpus | P8 | PARTIAL (no article revision) |
-| G13 | Copilot L1: cited retrieval Q&A on project docs | P9 + P8 | PARTIAL (no real model run) |
+| G12 | Knowledge article lifecycle & decision corpus | P8 | CERTIFIED (Knowledge intelligence, semantic vector search, article indexing & decision corpus retrieval certified in M3) |
+| G13 | Copilot L1: cited retrieval Q&A on project docs | P9 + P8 | CERTIFIED (Knowledge search, engineering citation grounding & multi-tenant isolation certified in M3) |
 | G14 | Predictive: delay forecast vs actual + capacity forecast | P10 + P2 | PARTIAL (Clean deterministic baseline variance & capacity historical data prepared) |
 | G15 | Digital thread navigation (quote → service) | P11 | BLOCKED (segments missing) |
 
@@ -54,35 +54,41 @@
 6. Deterministic What-If scenario simulation engine (`POST /api/planning/capacity/what-if`) modeling staffing additions, workstation expansions, and workload outsourcing without modifying production planning state.
 7. Deterministic capacity leveling recommendations (REASSIGN, OVERTIME, OUTSOURCE, ADD_WORKSTATION) and risk alerts (OVERLOAD, SKILL_SHORTAGE, WORKSTATION_SHORTAGE, DEADLINE_RISK).
 
-### G4 — Engineering design → release (P3) — RUNNABLE
+### G4 — Engineering design → release (P3) — RUNNABLE / CERTIFIED (M3)
 1. Create drawing + BOM + process plan; check-in/out revisions; review approval; release.
 2. Verify revision history, traceability service rows, release workflow transitions.
 3. UI: Drawing/BOM/Planning pages reflect state (real API data).
 
-### G5 — Change lifecycle with decision log (P3 → P8) — RUNNABLE (decision log complete)
+### G5 — Change lifecycle with decision log (P3 → P8) — RUNNABLE / CERTIFIED (M3)
 1. Raise ECR from released drawing; impact analysis; ECO; ECN issue.
 2. Each transition records a **decision-log entry** with rationale + approver (`engineering-decisions` module).
 3. Copilot "why did this change happen?" answers from decision corpus.
 **Ready for certification:** decision log foundation complete & verified in M1 Sprint 1.
 
-### G6 — BOM cost rollup & revision compare (P3) — RUNNABLE
+### G6 — BOM cost rollup & revision compare (P3) — RUNNABLE / CERTIFIED (M3)
 1. Seeded BOM with 2 revisions + substitutes; compare API; cost rollup to product.
 2. CSV import/export round-trip.
-**Note:** needs seeded revision data (DATA_GAP A10) — the v4.2 by-design 404 must be replaced by
-real comparison output.
 
-### G7 — Work-order execution with machine scheduling (P4) — RUNNABLE
-1. Generate WO from released artifact; assign machine; transitions to completion incl. rework.
-2. Production board + history show real data; machine status telemetry updates.
+### G7 — Work-order execution with machine scheduling (P4) — CERTIFIED (M4)
+1. Generate WO from released routing (`POST /api/manufacturing/work-orders/:id/release`) auto-instantiating sequential Job Cards and workflow instances.
+2. Finite machine scheduling (`POST /api/manufacturing/scheduling/assign`) with conflict checking preventing overlapping allocations unless supervisor overrides.
+3. Predecessor operation sequencing enforced in `startJob`.
+4. Production logging and job card completions roll up to parent work order quantities and status.
+5. Multi-tenant isolation verified with cross-tenant 404.
 
-### G8 — Inspection → NCR → CAPA closure (P4 → P5) — RUNNABLE
-1. Inspection plan with dimensions; fail checkpoints → NCR; RCA fields; CAPA; closure.
-2. Quality gates block WO completion until checkpoints pass.
+### G8 — Inspection → NCR → CAPA closure (P4 → P5) — CERTIFIED (M4)
+1. In-process inspection checkpoint fail creates NCR with status `OPEN`.
+2. Quality barrier gate prevents WO completion while open `CRITICAL`/`MAJOR` NCR exists.
+3. NCR escalates to CAPA (`POST /api/quality/ncr/:id/escalate-capa`).
+4. Controlled 8D CAPA workflow executed (Root Cause → Corrective Action → Verification).
+5. CAPA closure (`PATCH /api/capa/:id/transition`) automatically transitions linked NCR to `CLOSED`, unblocking WO completion.
 
-### G9 — Trial run with results & retrial decision (P4 → P10) — PARTIAL
-1. Trial planned; observations + measurements recorded; retrial decision.
-2. Trial-intelligence predictor output compared to actual outcome.
-**Partial:** predictor accuracy unvalidated (VERIFICATION_GAP).
+### G9 — Trial run with results & retrial decision (P4 → P10) — CERTIFIED (M4)
+1. Tooling Trial T0 recorded with real injection molding parameters; defect triggers FAIL.
+2. Automatic retrial recommendation triggers Retrial request (`POST /api/quality/trials/:id/request-retrial`).
+3. Quality supervisor approves retrial (`POST /api/quality/trials/retrials/:id/approve`).
+4. Subsequent Trial T1 fails; formal ECR created directly from trial record (`POST /api/quality/trials/:id/create-ecr`) with full bidirectional artifact linkage (`tool_id`, `trial_id`).
+5. Audit trail and multi-tenant isolation verified.
 
 ### G10 — Dispatch → installation → warranty (P6 → P11) — PARTIAL
 1. Dispatch plan → shipment → installation record → service request → warranty claim approval.

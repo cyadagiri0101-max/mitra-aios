@@ -87,10 +87,10 @@ export function CapaPage() {
   });
 
   const closeMutation = useMutation({
-    mutationFn: (id: string) => api.patch(`/capa/${id}`, { status: 'CLOSED' }),
+    mutationFn: (id: string) => api.patch(`/capa/${id}/transition`, { toStatus: 'CLOSED' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['capas'] });
-      toast.success('CAPA closed successfully');
+      toast.success('CAPA and linked NCR verified and closed successfully');
     },
     onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed to close CAPA'),
   });

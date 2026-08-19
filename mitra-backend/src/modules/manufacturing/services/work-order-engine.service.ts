@@ -78,7 +78,7 @@ export class WorkOrderEngineService {
     const tenantId = this.requireTenant(user.tenantId);
     return this.dataSource.transaction(async (em) => {
       const wo = await em.getRepository(WorkOrder).findOne({
-        where: { id: workOrderId, tenantId, deletedAt: undefined },
+        where: { id: workOrderId, tenantId },
       });
       if (!wo) throw new NotFoundException('Work order not found');
       if (wo.status !== WorkOrderStatus.DRAFT) {
@@ -144,7 +144,7 @@ export class WorkOrderEngineService {
     const tenantId = this.requireTenant(user.tenantId);
     return this.dataSource.transaction(async (em) => {
       const wo = await em.getRepository(WorkOrder).findOne({
-        where: { id: workOrderId, tenantId, deletedAt: undefined },
+        where: { id: workOrderId, tenantId },
       });
       if (!wo) throw new NotFoundException('Work order not found');
 
@@ -164,8 +164,33 @@ export class WorkOrderEngineService {
         patch.actualStartDate = new Date();
       }
       if (toState === WorkOrderStatus.COMPLETED) {
+        // 1. Quality Barrier Gate (GAP-M4-01): Check unresolved CRITICAL/MAJOR NCRs
+        const openNcrs = await em.query(
+          `SELECT id, ncr_number, severity, status FROM ncr_records 
+            WHERE work_order_id = $1 AND tenant_id = $2 AND deleted_at IS NULL
+              AND status IN ('OPEN', 'INVESTIGATION', 'ACTION')
+              AND severity IN ('CRITICAL', 'MAJOR')`,
+          [wo.id, tenantId],
+        );
+        if (openNcrs.length > 0) {
+          const first = openNcrs[0];
+          throw new BadRequestException(
+            `Cannot complete work order: unresolved ${first.severity} NCR (${first.ncr_number}) exists in status ${first.status}`,
+          );
+        }
+
+        // 2. Terminal Job Card Validation
+        const jobCards = await em.getRepository(JobCard).find({ where: { workOrderId: wo.id, tenantId } });
+        const nonTerminalJobs = jobCards.filter(
+          (j) => !['COMPLETED', 'CANCELLED', 'SCRAPPED'].includes(j.status),
+        );
+        if (nonTerminalJobs.length > 0) {
+          throw new BadRequestException(
+            `Cannot complete work order: all job cards must be completed, cancelled, or scrapped (found ${nonTerminalJobs.length} open job card(s))`,
+          );
+        }
+
         patch.actualEndDate = new Date();
-        const jobCards = await em.getRepository(JobCard).find({ where: { workOrderId: wo.id, tenantId, deletedAt: undefined } });
         patch.completedQty = jobCards.reduce((s, j) => s + Number(j.producedQty || 0) - Number(j.rejectedQty || 0) - Number(j.scrapQty || 0), 0);
         patch.actualHours = jobCards.reduce((s, j) => s + Number(j.actualHours || 0), 0);
         await em.getRepository(MaterialReservation).update(
@@ -208,20 +233,20 @@ export class WorkOrderEngineService {
   async listJobCards(workOrderId: string, tenantId?: string | null) {
     const scopeTenant = this.requireTenant(tenantId);
     return this.jobCardRepo.find({
-      where: { workOrderId, tenantId: scopeTenant, deletedAt: undefined },
+      where: { workOrderId, tenantId: scopeTenant },
       order: { operationNumber: 'ASC', createdAt: 'ASC' } as any,
     });
   }
 
   async listReservations(workOrderId: string, tenantId?: string | null) {
     const scopeTenant = this.requireTenant(tenantId);
-    return this.reservationRepo.find({ where: { workOrderId, tenantId: scopeTenant, deletedAt: undefined } });
+    return this.reservationRepo.find({ where: { workOrderId, tenantId: scopeTenant } });
   }
 
   async listCheckpoints(workOrderId: string, tenantId?: string | null) {
     const scopeTenant = this.requireTenant(tenantId);
     return this.checkpointRepo.find({
-      where: { workOrderId, tenantId: scopeTenant, deletedAt: undefined },
+      where: { workOrderId, tenantId: scopeTenant },
       order: { operationNumber: 'ASC', checkpointNumber: 'ASC' } as any,
     });
   }
@@ -324,7 +349,7 @@ export class WorkOrderEngineService {
   private async generateJobCards(wo: WorkOrder, snapshot: any, user: AuthUser, em: any): Promise<JobCard[]> {
     if (!snapshot.operations?.length) return [];
     const repo = em.getRepository(JobCard);
-    const prefix = `JC-${wo.woNumber.replace(/\s/g, '')}-`;
+    const prefix = `JC-${(wo.woNumber || 'WO').replace(/\s/g, '')}-`;
     const jobs = snapshot.operations.map((op: any, idx: number) => ({
       jobCardNumber: `${prefix}${idx + 1}`,
       workOrderId: wo.id,
@@ -348,7 +373,7 @@ export class WorkOrderEngineService {
     const items = snapshot.bomItems ?? [];
     if (!items.length) return;
     const repo = em.getRepository(MaterialReservation);
-    const prefix = `RES-${wo.woNumber.replace(/\s/g, '')}-`;
+    const prefix = `RES-${(wo.woNumber || 'WO').replace(/\s/g, '')}-`;
     const reservations = items.map((item: any, idx: number) => {
       const plannedQty = Number(item.quantity ?? item.quantity_per ?? 0) * Number(wo.plannedQty ?? 1);
       return {
@@ -423,7 +448,7 @@ export class WorkOrderEngineService {
         `INSERT INTO engineering_trace_edges
            (id, created_at, updated_at, created_by, updated_by, tenant_id,
             project_id, source_entity_type, source_entity_id, target_entity_type, target_entity_id, relation_type)
-         VALUES (uuid_generate_v4(), now(), now(), NULL, NULL, $1, $2, $3, $4, $5, $6, $7)
+         VALUES (gen_random_uuid(), now(), now(), NULL, NULL, $1, $2, $3, $4, $5, $6, $7)
          ON CONFLICT DO NOTHING`,
         [row.tenant_id, row.project_id, row.source_entity_type, row.source_entity_id, row.target_entity_type, row.target_entity_id, row.relation_type],
       );

@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { NcrService } from './ncr.service';
 import { NcrRecord, NcrStatus } from '../entities/ncr-record.entity';
@@ -41,11 +42,24 @@ describe('NcrService', () => {
       return { id: 'o-1' };
     }) };
 
+    const emMock: any = {
+      getRepository: jest.fn((token: any) => {
+        if (token === NcrRecord) return repo;
+        return repo;
+      }),
+      query: jest.fn().mockResolvedValue([]),
+    };
+    const dataSource = {
+      query: jest.fn().mockResolvedValue([]),
+      transaction: jest.fn(async (cb: any) => cb(emMock)),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NcrService,
         { provide: getRepositoryToken(NcrRecord), useValue: repo },
         { provide: OutboxService, useValue: outbox },
+        { provide: DataSource, useValue: dataSource },
       ],
     }).compile();
 

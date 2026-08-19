@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { DataSource, IsNull, Repository } from 'typeorm';
 import { NcrRecord, NcrStatus } from '../entities/ncr-record.entity';
+import { CapaVerification, CapaStatus, CapaType } from '../entities/capaverification.entity';
 import { OutboxService } from '@modules/platform/services/outbox.service';
 import { EngineeringDomainEventType } from '@modules/engineering/events/engineering.events';
 import { AuthUser } from '@common/decorators/current-user.decorator';
@@ -20,6 +21,7 @@ export class NcrService {
     @InjectRepository(NcrRecord)
     private readonly ncrRepo: Repository<NcrRecord>,
     private readonly outboxService: OutboxService,
+    private readonly dataSource: DataSource,
   ) {}
 
   /** Fail-closed guard — tenant context is mandatory for tenant-scoped data. */
@@ -112,6 +114,92 @@ export class NcrService {
       }, { tenantId: scopeTenant, actorId: user.id });
     }
     return this.findOne(id, scopeTenant);
+  }
+
+  async escalateToCapa(
+    id: string,
+    user: AuthUser,
+    dto: {
+      problemDescription?: string;
+      rootCause?: string;
+      rootCauseMethod?: string;
+      correctiveAction?: string;
+      preventiveAction?: string;
+      responsiblePersonId?: string;
+      targetDate?: string;
+      capaType?: CapaType;
+    } = {},
+  ) {
+    const scopeTenant = this.requireTenant(user.tenantId);
+    return this.dataSource.transaction(async (em) => {
+      const ncr = await em.getRepository(NcrRecord).findOne({
+        where: { id, tenantId: scopeTenant, deletedAt: IsNull() },
+      });
+      if (!ncr) throw new NotFoundException('NCR not found');
+      if (ncr.status === NcrStatus.CLOSED) {
+        throw new BadRequestException('Cannot escalate a closed NCR to CAPA');
+      }
+
+      const capaNumber = `CAPA-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const capa = em.getRepository(CapaVerification).create({
+        capaNumber,
+        ncrId: ncr.id,
+        projectId: ncr.projectId,
+        workOrderId: ncr.workOrderId,
+        jobCardId: ncr.jobCardId,
+        drawingId: ncr.drawingId,
+        bomId: ncr.bomId,
+        routingId: ncr.routingId,
+        machineId: ncr.machineId,
+        operatorId: ncr.operatorId,
+        materialLot: ncr.materialLot,
+        supplierId: ncr.supplierId,
+        inspectionPlanId: ncr.inspectionPlanId,
+        capaType: dto.capaType ?? CapaType.CORRECTIVE,
+        problemDescription: dto.problemDescription ?? ncr.description,
+        rootCause: dto.rootCause ?? ncr.rootCause ?? null,
+        rootCauseMethod: dto.rootCauseMethod ?? '5_WHY',
+        correctiveAction: dto.correctiveAction ?? null,
+        preventiveAction: dto.preventiveAction ?? null,
+        responsiblePersonId: dto.responsiblePersonId ?? user.id,
+        targetDate: dto.targetDate ? new Date(dto.targetDate) : null,
+        status: CapaStatus.OPEN,
+        tenantId: scopeTenant,
+        createdBy: user.id,
+        updatedBy: user.id,
+      });
+      const savedCapa = await em.getRepository(CapaVerification).save(capa);
+
+      // Advance NCR status to ACTION
+      await em.getRepository(NcrRecord).update(
+        { id: ncr.id, tenantId: scopeTenant },
+        {
+          status: NcrStatus.ACTION,
+          rootCause: dto.rootCause ?? ncr.rootCause,
+          updatedBy: user.id,
+        } as any,
+      );
+
+      await this.outboxService.append(
+        EngineeringDomainEventType.CAPA_OPENED,
+        'capa_verification',
+        savedCapa.id,
+        {
+          entityId: savedCapa.id,
+          capaNumber: savedCapa.capaNumber,
+          ncrId: ncr.id,
+          ncrNumber: ncr.ncrNumber,
+          projectId: ncr.projectId,
+          workOrderId: ncr.workOrderId,
+        },
+        { tenantId: scopeTenant, actorId: user.id, em },
+      );
+
+      return {
+        ncr: { id: ncr.id, ncrNumber: ncr.ncrNumber, status: NcrStatus.ACTION },
+        capa: savedCapa,
+      };
+    });
   }
 
   private nextNcrNumber(): string {

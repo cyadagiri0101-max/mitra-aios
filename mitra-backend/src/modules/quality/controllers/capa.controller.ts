@@ -56,6 +56,18 @@ export class CapaController {
   }
 
   @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'QUALITY', 'PRODUCTION')
+  @Permissions('quality:close')
+  @Patch(':id/transition')
+  async transition(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: { toStatus: any; verificationEvidence?: string; correctiveAction?: string; preventiveAction?: string; rootCause?: string },
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.transition(id, dto.toStatus, user, dto);
+  }
+
+  @UseGuards(RolesGuard)
   @Roles('ADMIN', 'MANAGEMENT')
   @Permissions('quality:delete')
   @Delete(':id')

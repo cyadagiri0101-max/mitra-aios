@@ -55,7 +55,18 @@ describe('SchedulingService', () => {
       return { id: 'o-1' };
     }) };
 
-    const dataSource = { query: jest.fn().mockResolvedValue([]) };
+    const emMock: any = {
+      getRepository: jest.fn((token: any) => {
+        if (token === JobCard) return jobRepo;
+        if (token === WorkOrder) return woRepo;
+        return jobRepo;
+      }),
+      query: jest.fn().mockResolvedValue([]),
+    };
+    const dataSource = {
+      query: jest.fn().mockResolvedValue([]),
+      transaction: jest.fn(async (cb: any) => cb(emMock)),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

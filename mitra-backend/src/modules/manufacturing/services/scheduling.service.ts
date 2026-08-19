@@ -90,41 +90,60 @@ export class SchedulingService {
   }
 
   /** Assign a job card to a specific machine (+ booking). */
-  async assignToMachine(jobId: string, machineId: string, user: AuthUser, dto: { startDatetime?: string; endDatetime?: string; shift?: string } = {}) {
+  async assignToMachine(jobId: string, machineId: string, user: AuthUser, dto: { startDatetime?: string; endDatetime?: string; shift?: string; allowOverlap?: boolean } = {}) {
     const tenantId = this.requireTenant(user.tenantId);
-    const job = await this.jobCardRepo.findOne({ where: { id: jobId, tenantId, deletedAt: undefined } });
-    if (!job) throw new NotFoundException('Job card not found');
-    if (job.status === JobCardStatus.COMPLETED || job.status === JobCardStatus.CANCELLED || job.status === JobCardStatus.SCRAPPED) {
-      throw new BadRequestException('Cannot reassign a terminal job');
-    }
-    await this.machineService.findOne(machineId, tenantId);
+    return this.dataSource.transaction(async (em) => {
+      const job = await em.getRepository(JobCard).findOne({ where: { id: jobId, tenantId } });
+      if (!job) throw new NotFoundException('Job card not found');
+      if (job.status === JobCardStatus.COMPLETED || job.status === JobCardStatus.CANCELLED || job.status === JobCardStatus.SCRAPPED) {
+        throw new BadRequestException('Cannot reassign a terminal job');
+      }
+      await this.machineService.findOne(machineId, tenantId);
 
-    const hours = job.plannedHours ?? 8;
-    const start = dto.startDatetime ? new Date(dto.startDatetime) : new Date();
-    const end = dto.endDatetime ? new Date(dto.endDatetime) : new Date(start.getTime() + hours * 3600000);
+      const hours = job.plannedHours ?? 8;
+      const start = dto.startDatetime ? new Date(dto.startDatetime) : new Date();
+      const end = dto.endDatetime ? new Date(dto.endDatetime) : new Date(start.getTime() + hours * 3600000);
 
-    await this.jobCardRepo.update({ id: job.id, tenantId }, { machineId, updatedBy: user.id } as any);
-    const booking = await this.machineService.createBooking({
-      machineId,
-      workOrderId: job.workOrderId,
-      startDatetime: start,
-      endDatetime: end,
-      bookedHours: hours,
-      shift: dto.shift ?? null,
-      purpose: `Job ${job.jobCardNumber}`,
-    }, user);
+      // Check machine conflict if overlap is not explicitly allowed
+      if (!dto.allowOverlap && !['ADMIN', 'MANAGEMENT'].includes(user.role)) {
+        const conflicts = await em.query(
+          `SELECT id, booking_number, start_datetime, end_datetime 
+             FROM machine_bookings 
+            WHERE machine_id = $1 AND tenant_id = $2 AND deleted_at IS NULL
+              AND status IN ('CONFIRMED', 'IN_USE')
+              AND start_datetime < $4 AND end_datetime > $3`,
+          [machineId, tenantId, start, end],
+        );
+        if (conflicts.length > 0) {
+          throw new BadRequestException(
+            `Machine conflict: machine is already booked for booking ${conflicts[0].booking_number} from ${new Date(conflicts[0].start_datetime).toISOString()} to ${new Date(conflicts[0].end_datetime).toISOString()}. Set allowOverlap=true for supervisor override.`,
+          );
+        }
+      }
 
-    await this.outboxService.append(EngineeringDomainEventType.SCHEDULE_ASSIGNED, 'job_card', job.id, {
-      entityId: job.id,
-      entityNumber: job.jobCardNumber,
-      workOrderId: job.workOrderId,
-      machineId,
-      bookingId: booking.id,
-      startDatetime: start.toISOString(),
-      endDatetime: end.toISOString(),
-    }, { tenantId: user.tenantId, actorId: user.id });
+      await em.getRepository(JobCard).update({ id: job.id, tenantId }, { machineId, updatedBy: user.id } as any);
+      const booking = await this.machineService.createBooking({
+        machineId,
+        workOrderId: job.workOrderId,
+        startDatetime: start,
+        endDatetime: end,
+        bookedHours: hours,
+        shift: dto.shift ?? null,
+        purpose: `Job ${job.jobCardNumber}`,
+      }, user);
 
-    return { id: job.id, machineId, booking };
+      await this.outboxService.append(EngineeringDomainEventType.SCHEDULE_ASSIGNED, 'job_card', job.id, {
+        entityId: job.id,
+        entityNumber: job.jobCardNumber,
+        workOrderId: job.workOrderId,
+        machineId,
+        bookingId: booking.id,
+        startDatetime: start.toISOString(),
+        endDatetime: end.toISOString(),
+      }, { tenantId: user.tenantId, actorId: user.id, em });
+
+      return { id: job.id, machineId, booking };
+    });
   }
 
   /**
@@ -133,9 +152,9 @@ export class SchedulingService {
    */
   async batchSchedule(workOrderId: string, user: AuthUser) {
     const tenantId = this.requireTenant(user.tenantId);
-    const wo = await this.workOrderRepo.findOne({ where: { id: workOrderId, tenantId, deletedAt: undefined } });
+    const wo = await this.workOrderRepo.findOne({ where: { id: workOrderId, tenantId } });
     if (!wo) throw new NotFoundException('Work order not found');
-    const jobs = await this.jobCardRepo.find({ where: { workOrderId, machineId: IsNull(), tenantId, deletedAt: undefined } });
+    const jobs = await this.jobCardRepo.find({ where: { workOrderId, machineId: IsNull(), tenantId } });
     const results: Array<Record<string, unknown>> = [];
     for (const job of jobs) {
       const machine = await this.pickMachine(job.operationId, tenantId);
@@ -152,7 +171,7 @@ export class SchedulingService {
   /** Machines of the same type as the job's operation, least-loaded first. */
   async alternates(jobId: string, tenantId?: string) {
     const scopeTenant = this.requireTenant(tenantId);
-    const job = await this.jobCardRepo.findOne({ where: { id: jobId, tenantId: scopeTenant, deletedAt: undefined } });
+    const job = await this.jobCardRepo.findOne({ where: { id: jobId, tenantId: scopeTenant } });
     if (!job) throw new NotFoundException('Job card not found');
     const machineTypeId = await this.operationMachineTypeId(job.operationId, scopeTenant);
     if (!machineTypeId) return [];

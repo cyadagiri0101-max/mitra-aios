@@ -43,8 +43,6 @@ export class TrialObservationController {
     return this.service.create(dto as unknown as Record<string, unknown>, user.id, user.tenantId ?? undefined);
   }
 
-  // FIX H-5: SALES or CUSTOMER users could edit trial observations
-  // without this guard. Quality records must be protected.
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'MANAGEMENT', 'QUALITY', 'PRODUCTION')
   @Permissions('quality:close')
@@ -55,6 +53,42 @@ export class TrialObservationController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.service.update(id, dto as unknown as Record<string, unknown>, user.id, user.tenantId);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'QUALITY', 'PRODUCTION')
+  @Permissions('quality:create')
+  @Post(':id/request-retrial')
+  async requestRetrial(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: { retrialReason: string; changesMade?: string; scheduledDate?: string },
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.requestRetrial(id, user, dto);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'QUALITY')
+  @Permissions('quality:close')
+  @Post('retrials/:id/approve')
+  async approveRetrial(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: { remarks?: string },
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.approveRetrial(id, user, dto);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'QUALITY', 'DESIGN')
+  @Permissions('quality:create')
+  @Post(':id/create-ecr')
+  async createEcrFromTrial(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: { title?: string; changeDescription?: string; reason?: string; priority?: string },
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.createEcrFromTrial(id, user, dto);
   }
 
   @UseGuards(RolesGuard)

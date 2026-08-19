@@ -34,10 +34,26 @@ export class ShopFloorService {
   ) {}
 
   // ── Start job ────────────────────────────────────────────────────────────
-  async startJob(jobId: string, user: AuthUser, dto: { operatorId?: string; machineId?: string; startTime?: string; shift?: string }) {
+  async startJob(jobId: string, user: AuthUser, dto: { operatorId?: string; machineId?: string; startTime?: string; shift?: string; overrideSequence?: boolean }) {
     const tenantId = this.requireTenant(user.tenantId);
     return this.dataSource.transaction(async (em) => {
       const job = await this.getJob(em, jobId, tenantId);
+
+      // Enforce sequential operation gate if operationNumber is present
+      if (job.operationNumber && !dto.overrideSequence && !['ADMIN', 'MANAGEMENT'].includes(user.role)) {
+        const predecessors = await em.getRepository(JobCard).find({
+          where: { workOrderId: job.workOrderId, tenantId },
+        });
+        const incompletePredecessor = predecessors.find(
+          (p) => (p.operationNumber ?? 0) < (job.operationNumber ?? 0) && !['COMPLETED', 'CANCELLED', 'SCRAPPED'].includes(p.status),
+        );
+        if (incompletePredecessor) {
+          throw new BadRequestException(
+            `Cannot start operation ${job.operationNumber}: predecessor operation ${incompletePredecessor.operationNumber} (${incompletePredecessor.jobCardNumber}) is in status ${incompletePredecessor.status}. Set overrideSequence=true for supervisor override.`,
+          );
+        }
+      }
+
       const ctx = this.buildContext(user);
       const instance = await this.workflowService.findInstanceByEntity('job_card', job.id, user.tenantId ?? undefined, em);
       if (!instance) {
@@ -311,9 +327,11 @@ export class ShopFloorService {
   }
 
   async findOne(id: string, tenantId?: string) {
-    const job = await this.jobCardRepo.findOne({ where: { id, deletedAt: undefined, tenantId: tenantId ?? undefined } });
+    const where: any = { id };
+    if (tenantId) where.tenantId = tenantId;
+    const job = await this.jobCardRepo.findOne({ where });
     if (!job) throw new NotFoundException('Job card not found');
-    const logs = await this.operationLogRepo.find({ where: { jobCardId: id, deletedAt: undefined }, order: { createdAt: 'ASC' } });
+    const logs = await this.operationLogRepo.find({ where: { jobCardId: id }, order: { createdAt: 'ASC' } });
     return { ...job, logs };
   }
 
@@ -324,8 +342,8 @@ export class ShopFloorService {
    */
   private async rollUpWorkOrder(em: EntityManager, workOrderId: string, user: AuthUser) {
     const tenantId = this.requireTenant(user.tenantId);
-    const jobs = (await em.getRepository(JobCard).find({ where: { workOrderId, tenantId, deletedAt: undefined } })) as JobCard[];
-    const wo = await em.getRepository(WorkOrder).findOne({ where: { id: workOrderId, tenantId, deletedAt: undefined } });
+    const jobs = (await em.getRepository(JobCard).find({ where: { workOrderId, tenantId } })) as JobCard[];
+    const wo = await em.getRepository(WorkOrder).findOne({ where: { id: workOrderId, tenantId } });
     if (!wo || jobs.length === 0) return;
 
     const produced = jobs.reduce((s, j) => s + Number(j.producedQty || 0), 0);
@@ -382,7 +400,9 @@ export class ShopFloorService {
 
   // ── Helpers ──────────────────────────────────────────────────────────────
   private async getJob(em: EntityManager, jobId: string, tenantId?: string) {
-    const job = await em.getRepository(JobCard).findOne({ where: { id: jobId, tenantId, deletedAt: undefined } });
+    const where: any = { id: jobId };
+    if (tenantId) where.tenantId = tenantId;
+    const job = await em.getRepository(JobCard).findOne({ where });
     if (!job) throw new NotFoundException('Job card not found');
     return job;
   }
