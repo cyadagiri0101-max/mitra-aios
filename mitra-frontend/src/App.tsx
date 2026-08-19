@@ -17,6 +17,7 @@ const TrialsPage = lazy(() => import('./pages/TrialsPage').then((m) => ({ defaul
 const CapaPage = lazy(() => import('./pages/CapaPage').then((m) => ({ default: m.CapaPage })));
 const DispatchPage = lazy(() => import('./pages/DispatchPage').then((m) => ({ default: m.DispatchPage })));
 const ServicePage = lazy(() => import('./pages/ServicePage').then((m) => ({ default: m.ServicePage })));
+const ServiceLineagePage = lazy(() => import('./pages/ServiceLineagePage').then((m) => ({ default: m.ServiceLineagePage })));
 const AiAssistantPage = lazy(() => import('./pages/AiAssistantPage').then((m) => ({ default: m.AiAssistantPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })));
 const DocumentsPage = lazy(() => import('./pages/DocumentsPage').then((m) => ({ default: m.DocumentsPage })));
@@ -113,6 +114,8 @@ function App() {
               <Route path="/design-systems" element={<DesignLoadPage />} />
               <Route path="/dispatch" element={<DispatchPage />} />
               <Route path="/service" element={<ServicePage />} />
+              <Route path="/service/lineage" element={<ServiceLineagePage />} />
+              <Route path="/service/lineage/:projectId" element={<ServiceLineagePage />} />
               <Route path="/bom-analysis" element={<BomAnalysisPage />} />
               <Route path="/drawing-analysis" element={<DrawingAnalysisPage />} />
               <Route path="/ai-assistant" element={<AiAssistantPage />} />

@@ -10,10 +10,24 @@ import { InstallationService } from '../services/installation.service';
 import { WarrantyService, WarrantyClaimService } from '../services/warranty.service';
 import { AmcService } from '../services/amc.service';
 import { VisitService } from '../services/visit.service';
+import { ServiceLineageService } from '../services/service-lineage.service';
 import { SparePart } from '../entities/sparepart.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateInstallationDto, UpdateInstallationDto, CreateWarrantyDto, UpdateWarrantyDto, CreateWarrantyClaimDto, UpdateWarrantyClaimDto, CreateAmcDto, UpdateAmcDto, CreateVisitDto, UpdateVisitDto } from '../dto/service.dto';
+import {
+  CreateInstallationDto,
+  UpdateInstallationDto,
+  CompleteInstallationDto,
+  CreateWarrantyDto,
+  UpdateWarrantyDto,
+  CreateWarrantyClaimDto,
+  UpdateWarrantyClaimDto,
+  AdjudicateWarrantyClaimDto,
+  CreateAmcDto,
+  UpdateAmcDto,
+  CreateVisitDto,
+  UpdateVisitDto,
+} from '../dto/service.dto';
 
 @ApiTags('service')
 @ApiBearerAuth()
@@ -26,13 +40,14 @@ export class ServiceLifecycleController {
     private readonly warrantyClaimService: WarrantyClaimService,
     private readonly amcService: AmcService,
     private readonly visitService: VisitService,
+    private readonly lineageService: ServiceLineageService,
     @InjectRepository(SparePart)
     private readonly sparePartRepo: Repository<SparePart>,
   ) {}
 
   @Get('installations')
   @UseGuards(RolesGuard)
-  @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY')
+  @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY', 'SERVICE')
   @ApiOperation({ summary: 'List installation records' })
   listInstallations(@Query() q: PaginationDto, @CurrentUser() user: AuthUser) {
     return this.installationService.findAll(user.tenantId ?? undefined, q.page ?? 1, q.limit ?? 20);
@@ -47,6 +62,19 @@ export class ServiceLifecycleController {
     return this.installationService.create(dto as unknown as Record<string, unknown>, user.id, user.tenantId ?? undefined);
   }
 
+  @Post('installations/:id/complete')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'SERVICE', 'QUALITY')
+  @Permissions('service:update')
+  @ApiOperation({ summary: 'Complete installation with commissioning signoff and activate warranty' })
+  completeInstallation(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CompleteInstallationDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.installationService.completeInstallation(id, user, dto);
+  }
+
   @Patch('installations/:id')
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'MANAGEMENT', 'SERVICE')
@@ -58,10 +86,22 @@ export class ServiceLifecycleController {
 
   @Get('warranty')
   @UseGuards(RolesGuard)
-  @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'QUALITY')
+  @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'QUALITY', 'SERVICE')
   @ApiOperation({ summary: 'List warranty records' })
   listWarranty(@Query() q: PaginationDto, @CurrentUser() user: AuthUser) {
     return this.warrantyService.findAll(user.tenantId ?? undefined, q.page ?? 1, q.limit ?? 20);
+  }
+
+  @Get('warranty/:id/coverage')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'QUALITY', 'SERVICE')
+  @ApiOperation({ summary: 'Check warranty coverage validity for a date' })
+  checkWarrantyCoverage(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('incidentDate') incidentDate: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.warrantyService.checkCoverage(id, incidentDate, user.tenantId ?? undefined);
   }
 
   @Post('warranty')
@@ -97,6 +137,19 @@ export class ServiceLifecycleController {
   @ApiOperation({ summary: 'Create warranty claim' })
   createWarrantyClaim(@Body() dto: CreateWarrantyClaimDto, @CurrentUser() user: AuthUser) {
     return this.warrantyClaimService.create(dto as unknown as Record<string, unknown>, user.id, user.tenantId ?? undefined);
+  }
+
+  @Post('warranty-claims/:id/adjudicate')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'QUALITY', 'SERVICE')
+  @Permissions('service:update')
+  @ApiOperation({ summary: 'Adjudicate warranty claim (APPROVE or REJECT with coverage check)' })
+  adjudicateWarrantyClaim(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: AdjudicateWarrantyClaimDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.warrantyClaimService.adjudicate(id, user, dto);
   }
 
   @Patch('warranty-claims/:id/approve')
@@ -173,4 +226,16 @@ export class ServiceLifecycleController {
       take: q.limit ?? 20,
     });
   }
+
+  @Get('projects/:projectId/lineage')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGEMENT', 'SALES', 'DESIGN', 'PLANNING', 'PRODUCTION', 'QUALITY', 'SERVICE')
+  @ApiOperation({ summary: 'Get complete project-to-service digital thread lineage' })
+  getProjectServiceLineage(
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.lineageService.getProjectServiceLineage(projectId, user.tenantId ?? 'default');
+  }
 }
+

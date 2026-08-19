@@ -91,6 +91,18 @@ export enum EngineeringDomainEventType {
   CAPA_OPENED = 'quality.capa.opened',
   CAPA_CLOSED = 'quality.capa.closed',
   CUSTOMER_COMPLAINT_OPENED = 'quality.customer_complaint.opened',
+
+  // Dispatch & Logistics events (Sprint M5)
+  DISPATCH_CREATED = 'dispatch.created',
+  DISPATCH_PACKED = 'dispatch.packed',
+  DISPATCH_SHIPPED = 'dispatch.shipped',
+  DISPATCH_DELIVERED = 'dispatch.delivered',
+  DISPATCH_CANCELLED = 'dispatch.cancelled',
+
+  // Service & Lifecycle events (Sprint M5)
+  SERVICE_INSTALLATION_COMPLETED = 'service.installation.completed',
+  SERVICE_WARRANTY_ACTIVATED = 'service.warranty.activated',
+  SERVICE_WARRANTY_CLAIM_ADJUDICATED = 'service.warranty_claim.adjudicated',
 }
 
 /** Generic engineering payload — always carries the owning project id. */

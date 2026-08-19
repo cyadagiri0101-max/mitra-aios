@@ -6,7 +6,7 @@ import {
   executeWorkflowTransition, listTeams, listProjectDocuments, getProjectActivity, getTeamAvailability,
 } from '../utils/projectApi';
 import { Card, CardContent, CardHeader } from '../components/Card';
-import { ArrowLeft, GitBranch, ClipboardList, Clock, AlertTriangle, Users, FileText, ChevronRight, ArrowRight } from 'lucide-react';
+import { ArrowLeft, GitBranch, ClipboardList, Clock, AlertTriangle, Users, FileText, ChevronRight, ArrowRight, Network } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const STAGE_COLORS: Record<string, string> = {
@@ -195,6 +195,14 @@ export function ProjectDetailsPage() {
                 </div>
                 <p className="mt-4 font-semibold text-white">Documents</p>
                 <p className="mt-1 text-sm text-slate-400">{docs.length} documents · version control</p>
+              </Link>
+              <Link to={`/service/lineage/${id}`} className="group rounded-3xl border border-white/10 bg-slate-950/75 p-5 hover:border-white/25 transition">
+                <div className="flex items-center justify-between">
+                  <Network className="w-5 h-5 text-cyan-400" />
+                  <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-300" />
+                </div>
+                <p className="mt-4 font-semibold text-white">Service Digital Thread</p>
+                <p className="mt-1 text-sm text-slate-400">Dispatch → Installation → Warranty → Service → Claim</p>
               </Link>
             </div>
 

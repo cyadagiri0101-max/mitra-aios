@@ -47,6 +47,12 @@ export class ServiceWarranty extends IndustrialBaseEntity {
   @Column({ name: 'coverage_terms', type: 'text', nullable: true })
   coverageTerms: string | null;
 
+  @Column({ name: 'max_cycles', type: 'int', nullable: true })
+  maxCycles: number | null;
+
+  @Column({ name: 'current_cycles', type: 'int', nullable: true })
+  currentCycles: number | null;
+
   @Column({ name: 'eligibility_rule', type: 'text', nullable: true })
   eligibilityRule: string | null;
 

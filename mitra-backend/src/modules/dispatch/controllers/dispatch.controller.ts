@@ -10,7 +10,7 @@ import { Roles } from '@common/decorators/roles.decorator';
 import { Permissions } from '@common/decorators/permissions.decorator';
 import { CurrentUser, AuthUser } from '@common/decorators/current-user.decorator';
 import { DispatchService } from '../services/dispatch.service';
-import { CreateDispatchPlanDto, UpdateDispatchPlanDto } from '../dto/dispatch.dto';
+import { CreateDispatchPlanDto, UpdateDispatchPlanDto, TransitionDispatchPlanDto } from '../dto/dispatch.dto';
 
 @ApiTags('Dispatch')
 @ApiBearerAuth()
@@ -45,6 +45,19 @@ export class DispatchController {
   @ApiOperation({ summary: 'Create dispatch plan' })
   create(@Body() dto: CreateDispatchPlanDto, @CurrentUser() user: AuthUser) {
     return this.svc.create(dto, user.id, user.tenantId ?? 'default');
+  }
+
+  @Post(':id/transition')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN','MANAGEMENT','SALES','PRODUCTION','QUALITY')
+  @Permissions('project:transition')
+  @ApiOperation({ summary: 'Transition dispatch status (PACK, SHIP, DELIVER, CANCEL)' })
+  transition(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: TransitionDispatchPlanDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.svc.transition(id, user, dto);
   }
 
   @Patch(':id')

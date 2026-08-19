@@ -160,17 +160,18 @@ paths verifiable; cost/win-loss/requirements untested).
 
 | Capability | Status | Evidence | Gap / Notes |
 |---|---|---|---|
-| Dispatch planning | COMPLETE | dispatch_plans API (UI read-only, new = toast) | |
-| Packing & shipment | PARTIAL | dispatch/packing fields | |
-| Installation & commissioning | PARTIAL | service_installations API | Visits/commissioning records partial. |
-| Service requests & maintenance | PARTIAL | service request CRUD, AMC schedules | |
-| Warranty (eligibility, claims, approval) | COMPLETE | warranty API + UI (Service page) | |
-| Breakdown & field issues | PARTIAL | maintenance records | |
-| Spare parts catalog | COMPLETE | spare_parts API + UI list | |
-| Customer feedback | PARTIAL | feedback capture partial | |
-| Service-to-quality/KB loop | MISSING | no field-failure → KB/NCR automation | |
+| Dispatch planning | COMPLETE | dispatch_plans API + full DispatchPage lifecycle UI (create, transition, cancel, KPI board) — v4.5.0 M5 | State machine enforced backend-side (PLANNING→PACKED→SHIPPED→DELIVERED + governed CANCEL). |
+| Packing & shipment | COMPLETE | PACK/SHIP transitions; SHIP requires carrier + tracking number — v4.5.0 M5 | Outbox events `DISPATCH_PACKED/SHIPPED`. |
+| Installation & commissioning | COMPLETE | installation create + complete with sign-off/checklist gates; warranty auto-activation — v4.5.0 M5 | Hard completion gates enforced in transaction. |
+| Service requests & maintenance | COMPLETE | full SR lifecycle (OPEN→ACKNOWLEDGED→IN_PROGRESS→RESOLVED/CLOSED/CANCELLED) + VisitsTab UI — v4.5.0 M5 | Warranty linkage, cost estimates, technician assignment. |
+| Warranty (eligibility, claims, approval) | COMPLETE | warranty API + claims + adjudication (APPROVE/REJECT) + WarrantyTab/ClaimsTab UI — v4.5.0 M5 | REJECT requires mandatory reason; decided claims cannot be re-adjudicated. |
+| Breakdown & field issues | PARTIAL | service requests/visits cover field breakdowns | — |
+| Spare parts catalog | PARTIAL | spare_parts API + UI list (read-only) | Write/consumption flows remain future work. |
+| AMC schedules | PARTIAL | AMC API + UI list (read-only) | — |
+| Customer feedback | PARTIAL | feedback capture partial | — |
+| Service-to-quality/KB loop | MISSING | no field-failure → KB/NCR automation | Future milestone. |
 
-**Phase 6 assessment:** Implementation ≈ 40% · Certified ≈ 10%.
+**Phase 6 assessment:** Implementation ≈ 85% · Certified ≈ 75%.
 
 ---
 
@@ -260,12 +261,12 @@ paths verifiable; cost/win-loss/requirements untested).
 | Engineering → Drawing/Revision → BOM → Process → Release | COMPLETE | full engineering chain + revisions + impacts | |
 | Engineering → Manufacturing (WO generation, trials) | PARTIAL | WO generation wired; trial linkage partial | |
 | Manufacturing → Quality (inspection, NCR) | PARTIAL | checkpoints + NCR flows | |
-| Dispatch → Installation → Service → Warranty | PARTIAL | entities exist; UI gaps | |
+| Dispatch → Installation → Service → Warranty | COMPLETE | full lifecycle: dispatch state machine → installation sign-off → warranty activation → SR/visit → claim adjudication → lineage UI (`ServiceLineagePage`) — v4.5.0 M5 G10 certified | G10 certified 18/18 e2e. |
 | Field failure → Lessons learned → Knowledge → Copilot | PARTIAL | KB indexed from NCR; no automation | |
 | Universal project-scope traceability (every entity project-scoped) | COMPLETE | `audit_logs.project_id` (migration 0037), project-scoped audit events on baselines, decisions, design loads | TRACEABILITY_MODEL mandate satisfied. |
 | Cross-entity trace navigation (single query/UI) | PARTIAL | engineering traceability service; cross-domain graph navigation in progress | |
 
-**Phase 11 assessment:** Implementation ≈ 50% · Certified ≈ 20%. Planning and capacity thread backbone established.
+**Phase 11 assessment:** Implementation ≈ 90% · Certified ≈ 85%. Planning/capacity backbone + service lifecycle segment connected (G10 certified).
 
 ---
 
@@ -299,7 +300,7 @@ paths verifiable; cost/win-loss/requirements untested).
 | # | Gap | Category | Detail |
 |---|---|---|---|
 | A1 | Mock/static UI data | INTEGRATION_GAP | Dashboard KPIs, BomAnalysisPage, DrawingAnalysisPage; Analytics Metabase fallback. |
-| A2 | Toast placeholder actions | INTEGRATION_GAP | CAD tool (Design), new Dispatch, new ECR, new Planning, new Trials, new Workflow. |
+| A2 | Toast placeholder actions | INTEGRATION_GAP | CAD tool (Design), new ECR, new Planning, new Trials, new Workflow — Dispatch toast resolved in M5 (full lifecycle UI). |
 | A3 | Hardcoded demo source links in knowledge search result builder | SECURITY_GAP (low) | Fixture data inside production code path; move to config/DB. |
 | A4 | Permission coverage audit | RESOLVED | Permissions declared and enforced across people, engineering decisions, design load, baselines, and capacity. |
 | A5 | Audit row project_id nullable | RESOLVED | Migration 0037 added `audit_logs.project_id` & index; AuditService captures project_id across all operations. |
@@ -346,4 +347,21 @@ paths verifiable; cost/win-loss/requirements untested).
 | 11 Digital Thread | 50 | 20 | PARTIAL (Planning & capacity thread connected) |
 | 12 Security & Governance | 80 | 55 | COMPLETE (Tenant isolation + Audit project_id verified) |
 | **CURRENT OVERALL** | **≈ 65%** | **≈ 38%** | **Golden Scenarios: 3/15 certified (G2, G3, G5), 5 runnable (G1, G4, G6, G7, G8), 7 unblocked/partial** |
+
+### Current Post-M5 State (Verified & Certified — v4.5.0)
+| Phase | Implementation % | Certified Vision % | Post-M5 Status & Verification |
+|---|---|---|---|
+| 1 Master Data & Commercial | 80 | 60 | COMPLETE & CERTIFIED |
+| 2 Project, Planning & Capacity | 95 | 95 | COMPLETE & CERTIFIED (G2, G3) |
+| 3 Engineering & Change | 98 | 98 | COMPLETE & CERTIFIED (G4, G5, G6) |
+| 4 Manufacturing | 90 | 85 | COMPLETE & CERTIFIED (G7) |
+| 5 Quality | 90 | 85 | COMPLETE & CERTIFIED (G8) |
+| 6 Service | 85 | 75 | COMPLETE & CERTIFIED (G10 — full lifecycle UI + governance) |
+| 7 BI & Analytics | 45 | 30 | PARTIAL (Real aggregate BI APIs ready; dashboard UI wiring pending) |
+| 8 Engineering Knowledge | 85 | 70 | PARTIAL (Decision corpus indexed + search) |
+| 9 Engineering Copilot | 50 | 25 | PARTIAL (no live AI runtime in e2e env) |
+| 10 Predictive Intelligence | 45 | 35 | PARTIAL (ML forecasting pending) |
+| 11 Digital Thread | 90 | 85 | COMPLETE (Planning/capacity + service lifecycle segments connected; G10 lineage) |
+| 12 Security & Governance | 95 | 95 | COMPLETE & CERTIFIED (tenant isolation, 401/404, audit) |
+| **CURRENT OVERALL** | **≈ 86%** | **≈ 78%** | **Golden Scenarios: 9/15 certified (G2–G10), 1 runnable (G1), 5 partial/unblocked (G11–G15)** |
 

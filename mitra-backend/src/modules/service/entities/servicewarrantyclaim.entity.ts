@@ -37,6 +37,12 @@ export class ServiceWarrantyClaim extends IndustrialBaseEntity {
   @Column({ name: 'eligibility_reason', type: 'text', nullable: true })
   eligibilityReason: string | null;
 
+  @Column({ name: 'claim_amount', type: 'decimal', precision: 18, scale: 2, nullable: true })
+  claimAmount: number | null;
+
+  @Column({ name: 'approved_amount', type: 'decimal', precision: 18, scale: 2, nullable: true })
+  approvedAmount: number | null;
+
   @Column({ name: 'approved_by', type: 'uuid', nullable: true })
   @Index()
   approvedBy: string | null;

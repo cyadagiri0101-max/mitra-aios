@@ -142,6 +142,15 @@ describe('Service E2E (v4.0 W1c)', () => {
         .expect(200);
       expect(res.body.workPerformed).toContain('trial run');
     });
+
+    it('transitions visit status to COMPLETED via PATCH', async () => {
+      const res = await request(server)
+        .patch(`/api/service/visits/${visitId}`)
+        .set(auth())
+        .send({ status: 'COMPLETED' })
+        .expect(200);
+      expect(res.body.status).toBe('COMPLETED');
+    });
   });
 
   describe('Warranty and claims', () => {
@@ -176,6 +185,7 @@ describe('Service E2E (v4.0 W1c)', () => {
           projectId,
           claimDate: '2026-08-04',
           issueSummary: 'Ejector pin failure within warranty',
+          claimAmount: 100000,
         })
         .expect(201);
       claimId = claim.body.id;

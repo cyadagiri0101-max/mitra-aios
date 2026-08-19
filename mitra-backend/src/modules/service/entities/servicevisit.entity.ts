@@ -42,6 +42,12 @@ export class ServiceVisit extends IndustrialBaseEntity {
   @Column({ name: 'parts_used', type: 'jsonb', nullable: true })
   partsUsed: Array<{ partCode: string; partName: string; qty: number }> | null;
 
+  @Column({ name: 'travel_hours', type: 'double precision', nullable: true })
+  travelHours: number | null;
+
+  @Column({ name: 'service_hours', type: 'double precision', nullable: true })
+  serviceHours: number | null;
+
   @Column({ type: 'enum', enum: ServiceVisitStatus, default: ServiceVisitStatus.SCHEDULED })
   status: ServiceVisitStatus;
 }
