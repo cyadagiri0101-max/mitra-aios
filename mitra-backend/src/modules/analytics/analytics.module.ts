@@ -2,7 +2,11 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DomainOutboxMessage } from '../platform/entities/domain-outbox.entity';
 import { NcrRecord } from '../quality/entities/ncr-record.entity';
+import { CapaVerification } from '../quality/entities/capaverification.entity';
+import { InspectionReport } from '../quality/entities/inspectionreport.entity';
 import { ServiceRequest } from '../service/entities/servicerequest.entity';
+import { ProjectMilestone } from '../project/entities/projectmilestone.entity';
+import { ProjectBudget } from '../project/entities/projectbudget.entity';
 import { CommercialModule } from '../commercial/commercial.module';
 import { ProjectModule } from '../project/project.module';
 import { EngineeringModule } from '../engineering/engineering.module';
@@ -16,7 +20,7 @@ import { AnalyticsController } from './controllers/analytics.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([DomainOutboxMessage, NcrRecord, ServiceRequest]),
+    TypeOrmModule.forFeature([DomainOutboxMessage, NcrRecord, CapaVerification, InspectionReport, ServiceRequest, ProjectMilestone, ProjectBudget]),
     CommercialModule,
     ProjectModule,
     EngineeringModule,

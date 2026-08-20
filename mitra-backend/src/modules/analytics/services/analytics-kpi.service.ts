@@ -13,13 +13,13 @@ export class AnalyticsKpiService {
 
     const baseDefinitions = [
       {
-        id: 'revenue',
+        id: 'quotation-value',
         domain: 'commercial',
-        name: 'Revenue',
-        formula: 'sum(accepted quotations total_amount)',
+        name: 'Quotation Value (Active Quotes)',
+        formula: 'sum(non-draft, non-rejected quotations total_amount)',
         target: 1000000,
         threshold: 0.7,
-        currentValue: dashboard.revenue.currentRevenue,
+        currentValue: dashboard.quotationValue.value,
         period,
       },
       {
@@ -35,31 +35,36 @@ export class AnalyticsKpiService {
       {
         id: 'production-output',
         domain: 'manufacturing',
-        name: 'Production Output',
-        formula: 'completedQty / plannedQty',
+        name: 'Production Output Ratio',
+        formula: 'completedQty / plannedQty (0 when no planned qty)',
         target: 0.95,
         threshold: 0.85,
-        currentValue: dashboard.productionStatus.quantities?.completed ?? 0,
+        currentValue:
+          dashboard.productionStatus.quantities &&
+          Number(dashboard.productionStatus.quantities.planned) > 0
+            ? Number(dashboard.productionStatus.quantities.completed) /
+              Number(dashboard.productionStatus.quantities.planned)
+            : 0,
         period,
       },
       {
-        id: 'quality-defect-rate',
+        id: 'open-ncr-ratio',
         domain: 'quality',
-        name: 'Quality Defect Rate',
+        name: 'Open NCR Ratio',
         formula: 'openNcrs / totalNcrs',
-        target: 0.05,
-        threshold: 0.1,
-        currentValue: dashboard.qualityPerformance.defectRatePct,
+        target: 0.5,
+        threshold: 0.6,
+        currentValue: dashboard.qualityPerformance.openRatioPct / 100,
         period,
       },
       {
-        id: 'service-sla-compliance',
+        id: 'service-request-closure-rate',
         domain: 'service',
-        name: 'Service SLA Compliance',
+        name: 'Service Request Closure Rate',
         formula: 'resolvedRequests / totalRequests',
         target: 0.9,
         threshold: 0.8,
-        currentValue: dashboard.serviceStatus.slaCompliancePct,
+        currentValue: dashboard.serviceStatus.closureRatePct / 100,
         period,
       },
     ];

@@ -31,7 +31,6 @@ interface CapacitySummary {
   activeProjectsCount: number;
   activeWorkstationsCount: number;
   activeDesignEngineersCount: number;
-  overloadedEngineersCount: number;
   overloadedWorkstationsCount: number;
 }
 
@@ -160,11 +159,11 @@ export const CapacityPlanningPage: React.FC = () => {
               Design Capacity Intelligence & Workload Leveling
             </h1>
             <span className="px-2.5 py-0.5 text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full">
-              M2 Sprint 2
+              Indicative demand curves
             </span>
           </div>
           <p className="text-sm text-slate-400 mt-1">
-            Multi-project design demand curves, skill-constrained capacity, live engineer utilization, and deterministic what-if simulations.
+            Indicative time-distributed design demand curves, skill-constrained capacity, engineer utilization, and deterministic what-if simulations.
           </p>
         </div>
 
@@ -293,7 +292,7 @@ export const CapacityPlanningPage: React.FC = () => {
       <Card className="p-6 bg-slate-900/80 border-slate-800">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <Calendar className="w-5 h-5 text-blue-400" />
-          Time-Distributed Demand vs Capacity Curve ({horizon})
+          Indicative Time-Distributed Demand vs Capacity Curve ({horizon})
         </h2>
 
         <div className="overflow-x-auto">

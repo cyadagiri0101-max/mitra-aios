@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../Premium/GlassCard';
 import { GradientText } from '../Premium/GradientText';
+import { formatINR, DashboardSummary } from '../../utils/dashboardMapping';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -19,9 +20,14 @@ function formatDate(date: Date): string {
   });
 }
 
-export function HeroSection() {
+interface HeroSectionProps {
+  summary: DashboardSummary | null;
+}
+
+export function HeroSection({ summary }: HeroSectionProps) {
   const { user } = useAuth();
   const firstName = user?.name?.split(' ')[0] || user?.firstName || 'Admin';
+  const available = summary !== null;
 
   return (
     <GlassCard intensity="medium" glowColor="cyan" className="overflow-visible p-10 md:p-12 xl:p-14 min-h-[340px]">
@@ -34,7 +40,7 @@ export function HeroSection() {
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
             className="space-y-4"
           >
-            <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Live production intelligence</p>
+            <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Operational intelligence</p>
             <h1 className="text-4xl md:text-5xl xl:text-6xl font-extrabold text-white tracking-tight leading-tight">
               {getGreeting()},{' '}
               <GradientText variant="cyan" animate={false}>
@@ -49,7 +55,8 @@ export function HeroSection() {
             transition={{ duration: 0.55, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             className="text-base md:text-lg text-slate-200 max-w-3xl leading-8 tracking-wide"
           >
-            Manufacturing intelligence for operation leaders—live production visibility, prioritized actions, and quality insights all in one view.
+            MITRA operational visibility for leaders — project pipeline, quality status, and commercial
+            value from the authoritative MITRA data sources.
           </motion.p>
 
           <motion.div
@@ -59,16 +66,16 @@ export function HeroSection() {
             className="mt-6 grid gap-3 sm:grid-cols-3"
           >
             <div className="rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-200">
-              <p className="font-semibold text-white">98% uptime</p>
-              <p className="mt-2 text-xs text-slate-400">Across production lines</p>
+              <p className="font-semibold text-white">{available ? summary.activeProjects : '—'}</p>
+              <p className="mt-2 text-xs text-slate-400">Active projects</p>
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-200">
-              <p className="font-semibold text-white">42 live orders</p>
-              <p className="mt-2 text-xs text-slate-400">Workstreams in motion</p>
+              <p className="font-semibold text-white">{available ? formatINR(summary.quotationValue) : '—'}</p>
+              <p className="mt-2 text-xs text-slate-400">Quotation value (active quotes)</p>
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-200">
-              <p className="font-semibold text-white">14 quality checks</p>
-              <p className="mt-2 text-xs text-slate-400">Pending review</p>
+              <p className="font-semibold text-white">{available ? summary.openNcrs : '—'}</p>
+              <p className="mt-2 text-xs text-slate-400">Open NCRs</p>
             </div>
           </motion.div>
         </div>
@@ -94,19 +101,19 @@ export function HeroSection() {
               transition={{ duration: 3.5, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
             >
               <span className="inline-flex h-2.5 w-2.5 rounded-full bg-teal-400" />
-              <span>System Healthy</span>
+              <span>{available ? 'Data Synced' : 'Connecting to data source'}</span>
             </motion.div>
 
             <div className="mt-6 grid gap-3">
               <div className="rounded-3xl bg-slate-950/75 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Throughput</p>
-                <p className="mt-2 text-2xl font-semibold text-white">92%</p>
-                <p className="mt-1 text-sm text-slate-400">Target rate reached</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Projects in dispatch</p>
+                <p className="mt-2 text-2xl font-semibold text-white">{available ? summary.inDispatch : '—'}</p>
+                <p className="mt-1 text-sm text-slate-400">Awaiting shipment</p>
               </div>
               <div className="rounded-3xl bg-slate-950/75 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Quality hold</p>
-                <p className="mt-2 text-2xl font-semibold text-white">1 active</p>
-                <p className="mt-1 text-sm text-slate-400">Inspection team notified</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Open CAPAs</p>
+                <p className="mt-2 text-2xl font-semibold text-white">{available ? summary.openCapas : '—'}</p>
+                <p className="mt-1 text-sm text-slate-400">From quality records</p>
               </div>
             </div>
 

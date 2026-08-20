@@ -101,12 +101,7 @@ function LayoutInner() {
 
         <SystemStatusBar
           status={{
-            system: 'healthy',
-            database: 'connected',
-            minio: 'online',
-            ai: 'running',
             version: 'v3.2.0',
-            uptime: '14d 2h',
           }}
         />
       </div>

@@ -4,7 +4,8 @@
 > MITRA_VISION_100_DEFINITION_OF_DONE.md, MITRA_GOLDEN_SCENARIOS.md.
 > Status legend, evidence rules, and scoring method are defined in MITRA_PHASE0_BASELINE.md §3.
 > Evidence basis: frozen git baseline `71780dc0` (branch `v3.3`, tag `v4.2.0`), code inventory of
-> 37 backend modules / 34 migrations / 43 frontend pages, and the v4.2 release-gate audit (verdict B).
+> 37 backend modules / 34 migrations / 43 frontend pages (HISTORICAL Phase-0 baseline counts —
+> current v4.5.0: 40 modules / 36 migrations / 49 pages), and the v4.2 release-gate audit (verdict B).
 
 ## 1. Status Legend
 
@@ -187,11 +188,11 @@ paths verifiable; cost/win-loss/requirements untested).
 | Manufacturing KPIs (OEE, utilization, delays) | PARTIAL | production dashboard aggregates | Coverage partial. |
 | Machine utilization analytics | PARTIAL | utilization endpoint + Design Systems 240h/day studio model | Trends/forecast partial. |
 | Quality KPIs (NCR/defect trends) | PARTIAL | analytics queries exist | |
-| Service KPIs | MISSING | — | |
-| Cross-project / management dashboards | PARTIAL | Analytics page uses mock fallback | Real aggregate endpoints delivered in M2. |
-| Capacity forecasting | MISSING | — | Deterministic capacity curves exist; predictive ML remains. |
+| Service KPIs | COMPLETE | `AnalyticsDashboardService` serviceStatus block (open/closed/closure rate) on `/analytics/dashboard` — M6 Sprint 1 | Relabeled `closureRatePct` (true SLA remains MISSING — no timestamps). |
+| Cross-project / management dashboards | COMPLETE | Dashboard + Analytics pages rewired to real aggregate endpoints (M6 Work 1); zero mock arrays (verified) | Real aggregate endpoints delivered in M2; UI wiring completed in M6 Work 1. |
+| Capacity forecasting | PARTIAL | Capacity forecast chart fed by `/planning/capacity/timeline` (indicative demand, labeled) — M6 Work 1 | Deterministic capacity curves exist; predictive ML remains out of scope (G14). |
 
-**Phase 7 assessment:** Implementation ≈ 30% · Certified ≈ 15%. Real backend aggregate endpoints for schedule variance, workload delta, design studio capacity, and engineer utilization delivered in M2 Sprint 2.
+**Phase 7 assessment:** Implementation ≈ 85% · Certified ≈ 30% (post-M6 Work 1 — implementation complete, formal certification pending Work 3; pre-M6: ≈ 45% / ≈ 30%). Real backend aggregate endpoints for schedule variance, workload delta, design studio capacity, and engineer utilization delivered in M2 Sprint 2; UI wiring completed in M6 Work 1.
 
 ---
 
@@ -299,7 +300,7 @@ paths verifiable; cost/win-loss/requirements untested).
 
 | # | Gap | Category | Detail |
 |---|---|---|---|
-| A1 | Mock/static UI data | INTEGRATION_GAP | Dashboard KPIs, BomAnalysisPage, DrawingAnalysisPage; Analytics Metabase fallback. |
+| A1 | Mock/static UI data | INTEGRATION_GAP (PARTIALLY RESOLVED) | Dashboard KPIs + Analytics fallback resolved in M6 Work 1 (zero mock arrays, verified); BomAnalysisPage/DrawingAnalysisPage remain G13-scope simulated data. |
 | A2 | Toast placeholder actions | INTEGRATION_GAP | CAD tool (Design), new ECR, new Planning, new Trials, new Workflow — Dispatch toast resolved in M5 (full lifecycle UI). |
 | A3 | Hardcoded demo source links in knowledge search result builder | SECURITY_GAP (low) | Fixture data inside production code path; move to config/DB. |
 | A4 | Permission coverage audit | RESOLVED | Permissions declared and enforced across people, engineering decisions, design load, baselines, and capacity. |
@@ -357,7 +358,7 @@ paths verifiable; cost/win-loss/requirements untested).
 | 4 Manufacturing | 90 | 85 | COMPLETE & CERTIFIED (G7) |
 | 5 Quality | 90 | 85 | COMPLETE & CERTIFIED (G8) |
 | 6 Service | 85 | 75 | COMPLETE & CERTIFIED (G10 — full lifecycle UI + governance) |
-| 7 BI & Analytics | 45 | 30 | PARTIAL (Real aggregate BI APIs ready; dashboard UI wiring pending) |
+| 7 BI & Analytics | 45 | 30 | PARTIAL (implementation complete in M6 Work 1 — real UI, zero mock arrays, 20/20 G11 e2e; certification pending) |
 | 8 Engineering Knowledge | 85 | 70 | PARTIAL (Decision corpus indexed + search) |
 | 9 Engineering Copilot | 50 | 25 | PARTIAL (no live AI runtime in e2e env) |
 | 10 Predictive Intelligence | 45 | 35 | PARTIAL (ML forecasting pending) |

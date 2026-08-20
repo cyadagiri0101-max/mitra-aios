@@ -68,8 +68,11 @@ M2 employee/skill master
   → Golden-scenario certification (all 15) → Vision-100 certificate
 ```
 
-**Critical-path length driver:** C2 (Capacity) is ~0% implemented and blocks 4 downstream
-capabilities (C7, C9, I3-cost/capacity, C2 itself). Start M2 + C2 immediately after Phase 0.
+**Critical-path length driver (Phase 0 assessment — HISTORICAL):** C2 (Capacity) was ~0%
+implemented at the v4.2.0 baseline and blocked 4 downstream capabilities (C7, C9, I3-cost/capacity,
+C2 itself). Start M2 + C2 immediately after Phase 0. **Superseded:** C2 was completed and certified
+(G3, M2); the current critical path is G12 (article lifecycle) → G13 (live-model certification) →
+G14 (validated predictors) → G15 (unified thread navigation).
 
 ## 4. Platform Substrate (shared, must not fork)
 
@@ -121,6 +124,10 @@ decision log (small, early); T5 finishes last.
 | M3 v5.5 (Feb–Mar 2027) | Copilot L1 certified, knowledge lifecycle, predictive capacity/cost | C8→I1 |
 | M4 v6.0 (Apr–May 2027) | Copilot L2 (read-only + approval workflow), digital thread nav | C6→C9, I1→I2 |
 | M5 (Jun–Jul 2027) | Golden-scenario certification → Vision-100 | all |
+
+> NOTE (HISTORICAL): this M1–M5 milestone mapping is the Phase 0 proposal (v5.0/v5.5/v6.0 target
+> dates). The actual program delivered M1–M5 as releases v4.1.2 → v4.5.0, all formally certified —
+> see MITRA_VISION_100_CURRENT_STATE.md §2.
 
 ## 8. Graph Hygiene Rules
 

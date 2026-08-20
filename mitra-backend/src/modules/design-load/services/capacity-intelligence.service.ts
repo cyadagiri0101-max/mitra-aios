@@ -39,7 +39,6 @@ export interface CapacitySummary {
   activeProjectsCount: number;
   activeWorkstationsCount: number;
   activeDesignEngineersCount: number;
-  overloadedEngineersCount: number;
   overloadedWorkstationsCount: number;
 }
 
@@ -226,7 +225,6 @@ export class CapacityIntelligenceService extends TenantAwareService<ProjectDesig
       activeProjectsCount: new Set(loads.map((l) => l.projectId)).size,
       activeWorkstationsCount: activeWorkstations.length,
       activeDesignEngineersCount: totalDesignEngineers,
-      overloadedEngineersCount: averageEngineerUtilizationPct > 100 ? Math.ceil(totalDesignEngineers * 0.3) : 0,
       overloadedWorkstationsCount: averageWorkstationUtilizationPct > 100 ? activeWorkstations.length : 0,
     };
   }

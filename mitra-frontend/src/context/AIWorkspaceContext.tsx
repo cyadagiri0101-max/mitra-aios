@@ -57,25 +57,8 @@ function inferIntent(prompt: string): AiIntent {
   return AiIntent.GENERAL;
 }
 
-function fallback(prompt: string): string {
-  const t = prompt.toLowerCase();
-  if (t.includes('bom'))
-    return 'BOM risk review ready. Prioritise long-lead, single-source, and no-alternate items first.';
-  if (t.includes('drawing'))
-    return 'Drawing review ready. Verify tolerance stackups, datum references, and revision alignment before release.';
-  if (t.includes('delay') || t.includes('risk'))
-    return 'Elevated delay risk detected across active projects. PRJ-1248 is the highest priority.';
-  if (t.includes('quality') || t.includes('defect'))
-    return 'Quality focus areas: inspection backlog, repeat rework reasons, and overdue CAPA verification.';
-  if (t.includes('root cause'))
-    return 'Root causes cluster around supplier lead-time drift, late drawing release, and rework loops.';
-  if (t.includes('recommend'))
-    return 'Recommended: expedite critical materials, reallocate one manufacturing slot, parallelize inspection.';
-  if (t.includes('dispatch') || t.includes('shipping'))
-    return 'Dispatch risk: three orders have material holds unresolved. Review DPT-0441, DPT-0449, and DPT-0451.';
-  if (t.includes('maintenance'))
-    return 'Maintenance forecast ready. Machine M-07 is approaching scheduled service within 48 hours.';
-  return 'I am online. I can help with BOM analysis, drawing review, quality, delay risk, and production decisions.';
+function fallback(_prompt: string): string {
+  return 'AI analysis is unavailable — the AI service is not enabled or not reachable. No insight was generated.';
 }
 
 /** Initial robot state driven by command category */

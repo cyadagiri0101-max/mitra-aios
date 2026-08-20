@@ -1,17 +1,34 @@
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { api } from '../utils/api';
 
 export interface SystemStatus {
-  system: 'healthy' | 'warning' | 'error';
-  database: 'connected' | 'disconnected' | 'reconnecting';
-  minio: 'online' | 'offline' | 'degraded';
-  ai: 'running' | 'stopped' | 'loading';
   version: string;
-  uptime?: string;
 }
 
-interface SystemStatusBarProps {
-  status: SystemStatus;
+interface HealthResponse {
+  status: 'ok' | 'error';
+}
+
+interface LivenessResponse {
+  status: string;
+  uptime: number;
+}
+
+interface AiHealthResponse {
+  enabled: boolean;
+  available: boolean;
+  model?: string;
+}
+
+function formatUptime(seconds: number): string {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
 }
 
 function StatusIndicator({
@@ -61,7 +78,37 @@ function StatusIndicator({
   );
 }
 
-export function SystemStatusBar({ status }: SystemStatusBarProps) {
+export function SystemStatusBar({ status }: { status: SystemStatus }) {
+  const { data: health, isError: healthError, isLoading: healthLoading } = useQuery({
+    queryKey: ['health-db'],
+    queryFn: () => api.get('/health').then((r) => r.data as HealthResponse),
+    refetchInterval: 60 * 1000,
+    retry: 2,
+  });
+
+  const { data: liveness } = useQuery({
+    queryKey: ['health-liveness'],
+    queryFn: () => api.get('/health/liveness').then((r) => r.data as LivenessResponse),
+    refetchInterval: 60 * 1000,
+    retry: 2,
+  });
+
+  const { data: aiHealth, isLoading: aiLoading } = useQuery({
+    queryKey: ['ai-health'],
+    queryFn: () => api.get('/ai/health').then((r) => r.data as AiHealthResponse),
+    refetchInterval: 60 * 1000,
+    retry: 2,
+  });
+
+  const system = healthLoading ? 'loading' : health?.status === 'ok' && !healthError ? 'healthy' : 'error';
+  const database = healthLoading ? 'reconnecting' : health?.status === 'ok' && !healthError ? 'connected' : 'disconnected';
+  const ai = aiLoading
+    ? 'loading'
+    : aiHealth && aiHealth.enabled && aiHealth.available
+      ? 'running'
+      : 'stopped';
+  const uptime = liveness && liveness.uptime != null ? formatUptime(liveness.uptime) : null;
+
   return (
     <motion.div
       initial={{ y: 20, opacity: 0 }}
@@ -71,14 +118,13 @@ export function SystemStatusBar({ status }: SystemStatusBarProps) {
       style={{ backgroundColor: 'var(--color-bg-surface)', borderTop: '1px solid var(--color-border)' }}
     >
       <div className="flex items-center gap-6">
-        <StatusIndicator label="System Status" status={status.system} />
-        <StatusIndicator label="Database" status={status.database} />
-        <StatusIndicator label="Storage" status={status.minio} />
-        <StatusIndicator label="AI Engine" status={status.ai} />
+        <StatusIndicator label="System Status" status={system} />
+        <StatusIndicator label="Database" status={database} />
+        <StatusIndicator label="AI Engine" status={ai} />
       </div>
       <div className="flex items-center gap-3">
-        {status.uptime && (
-          <span className="text-xs font-mono" style={{ color: 'var(--color-text-secondary)' }}>Uptime: {status.uptime}</span>
+        {uptime && (
+          <span className="text-xs font-mono" style={{ color: 'var(--color-text-secondary)' }}>Uptime: {uptime}</span>
         )}
         <span className="text-xs font-mono" style={{ color: 'var(--color-text-secondary)' }}>MITRA {status.version}</span>
         <span className="text-xs" style={{ color: 'var(--color-border)' }}>Internal Use Only</span>

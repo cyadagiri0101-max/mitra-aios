@@ -45,7 +45,7 @@ export class ProductionTrackingService {
     for (const wo of wos) statusCounts[wo.status] = (statusCounts[wo.status] ?? 0) + 1;
 
     const ids = wos.map((w) => w.id);
-    let jobStats = { open: 0, inProgress: 0, runningMachines: 0, onTime: 0, late: 0 };
+    let jobStats = { open: 0, inProgress: 0, runningMachines: 0, late: 0 };
     if (ids.length > 0) {
       const rows = await this.dataSource.query(
         `SELECT jc.status, COUNT(*) AS cnt, COUNT(DISTINCT jc.machine_id) AS machines

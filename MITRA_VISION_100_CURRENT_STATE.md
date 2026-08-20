@@ -71,7 +71,7 @@ All Phase 0 historical baseline findings are preserved as an immutable starting 
 | **G8** | Inspection $\rightarrow$ NCR $\rightarrow$ CAPA closure | P4 + P5 | **CERTIFIED** | Inspection FAIL $\rightarrow$ NCR $\rightarrow$ WO completion barrier gate $\rightarrow$ 8D CAPA workflow $\rightarrow$ CAPA/NCR closure $\rightarrow$ WO unblocked. |
 | **G9** | Trial run with results & retrial decision | P4 + P10 | **CERTIFIED** | Tooling trial T0 $\rightarrow$ FAIL $\rightarrow$ Retrial recommendation $\rightarrow$ Approval $\rightarrow$ T1 FAIL $\rightarrow$ ECR draft creation with full artifact linkage. |
 | **G10** | Dispatch $\rightarrow$ installation $\rightarrow$ warranty claim | P6 + P11 | **CERTIFIED** | Dispatch governance state machine (PLANNING/PACKED/SHIPPED/DELIVERED + governed CANCEL), installation sign-off with warranty auto-activation, service request & visit lifecycle, warranty claim adjudication (APPROVE/REJECT with mandatory reason + SR sync), project service digital-thread lineage, 401/404 multi-tenant isolation — 18/18 e2e (v4.5.0). |
-| **G11** | Real-time BI dashboard | P7 | **PARTIAL / UNBLOCKED** | Real aggregate backend APIs delivered; Phase 7 BI dashboard UI wiring pending. |
+| **G11** | Real-time BI dashboard | P7 | **PARTIAL / UNBLOCKED** | Real aggregate backend APIs delivered; M6 Work 1 completed the Phase 7 UI wiring to real endpoints (zero mock arrays, verified; `m6-bi-dashboard` e2e 20/20). Formal certification is the M6 Work 3 gate. |
 | **G12** | Knowledge article lifecycle & decision corpus | P8 | **PARTIAL / UNBLOCKED** | Knowledge Intelligence search engine implemented with token-based multi-domain query, smart tag extraction, and digital thread linking. |
 | **G13** | Copilot L1: cited retrieval Q&A | P9 + P8 | **PARTIAL** | Citation validation pipeline intact; multi-model real runtime verification pending. |
 | **G14** | Predictive delay & capacity forecast | P10 + P2 | **PARTIAL** | Baseline variance and time-distributed capacity datasets prepared; ML forecasting models pending. |
@@ -98,5 +98,5 @@ All Phase 0 historical baseline findings are preserved as an immutable starting 
 
 ### 5.3 Downstream Next Steps
 - M6 (e.g., service-to-quality/KB feedback loop, spare-parts/AMC write flows, BI service KPIs — see MITRA_VISION_100_GAP_MATRIX.md).
-- Phase 7 BI dashboard UI wiring against delivered real aggregate endpoints.
+- Phase 7 BI dashboard UI wiring against delivered real aggregate endpoints — **COMPLETED in M6 Work 1** (implementation; zero mock arrays, 20/20 G11 e2e). Formal G11 certification remains the M6 Work 3 gate.
 - Live AI runtime provisioning to clear the `p0-production-proof` environmental failures (requires Ollama reachable with `AI_ENABLED=true`).

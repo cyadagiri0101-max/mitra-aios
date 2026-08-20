@@ -49,6 +49,16 @@ export class AnalyticsController {
     return this.kpiService.getKpis(user.tenantId ?? undefined, period);
   }
 
+  @Get('trends')
+  @UseGuards(RolesGuard)
+  @Roles(...ANALYTICS_READ_ROLES)
+  @Permissions('analytics:read')
+  @ApiOperation({ summary: 'Monthly project and quality time series from real record creation dates (deterministic, not a forecast)' })
+  async trends(@CurrentUser() user: AuthUser, @Query('months') months?: string) {
+    const bucketCount = months ? parseInt(months, 10) : 6;
+    return this.dashboardService.getTrends(user.tenantId ?? undefined, Number.isNaN(bucketCount) ? 6 : bucketCount);
+  }
+
   @Get('reports')
   @UseGuards(RolesGuard)
   @Roles(...ANALYTICS_READ_ROLES)

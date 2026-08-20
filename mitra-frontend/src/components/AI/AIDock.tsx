@@ -75,24 +75,8 @@ function inferIntent(prompt: string): AiIntent {
   return AiIntent.GENERAL;
 }
 
-function fallbackResponse(prompt: string) {
-  const intent = inferIntent(prompt);
-  switch (intent) {
-    case AiIntent.BOM_ANALYSIS:
-      return 'BOM risk review is ready. Focus on long-lead electronic items, single-source parts, and any material lines without approved alternates.';
-    case AiIntent.DRAWING_ANALYSIS:
-      return 'Drawing review is ready. Check tolerance stackups, missing datum references, and revision-release alignment before manufacturing release.';
-    case AiIntent.DELAY_RISK:
-      return 'Delay risk is elevated for projects with pending drawings, material lead-time variance, and unresolved quality holds. PRJ-1248 should be reviewed first.';
-    case AiIntent.QUALITY_CHECK:
-      return 'Quality focus areas are inspection backlog, repeat rework reasons, and overdue CAPA verification. I recommend closing the highest recurrence items first.';
-    case AiIntent.ROOT_CAUSE:
-      return 'Likely root causes cluster around supplier lead-time drift, late drawing release, and rework loops. Validate with the latest NCR and CAPA records.';
-    case AiIntent.RECOMMENDATION:
-      return 'Recommended actions: expedite critical material, reallocate one manufacturing slot, parallelize inspection, and release pending drawings before noon.';
-    default:
-      return 'I am online. I can help analyze BOMs, drawings, project risk, quality exceptions, and production recommendations.';
-  }
+function fallbackResponse(_prompt: string) {
+  return 'AI analysis is unavailable — the AI service is not enabled or not reachable. No insight was generated.';
 }
 
 export function AIDock() {

@@ -3,6 +3,14 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import {
+  ROUTE_DASHBOARD,
+  ROUTE_PROJECTS,
+  ROUTE_QUOTATIONS,
+  ROUTE_CAPA,
+  ROUTE_DISPATCH,
+  ROUTE_QUALITY,
+} from './utils/routeManifest';
 
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
@@ -73,8 +81,8 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/projects" element={<ProjectsPage />} />
+              <Route path={ROUTE_DASHBOARD} element={<DashboardPage />} />
+              <Route path={ROUTE_PROJECTS} element={<ProjectsPage />} />
               <Route path="/projects/:id" element={<ProjectDetailsPage />} />
               <Route path="/projects/:id/milestones" element={<ProjectMilestonesPage />} />
               <Route path="/projects/:id/tasks" element={<ProjectTasksPage />} />
@@ -86,7 +94,7 @@ function App() {
               <Route path="/projects/:id/decisions" element={<EngineeringDecisionsPage />} />
               <Route path="/projects/:id/baselines" element={<ScheduleBaselinesPage />} />
               <Route path="/enquiries" element={<EnquiriesPage />} />
-              <Route path="/quotations" element={<QuotationsPage />} />
+              <Route path={ROUTE_QUOTATIONS} element={<QuotationsPage />} />
               <Route path="/design" element={<DesignPage />} />
               <Route path="/planning" element={<PlanningPage />} />
               <Route path="/planning/baselines" element={<ScheduleBaselinesPage />} />
@@ -97,9 +105,9 @@ function App() {
               <Route path="/planning/what-if" element={<CapacityPlanningPage />} />
               <Route path="/capacity" element={<CapacityPlanningPage />} />
               <Route path="/manufacturing" element={<ManufacturingPage />} />
-              <Route path="/quality" element={<QualityPage />} />
+              <Route path={ROUTE_QUALITY} element={<QualityPage />} />
               <Route path="/trials" element={<TrialsPage />} />
-              <Route path="/capa" element={<CapaPage />} />
+              <Route path={ROUTE_CAPA} element={<CapaPage />} />
               <Route path="/suppliers" element={<SuppliersPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/tool-master" element={<ToolMasterPage />} />
@@ -112,7 +120,7 @@ function App() {
               <Route path="/design-load" element={<DesignLoadPage />} />
               <Route path="/design-standards" element={<DesignLoadPage />} />
               <Route path="/design-systems" element={<DesignLoadPage />} />
-              <Route path="/dispatch" element={<DispatchPage />} />
+              <Route path={ROUTE_DISPATCH} element={<DispatchPage />} />
               <Route path="/service" element={<ServicePage />} />
               <Route path="/service/lineage" element={<ServiceLineagePage />} />
               <Route path="/service/lineage/:projectId" element={<ServiceLineagePage />} />

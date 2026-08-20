@@ -1,6 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
+import { api } from '../utils/api';
 
 interface SearchOverlayProps {
   isOpen: boolean;
@@ -12,15 +15,17 @@ interface SearchResult {
   type: 'project' | 'drawing' | 'bom' | 'document' | 'customer';
   title: string;
   subtitle: string;
+  urlPath?: string | null;
 }
 
-const DEMO_RESULTS: SearchResult[] = [
-  { id: '1', type: 'project', title: 'PRJ-1250 — ABC Industries Mold Base', subtitle: 'Planning stage • On Track • 12 items' },
-  { id: '2', type: 'project', title: 'PRJ-1248 — XYZ Components Insert', subtitle: 'Manufacturing • At Risk • 8 items' },
-  { id: '3', type: 'bom', title: 'BOM-2290 — Main Assembly', subtitle: 'Bill of Materials • 47 parts • Updated 2 hrs ago' },
-  { id: '4', type: 'drawing', title: 'DRG-1156 — Cavity Plate STEP', subtitle: 'CAD Drawing • 23 features • 14 tolerances' },
-  { id: '5', type: 'document', title: 'QAP-442 — Quality Assurance Plan', subtitle: 'Document • Approved • 3 revisions' },
-];
+interface SearchIndexRecord {
+  id: string;
+  entityType: string;
+  displayTitle: string;
+  searchableText: string;
+  urlPath?: string | null;
+  indexedAt?: string | null;
+}
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
   project: (
@@ -65,17 +70,28 @@ const TYPE_ICONS: Record<string, React.ReactNode> = {
   ),
 };
 
-type SearchPhase = 'idle' | 'init' | 'analyze' | 'process' | 'generate' | 'stream' | 'complete';
-
-const PHASE_CONFIG: Record<SearchPhase, { label: string; duration: number }> = {
-  idle: { label: '', duration: 0 },
-  init: { label: 'Initializing Search...', duration: 500 },
-  analyze: { label: 'Analyzing Projects...', duration: 1500 },
-  process: { label: 'Processing Drawings...', duration: 1500 },
-  generate: { label: 'Generating Insights...', duration: 1500 },
-  stream: { label: 'Streaming Results...', duration: 2000 },
-  complete: { label: '', duration: 0 },
+const TYPE_FALLBACK: Record<string, string> = {
+  document: 'document',
+  bom: 'bom',
+  drawing: 'drawing',
+  project: 'project',
+  customer: 'customer',
 };
+
+function mapRecordToResult(record: SearchIndexRecord): SearchResult {
+  const rawType = (record.entityType || 'document').toLowerCase();
+  const type = (TYPE_FALLBACK[rawType] ?? 'document') as SearchResult['type'];
+  const subtitle = record.searchableText
+    ? record.searchableText.replace(/\s+/g, ' ').trim().slice(0, 90)
+    : 'Indexed record';
+  return {
+    id: record.id,
+    type,
+    title: record.displayTitle,
+    subtitle,
+    urlPath: record.urlPath,
+  };
+}
 
 // Simple Perlin-like noise using stacked sine waves
 function noise(t: number, barIndex: number): number {
@@ -129,43 +145,34 @@ function WaveformBars({ isActive }: { isActive: boolean }) {
   );
 }
 
-function TypingText({ text, speed = 40 }: { text: string; speed?: number }) {
-  const [displayed, setDisplayed] = useState('');
-  const [showCursor, setShowCursor] = useState(true);
-
-  useEffect(() => {
-    setDisplayed('');
-    let i = 0;
-    const interval = setInterval(() => {
-      i++;
-      setDisplayed(text.slice(0, i));
-      if (i >= text.length) {
-        clearInterval(interval);
-      }
-    }, speed);
-    return () => clearInterval(interval);
-  }, [text, speed]);
-
-  useEffect(() => {
-    const blink = setInterval(() => setShowCursor(s => !s), 530);
-    return () => clearInterval(blink);
-  }, []);
-
-  return (
-    <span>
-      {displayed}
-      {showCursor && <span className="inline-block w-[2px] h-[1em] ml-0.5 align-middle" style={{ backgroundColor: 'var(--color-accent)' }} />}
-    </span>
-  );
+function matchesQuery(record: SearchIndexRecord, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return false;
+  const haystack = `${record.displayTitle} ${record.searchableText ?? ''} ${record.entityType ?? ''}`.toLowerCase();
+  return q.split(/\s+/).every((token) => haystack.includes(token));
 }
 
 export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
-  const [phase, setPhase] = useState<SearchPhase>('idle');
-  const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const phaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { data: indexData, isLoading } = useQuery({
+    queryKey: ['search-index'],
+    queryFn: () => api.get('/search', { params: { limit: 100 } }).then((r) => r.data),
+    staleTime: 60 * 1000,
+    enabled: isOpen,
+  });
+
+  const records: SearchIndexRecord[] = Array.isArray(indexData?.data) ? indexData.data : [];
+
+  const results = useMemo(() => {
+    const q = query.trim();
+    if (!q) return [];
+    const matched = records.filter((r) => matchesQuery(r, q)).slice(0, 5);
+    return matched.map(mapRecordToResult);
+  }, [records, query]);
 
   // Focus input when opened
   useEffect(() => {
@@ -174,8 +181,6 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
       return () => clearTimeout(t);
     } else {
       setQuery('');
-      setResults([]);
-      setPhase('idle');
       setSelectedIndex(-1);
     }
   }, [isOpen]);
@@ -183,13 +188,6 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
   // Global Cmd+K / Ctrl+K listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        if (!isOpen) {
-          // Parent controls open state — we can't open ourselves, but we can notify
-          // This component expects the parent to manage isOpen
-        }
-      }
       if (e.key === 'Escape' && isOpen) {
         e.preventDefault();
         onClose();
@@ -198,54 +196,6 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
-
-  // Search phase progression
-  const runSearchPhases = useCallback(() => {
-    const phases: SearchPhase[] = ['init', 'analyze', 'process', 'generate', 'stream'];
-    let currentPhase = 0;
-
-    const advance = () => {
-      if (currentPhase >= phases.length) {
-        setPhase('complete');
-        setResults(DEMO_RESULTS.filter(r => r.title.toLowerCase().includes(query.toLowerCase())));
-        return;
-      }
-      const p = phases[currentPhase];
-      setPhase(p);
-      const duration = PHASE_CONFIG[p].duration;
-      phaseTimerRef.current = setTimeout(() => {
-        currentPhase++;
-        advance();
-      }, duration);
-    };
-
-    advance();
-  }, [query]);
-
-  // Submit search on Enter
-  const handleSubmit = useCallback(() => {
-    if (!query.trim() || phase !== 'idle') return;
-    setResults([]);
-    setSelectedIndex(-1);
-    runSearchPhases();
-  }, [query, phase, runSearchPhases]);
-
-  // Query debounce for simple filtering when not in phase mode
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      setPhase('idle');
-      setSelectedIndex(-1);
-      return;
-    }
-    // If user types and pauses, show simple results without full phase animation
-    const timer = setTimeout(() => {
-      if (phase === 'idle') {
-        setResults(DEMO_RESULTS.filter(r => r.title.toLowerCase().includes(query.toLowerCase())));
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [query, phase]);
 
   // Keyboard navigation within results
   useEffect(() => {
@@ -263,29 +213,21 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
           const max = results.length - 1;
           return prev <= 0 ? max : prev - 1;
         });
-      } else if (e.key === 'Enter') {
+      } else if (e.key === 'Enter' && selectedIndex >= 0 && results[selectedIndex]) {
         e.preventDefault();
-        if (phase === 'idle' && results.length === 0 && query.trim()) {
-          handleSubmit();
-        } else if (selectedIndex >= 0 && results[selectedIndex]) {
-          // Result selected — in a real app, navigate to it
-        } else if (phase === 'idle') {
-          handleSubmit();
+        const result = results[selectedIndex];
+        onClose();
+        if (result.urlPath && result.urlPath.startsWith('/')) {
+          navigate(result.urlPath);
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, results, selectedIndex, phase, query, handleSubmit]);
+  }, [isOpen, results, selectedIndex, onClose, navigate]);
 
-  // Cleanup timers
-  useEffect(() => {
-    return () => {
-      if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current);
-    };
-  }, []);
-
-  const isProcessing = phase !== 'idle' && phase !== 'complete';
+  const hasQuery = query.trim().length > 0;
+  const isSearching = isLoading && hasQuery;
 
   return (
     <AnimatePresence>
@@ -324,8 +266,8 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                   ref={inputRef}
                   type="text"
                   value={query}
-                  onChange={e => setQuery(e.target.value)}
-                  placeholder="Search projects, drawings, or BOMs."
+                  onChange={e => { setQuery(e.target.value); setSelectedIndex(-1); }}
+                  placeholder="Search the MITRA knowledge index."
                   className="flex-1 bg-transparent outline-none placeholder:text-[#8892B0]"
                   style={{
                     fontFamily: "'Inter', sans-serif",
@@ -343,16 +285,16 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
               </div>
             </div>
 
-            {/* Waveform */}
+            {/* Waveform (presentation-only) */}
             <div className="mt-6">
-              <WaveformBars isActive={isProcessing || phase === 'complete'} />
+              <WaveformBars isActive={isSearching} />
             </div>
 
-            {/* Phase Status */}
+            {/* Loading state */}
             <AnimatePresence mode="wait">
-              {isProcessing && (
+              {isSearching && (
                 <motion.div
-                  key={phase}
+                  key="searching"
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
@@ -360,20 +302,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                   className="mt-4 text-center"
                 >
                   <span className="text-sm font-mono" style={{ color: 'var(--color-accent)' }}>
-                    {phase === 'init' ? (
-                      <span>
-                        Initializing Search
-                        <span className="inline-block ml-1">
-                          <span className="animate-pulse">.</span>
-                          <span className="animate-pulse" style={{ animationDelay: '0.2s' }}>.</span>
-                          <span className="animate-pulse" style={{ animationDelay: '0.4s' }}>.</span>
-                        </span>
-                      </span>
-                    ) : phase === 'stream' ? (
-                      <TypingText text={PHASE_CONFIG[phase].label} />
-                    ) : (
-                      PHASE_CONFIG[phase].label
-                    )}
+                    Searching index...
                   </span>
                 </motion.div>
               )}
@@ -381,7 +310,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
 
             {/* Results */}
             <AnimatePresence>
-              {(phase === 'complete' || (phase === 'idle' && query.trim() && results.length > 0)) && (
+              {hasQuery && !isSearching && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -398,7 +327,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                     Top Results
                   </div>
                   <div className="max-h-[360px] overflow-y-auto">
-                    {results.slice(0, 5).map((r, i) => (
+                    {results.map((r, i) => (
                       <motion.div
                         key={r.id}
                         initial={{ opacity: 0, x: -10 }}
@@ -411,7 +340,12 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                           backgroundColor: selectedIndex === i ? '#112240' : 'transparent',
                         }}
                         onMouseEnter={() => setSelectedIndex(i)}
-                        onClick={() => { /* Navigate to result */ }}
+                        onClick={() => {
+                          onClose();
+                          if (r.urlPath && r.urlPath.startsWith('/')) {
+                            navigate(r.urlPath);
+                          }
+                        }}
                         onMouseOver={(e) => {
                           (e.currentTarget as HTMLDivElement).style.backgroundColor = '#112240';
                         }}
@@ -433,7 +367,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                         </svg>
                       </motion.div>
                     ))}
-                    {results.length === 0 && query.trim() && (
+                    {results.length === 0 && (
                       <div className="px-4 py-8 text-center">
                         <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                           No results found for &quot;{query}&quot;
@@ -449,7 +383,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
             </AnimatePresence>
 
             {/* Empty state — quick commands */}
-            {!query.trim() && phase === 'idle' && (
+            {!hasQuery && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -466,10 +400,10 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { label: 'Open Dashboard', shortcut: 'D' },
-                    { label: 'New Project', shortcut: 'N' },
-                    { label: 'AI Copilot', shortcut: 'A' },
-                    { label: 'Search Documents', shortcut: 'S' },
+                    { label: 'Open Dashboard', shortcut: 'D', path: '/dashboard' },
+                    { label: 'Analytics', shortcut: 'A', path: '/analytics' },
+                    { label: 'Capacity Planning', shortcut: 'C', path: '/planning/capacity' },
+                    { label: 'Search Documents', shortcut: 'S', path: '/documents' },
                   ].map((cmd, i) => (
                     <motion.div
                       key={i}
@@ -477,8 +411,10 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 + i * 0.05 }}
                       className="flex items-center justify-between px-3 py-2 rounded-lg transition-colors cursor-pointer"
-                      style={{
-                        backgroundColor: 'rgba(17, 34, 64, 0.4)',
+                      style={{ backgroundColor: 'rgba(17, 34, 64, 0.4)' }}
+                      onClick={() => {
+                        onClose();
+                        navigate(cmd.path);
                       }}
                       onMouseEnter={(e) => {
                         (e.currentTarget as HTMLDivElement).style.backgroundColor = '#112240';

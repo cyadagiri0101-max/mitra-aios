@@ -18,12 +18,12 @@
 | G7 | Work-order execution with machine scheduling | P4 | CERTIFIED (Released routing → WO → sequential Job Cards → machine booking conflict check → operation sequencing → production rollup → terminal completion certified in M4) |
 | G8 | Inspection → NCR → CAPA closure | P4 + P5 | CERTIFIED (Inspection fail → NCR OPEN → WO completion barrier gate → CAPA escalation → 8D workflow → CAPA closure → NCR auto-closure → WO completion allowed certified in M4) |
 | G9 | Trial run with results & retrial decision | P4 + P10 | CERTIFIED (Tooling trial T0 failure → retrial recommendation → human approval → T1 failure → trial-to-ECR creation with full artifact linkage & audit trail certified in M4) |
-| G10 | Dispatch → installation → warranty claim | P6 + P11 | PARTIAL (UI gaps) |
+| G10 | Dispatch → installation → warranty claim | P6 + P11 | CERTIFIED (Dispatch governance state machine, installation sign-off, warranty claims & adjudication, service digital-thread lineage certified in M5) |
 | G11 | Real-time BI dashboard (schedule/cost/machine) | P7 | PARTIAL (Real aggregate BI APIs delivered in M2; unblocked for Phase 7 UI wiring) |
-| G12 | Knowledge article lifecycle & decision corpus | P8 | CERTIFIED (Knowledge intelligence, semantic vector search, article indexing & decision corpus retrieval certified in M3) |
-| G13 | Copilot L1: cited retrieval Q&A on project docs | P9 + P8 | CERTIFIED (Knowledge search, engineering citation grounding & multi-tenant isolation certified in M3) |
+| G12 | Knowledge article lifecycle & decision corpus | P8 | PARTIAL (Decision corpus, semantic vector search & article indexing exist; article revision/approval workflow missing — see scenario body) |
+| G13 | Copilot L1: cited retrieval Q&A on project docs | P9 + P8 | PARTIAL (L1 citation pipeline, knowledge search & multi-tenant isolation implemented; no real-model certification run recorded — see scenario body) |
 | G14 | Predictive: delay forecast vs actual + capacity forecast | P10 + P2 | PARTIAL (Clean deterministic baseline variance & capacity historical data prepared) |
-| G15 | Digital thread navigation (quote → service) | P11 | BLOCKED (segments missing) |
+| G15 | Digital thread navigation (quote → service) | P11 | PARTIAL / UNBLOCKED (Planning/capacity + service lifecycle segments connected; unified one-UI graph navigation pending) |
 
 ---
 
@@ -95,11 +95,13 @@
 2. Navigation shows full service chain from project.
 **Partial:** UI gaps (dispatch/installation forms), service trace navigation missing.
 
-### G11 — Real-time BI dashboard (P7) — PARTIAL / UNBLOCKED (Phase 2 delivered)
+### G11 — Real-time BI dashboard (P7) — PARTIAL / UNBLOCKED (M6 implementation complete; certification pending)
 1. Dashboard KPIs (schedule variance, workload delta, machine utilization, design load, capacity gap)
    come from real aggregate endpoints (`/api/planning/capacity/summary`, `/api/planning/capacity/timeline`, `/api/project/:id/baselines/variance`) — **no static arrays**.
 2. Filter by project/tenant; drill into variance.
-**Status:** Unblocked by M2 Sprint 2 baseline and capacity aggregate APIs; Phase 7 BI dashboard UI wiring remains.
+**Status:** Unblocked by M2 Sprint 2 baseline and capacity aggregate APIs. M6 Work 1 rewired the
+Dashboard/Analytics UI to real endpoints (zero mock arrays, verified) and delivered
+`m6-bi-dashboard.e2e-spec.ts` (20/20 PASS). Formal G11 certification is the M6 Work 3 gate.
 
 ### G12 — Knowledge article lifecycle & decision corpus (P8) — PARTIAL
 1. Article create → draft → review → publish (revisionable); expiry marking.
@@ -140,8 +142,8 @@
 - Blocked (foundational gaps): G2, G3, G11, G15.
 - **Golden-scenario certified coverage at Phase 0 baseline: 0/15.**
 
-### Current Post-M2 State (Verified & Certified)
-- **CERTIFIED (3/15):** **G2** (Schedule Baselines & Variance), **G3** (Multi-Project Capacity Intelligence), **G5** (Engineering Decision Log & Change Traceability).
-- **RUNNABLE (5/15):** G1 (Quote-to-Project), G4 (Design Release), G6 (BOM Rollup), G7 (Work Order Execution), G8 (Inspection/CAPA).
-- **PARTIAL / UNBLOCKED (7/15):** G9 (Trials), G10 (Service), G11 (BI Dashboard — API ready), G12 (Knowledge Article), G13 (Copilot L1), G14 (Predictive Delay/Capacity — Data ready), G15 (Digital Thread — Planning segment ready).
+### Current Post-M5 State (Verified & Certified — v4.5.0)
+- **CERTIFIED (9/15):** **G2** (Schedule Baselines & Variance), **G3** (Multi-Project Capacity Intelligence), **G4** (Design Release), **G5** (Change Decision Log), **G6** (BOM Rollup & Diff), **G7** (Work Order Execution), **G8** (Inspection/NCR/CAPA), **G9** (Trial Governance), **G10** (Service Lifecycle Dispatch → Installation → Warranty).
+- **RUNNABLE (1/15):** G1 (Quote-to-Project).
+- **PARTIAL / UNBLOCKED (5/15):** G11 (BI Dashboard — implementation complete in M6 Work 1; certification pending), G12 (Knowledge Article Lifecycle), G13 (Copilot L1 — real-model run pending), G14 (Predictive Delay/Capacity — data ready), G15 (Digital Thread — segments connected, unified navigation pending).
 - **BLOCKED (0/15):** All former foundational Phase 2 capacity/baseline blockers resolved.

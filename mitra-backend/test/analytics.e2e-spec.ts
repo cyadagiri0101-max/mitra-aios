@@ -39,7 +39,20 @@ describe('Analytics E2E (v4.0 W3)', () => {
         .expect(200);
       expect(res.body.companyOverview).toBeDefined();
       expect(res.body.companyOverview.totalProjects).toBeGreaterThanOrEqual(0);
-      expect(typeof res.body.companyOverview.revenue).toBe('number');
+      expect(typeof res.body.companyOverview.quotationValue).toBe('number');
+      expect(res.body.companyOverview).not.toHaveProperty('revenue');
+      expect(res.body.quotationValue).toBeDefined();
+      expect(res.body.qualityPerformance.openRatioPct).toBeDefined();
+      expect(res.body.qualityPerformance).not.toHaveProperty('defectRatePct');
+      expect(res.body.qualityPerformance.ncrBySeverity).toBeDefined();
+      expect(res.body.qualityPerformance.capaByStatus).toBeDefined();
+      expect(res.body.qualityPerformance.capaOpenCount).toBeDefined();
+      expect(res.body.qualityPerformance.inspectionPassRate.passRatePct).toBeDefined();
+      expect(res.body.serviceStatus.closureRatePct).toBeDefined();
+      expect(res.body.serviceStatus).not.toHaveProperty('slaCompliancePct');
+      expect(res.body.costPerformance).toBeDefined();
+      expect(res.body.activeProjects.delayedProjects).toBeDefined();
+      expect(res.body.activeProjects.completionPct).toBeDefined();
     });
 
     it('lists dashboard widgets', async () => {
@@ -57,8 +70,29 @@ describe('Analytics E2E (v4.0 W3)', () => {
     });
   });
 
+  describe('Trends', () => {
+    it('returns monthly project and quality time series with matching months', async () => {
+      const res = await request(server)
+        .get('/api/analytics/trends?months=3')
+        .set(auth())
+        .expect(200);
+      expect(Array.isArray(res.body.projectTrends)).toBe(true);
+      expect(Array.isArray(res.body.qualityTrends)).toBe(true);
+      expect(res.body.projectTrends.length).toBe(3);
+      expect(res.body.qualityTrends.length).toBe(3);
+      expect(res.body.projectTrends[0]).toHaveProperty('month');
+      expect(res.body.projectTrends[0]).toHaveProperty('value');
+      expect(res.body.qualityTrends[0]).toHaveProperty('ncrs');
+      expect(res.body.qualityTrends[0]).toHaveProperty('capas');
+    });
+
+    it('rejects unauthenticated access', async () => {
+      await request(server).get('/api/analytics/trends').expect(401);
+    });
+  });
+
   describe('KPIs', () => {
-    it('returns KPI definitions with computed values', async () => {
+    it('returns semantic-hardened KPI definitions with computed values', async () => {
       const res = await request(server)
         .get('/api/analytics/kpis?period=30d')
         .set(auth())
@@ -66,7 +100,15 @@ describe('Analytics E2E (v4.0 W3)', () => {
       const items = res.body.definitions;
       expect(Array.isArray(items)).toBe(true);
       expect(items.length).toBeGreaterThan(0);
-      expect(items[0]).toHaveProperty('id');
+      const ids = items.map((d: any) => d.id);
+      expect(ids).toContain('quotation-value');
+      expect(ids).toContain('open-ncr-ratio');
+      expect(ids).toContain('service-request-closure-rate');
+      expect(ids).not.toContain('revenue');
+      expect(ids).not.toContain('quality-defect-rate');
+      expect(ids).not.toContain('service-sla-compliance');
+      const output = items.find((d: any) => d.id === 'production-output');
+      expect(output.currentValue).toBeGreaterThanOrEqual(0);
     });
 
     it('accepts a custom period', async () => {

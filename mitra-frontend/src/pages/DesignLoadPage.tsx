@@ -733,7 +733,7 @@ export function DesignLoadPage() {
               </div>
               <div className="h-8 w-px bg-slate-800" />
               <div className="text-right">
-                <p className="text-xs text-slate-400">Max Design Throughput</p>
+                <p className="text-xs text-slate-400">Max Design Capacity</p>
                 <p className="text-xl font-bold text-emerald-400">{systems.length * 24} h/day</p>
               </div>
             </div>
