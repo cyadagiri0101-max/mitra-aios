@@ -4,6 +4,8 @@ import { AiModule } from '../ai/ai.module';
 import { EngineeringModule } from '../engineering/engineering.module';
 import { CommercialModule } from '../commercial/commercial.module';
 import { PlatformModule } from '../platform/platform.module';
+import { AuditModule } from '../audit/audit.module';
+import { EngineeringDecisionsModule } from '../engineering-decisions/engineering-decisions.module';
 import { Tenant } from '../platform/entities/tenant.entity';
 import { KnowledgeArticle } from './entities/knowledgearticle.entity';
 import { KnowledgeAttachment } from './entities/knowledgeattachment.entity';
@@ -11,7 +13,10 @@ import { KnowledgeCategory } from './entities/knowledgecategory.entity';
 import { KnowledgeTag } from './entities/knowledgetag.entity';
 import { KnowledgeCatalogEntry } from './entities/knowledge-catalog.entity';
 import { KnowledgeGraphEdge } from './entities/knowledge-graph-edge.entity';
+import { KnowledgeArticleEvidence } from './entities/knowledge-article-evidence.entity';
 import { EngineeringDocument } from '../engineering/entities/engineering-document.entity';
+import { EngineeringDecision } from '../engineering-decisions/entities/engineering-decision.entity';
+import { KnowledgeChunk } from '../engineering-library/entities/knowledge-chunk.entity';
 import { KnowledgeArticleService } from './services/knowledgearticle.service';
 import { KnowledgeArticleController } from './controllers/knowledgearticle.controller';
 import { KnowledgeCatalogService } from './services/knowledgecatalog.service';
@@ -32,13 +37,18 @@ import { KnowledgeGraphService } from './services/knowledge-graph.service';
       KnowledgeTag,
       KnowledgeCatalogEntry,
       KnowledgeGraphEdge,
+      KnowledgeArticleEvidence,
       EngineeringDocument,
+      EngineeringDecision,
+      KnowledgeChunk,
       Tenant,
     ]),
     forwardRef(() => AiModule),
     EngineeringModule,
     CommercialModule,
     PlatformModule,
+    AuditModule,
+    EngineeringDecisionsModule,
   ],
   controllers: [KnowledgeArticleController, KnowledgeCatalogController, KnowledgeSearchController],
   providers: [

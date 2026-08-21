@@ -5,6 +5,7 @@ import { VectorSearchService } from '@modules/ai/services/vector-search.service'
 import { EmbeddingEntityType } from '@modules/ai/entities/knowledge-embedding.entity';
 import { KnowledgeCatalogEntry } from '../entities/knowledge-catalog.entity';
 import { KnowledgeArticle, ArticleStatus } from '../entities/knowledgearticle.entity';
+import { KnowledgeArticleEvidence } from '../entities/knowledge-article-evidence.entity';
 import { EngineeringDocument } from '../../engineering/entities/engineering-document.entity';
 
 export interface KnowledgeSearchOptions {
@@ -13,6 +14,7 @@ export interface KnowledgeSearchOptions {
   domain?: string;        // 'ALL' | 'ENGINEERING' | 'MANUFACTURING' | 'QUALITY' | 'COMMERCIAL'
   articleType?: string;   // 'PROCEDURE' | 'TROUBLESHOOTING' | 'BEST_PRACTICE' | 'STANDARD' | 'LESSON_LEARNED' | 'SPECIFICATION' | etc.
   projectId?: string;
+  decisionId?: string;
   material?: string;
   process?: string;
   status?: string;
@@ -31,11 +33,23 @@ export interface UnifiedSearchResult {
   entityType: 'KNOWLEDGE_ARTICLE' | 'ENGINEERING_DOCUMENT' | 'CATALOG_ENTRY';
   articleType?: string;
   docType?: string;
+  version?: number;
+  isLatest?: boolean;
+  projectId?: string | null;
+  decisionId?: string | null;
   summary: string | null;
   contentSnippet?: string | null;
   tags: string[];
   status: string;
   sourceDomain: string;
+  evidence?: Array<{
+    citationLabel: string;
+    sourceFile: string | null;
+    sourceCoordinate: string | null;
+    authorityStatus: string | null;
+    contentHash: string | null;
+    sequenceNumber: number;
+  }>;
   sourceLinks?: {
     projectId?: string | null;
     projectNumber?: string | null;
@@ -66,6 +80,8 @@ export class KnowledgeSearchService {
     private readonly catalogRepo: Repository<KnowledgeCatalogEntry>,
     @InjectRepository(KnowledgeArticle)
     private readonly articleRepo: Repository<KnowledgeArticle>,
+    @InjectRepository(KnowledgeArticleEvidence)
+    private readonly evidenceRepo: Repository<KnowledgeArticleEvidence>,
     @InjectRepository(EngineeringDocument)
     private readonly documentRepo: Repository<EngineeringDocument>,
     @InjectDataSource()
@@ -85,6 +101,7 @@ export class KnowledgeSearchService {
     const domain = (options.domain || 'ALL').toUpperCase();
     const articleType = options.articleType;
     const projectId = options.projectId;
+    const decisionId = options.decisionId;
     const material = options.material?.toLowerCase();
     const process = options.process?.toLowerCase();
     const status = options.status;
@@ -114,11 +131,28 @@ export class KnowledgeSearchService {
         material,
         process,
         status,
+        projectId,
+        decisionId,
       });
 
       for (const a of articles) {
         const vSim = vectorMatches.get(a.id) ?? (q ? this.computeTextRelevance(q, a.title, a.summary || '', a.content) : 1.0);
         const sourceLinks = await this.resolveSourceLinksForArticle(a, tenantId);
+
+        // Fetch validated evidence references attached to the article
+        const evidenceRecords = await this.evidenceRepo.find({
+          where: { articleId: a.id, tenantId, deletedAt: IsNull() } as any,
+          order: { sequenceNumber: 'ASC' },
+        });
+
+        const evidence = evidenceRecords.map((ev) => ({
+          citationLabel: ev.citationLabel,
+          sourceFile: ev.sourceFile,
+          sourceCoordinate: ev.sourceCoordinate,
+          authorityStatus: ev.authorityStatus,
+          contentHash: ev.contentHash,
+          sequenceNumber: ev.sequenceNumber,
+        }));
 
         unifiedResults.push({
           id: a.id,
@@ -126,11 +160,16 @@ export class KnowledgeSearchService {
           slug: a.slug,
           entityType: 'KNOWLEDGE_ARTICLE',
           articleType: a.articleType,
+          version: a.version,
+          isLatest: a.isLatest,
+          projectId: a.projectId,
+          decisionId: a.decisionId,
           summary: a.summary || (a.content ? a.content.slice(0, 200) + '...' : null),
           contentSnippet: a.content ? a.content.slice(0, 300) : null,
           tags: this.extractTagsFromArticle(a),
           status: a.status,
           sourceDomain: this.deriveDomainFromArticle(a),
+          evidence: evidence.length > 0 ? evidence : undefined,
           sourceLinks,
           similarity: Math.round(vSim * 100) / 100,
           createdAt: a.createdAt,
@@ -252,7 +291,7 @@ export class KnowledgeSearchService {
   private async searchKnowledgeArticles(
     tenantId: string,
     query: string,
-    filters: { articleType?: string; material?: string; process?: string; status?: string },
+    filters: { articleType?: string; material?: string; process?: string; status?: string; projectId?: string; decisionId?: string },
   ): Promise<KnowledgeArticle[]> {
     const qb = this.articleRepo.createQueryBuilder('a')
       .where('a.deleted_at IS NULL')
@@ -260,6 +299,18 @@ export class KnowledgeSearchService {
 
     if (filters.status) {
       qb.andWhere('a.status = :status', { status: filters.status });
+    } else {
+      // Governed default search: Only PUBLISHED and latest articles
+      qb.andWhere('a.status = :publishedStatus', { publishedStatus: ArticleStatus.PUBLISHED });
+      qb.andWhere('a.is_latest = :isLatest', { isLatest: true });
+    }
+
+    if (filters.projectId) {
+      qb.andWhere('a.project_id = :projectId', { projectId: filters.projectId });
+    }
+
+    if (filters.decisionId) {
+      qb.andWhere('a.decision_id = :decisionId', { decisionId: filters.decisionId });
     }
 
     if (filters.articleType) {

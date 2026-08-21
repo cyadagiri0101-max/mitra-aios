@@ -10,20 +10,21 @@ export class EngineeringLibraryService {
 
   constructor(private readonly configService: ConfigService) {
     const baseUrl = this.configService.get<string>('EKL_BASE_URL');
-    if (!baseUrl) {
-      throw new Error('[MITRA] EKL_BASE_URL is required for EngineeringLibraryService');
+    if (baseUrl) {
+      this.client = axios.create({
+        baseURL: baseUrl.replace(/\/+$/, ''),
+        timeout: this.configService.get<number>('EKL_TIMEOUT_MS', 30000),
+        headers: {
+          Accept: 'application/json',
+          ...(this.configService.get<string>('EKL_API_KEY')
+            ? { Authorization: `Bearer ${this.configService.get<string>('EKL_API_KEY')}` }
+            : {}),
+        },
+      });
+    } else {
+      this.client = axios.create({ baseURL: 'http://localhost:8001', timeout: 5000 });
+      this.logger.log('EngineeringLibraryService operating in standalone local mode (EKL_BASE_URL not configured)');
     }
-
-    this.client = axios.create({
-      baseURL: baseUrl.replace(/\/+$/, ''),
-      timeout: this.configService.get<number>('EKL_TIMEOUT_MS', 30000),
-      headers: {
-        Accept: 'application/json',
-        ...(this.configService.get<string>('EKL_API_KEY')
-          ? { Authorization: `Bearer ${this.configService.get<string>('EKL_API_KEY')}` }
-          : {}),
-      },
-    });
   }
 
   private getDefaultHeaders() {

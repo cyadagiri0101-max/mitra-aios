@@ -35,8 +35,12 @@ async function buildService<S>(ServiceClass: new (...a: any[]) => S, EntityClass
     providers: [
       ServiceClass,
       { provide: getRepositoryToken(EntityClass), useValue: repo },
-      { provide: DataSource, useValue: { query: jest.fn().mockResolvedValue([{ id: 'x' }]) } },
+      { provide: getRepositoryToken(KnowledgeArticleEvidence), useValue: makeRepo() },
+      { provide: getRepositoryToken(KnowledgeChunk), useValue: makeRepo() },
+      { provide: getRepositoryToken(EngineeringDecision), useValue: makeRepo() },
+      { provide: DataSource, useValue: { query: jest.fn().mockResolvedValue([{ id: 'x' }]), transaction: jest.fn(async (cb) => cb({ getRepository: () => makeRepo(), save: jest.fn((e) => e) })) } },
       { provide: CommercialEventPublisherService, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
+      { provide: AuditService, useValue: { logBusinessEvent: jest.fn().mockResolvedValue(undefined) } },
     ],
   }).compile();
   return { service: module.get<S>(ServiceClass), repo };
@@ -64,6 +68,10 @@ import { DocumentVersion }           from '@modules/document/entities/documentve
 
 import { KnowledgeArticleService }   from '@modules/knowledge/services/knowledgearticle.service';
 import { KnowledgeArticle }          from '@modules/knowledge/entities/knowledgearticle.entity';
+import { KnowledgeArticleEvidence }  from '@modules/knowledge/entities/knowledge-article-evidence.entity';
+import { KnowledgeChunk }            from '@modules/engineering-library/entities/knowledge-chunk.entity';
+import { EngineeringDecision }        from '@modules/engineering-decisions/entities/engineering-decision.entity';
+import { AuditService }              from '@modules/audit/services/audit.service';
 
 import { MachineTypeService }        from '@modules/machine/services/machinetype.service';
 import { MachineType }               from '@modules/machine/entities/machinetype.entity';
@@ -85,7 +93,6 @@ const SERVICES: [string, any, any][] = [
   ['CustomerApprovalService', CustomerApprovalService, CustomerApproval],
   ['DesignPartService',       DesignPartService,       DesignPart      ],
   ['DocumentVersionService',  DocumentVersionService,  DocumentVersion ],
-  ['KnowledgeArticleService', KnowledgeArticleService, KnowledgeArticle],
   ['MachineTypeService',      MachineTypeService,      MachineType     ],
   ['WorkOrderService',        WorkOrderService,        WorkOrder       ],
   ['MoldStructureService',    MoldStructureService,    MoldStructure   ],
