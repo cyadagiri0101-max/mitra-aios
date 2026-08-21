@@ -52,6 +52,7 @@ import { EngineeringModule } from './modules/engineering/engineering.module';
 import { PeopleModule } from './modules/people/people.module';
 import { EngineeringDecisionsModule } from './modules/engineering-decisions/engineering-decisions.module';
 import { DesignLoadModule } from './modules/design-load/design-load.module';
+import { PredictiveModule } from './modules/predictive/predictive.module';
 import { SchemaIntegrityService } from './common/services/schema-integrity.service';
 import { OptimisticLockFilter } from './common/filters/optimistic-lock.filter';
 
@@ -130,6 +131,7 @@ import { OptimisticLockFilter } from './common/filters/optimistic-lock.filter';
     PeopleModule,
     EngineeringDecisionsModule,
     DesignLoadModule,
+    PredictiveModule,
   ],
   providers: [
     IndustrialSubscriber,
