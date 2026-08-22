@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileText, AlertTriangle, CheckCircle, BarChart3, Layers, Ruler, Box, Download } from 'lucide-react';
+import { DfmReviewWorkspace } from '../components/Engineering/DfmReviewWorkspace';
 
 
 interface RiskArea {
@@ -420,17 +421,24 @@ export function DrawingAnalysisPage() {
                 </div>
                 <div>
                   <div className="text-lg font-bold font-mono" style={{ color: 'var(--color-accent)' }}>
-                    H13 Steel
+                    ABS Polymer Resin / H13 Tool Steel
                   </div>
                   <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                    Grade: Tooling | Confidence: 92%
+                    Grade: Injection Molding | Density: 1.05 g/cm³ | Confidence: 94%
                   </div>
                   <div className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
-                    Hardness: 48-52 HRC | Suitable for high-volume injection molding
+                    Shrinkage: 0.5% | Melt Temp: 220-250°C | Suitable for high-precision injection tooling
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* M11.4 Human-in-the-Loop DFM Review & Interactive 3D Canvas Workspace */}
+            <DfmReviewWorkspace
+              drawingId={file?.name || 'TOOL-2026-CORE-CAVITY-MOLD'}
+              activeRevision="Rev B"
+              analysisRevision="Rev B"
+            />
           </motion.div>
         )}
       </AnimatePresence>

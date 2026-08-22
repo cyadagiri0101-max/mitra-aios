@@ -53,6 +53,7 @@ import { PeopleModule } from './modules/people/people.module';
 import { EngineeringDecisionsModule } from './modules/engineering-decisions/engineering-decisions.module';
 import { DesignLoadModule } from './modules/design-load/design-load.module';
 import { PredictiveModule } from './modules/predictive/predictive.module';
+import { EkosModule } from './modules/ekos/ekos.module';
 import { SchemaIntegrityService } from './common/services/schema-integrity.service';
 import { OptimisticLockFilter } from './common/filters/optimistic-lock.filter';
 
@@ -132,6 +133,7 @@ import { OptimisticLockFilter } from './common/filters/optimistic-lock.filter';
     EngineeringDecisionsModule,
     DesignLoadModule,
     PredictiveModule,
+    EkosModule,
   ],
   providers: [
     IndustrialSubscriber,

@@ -1,0 +1,202 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>MEKB Import Validation Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; }
+        .card { background: #ecf0f1; padding: 15px; border-radius: 6px; text-align: center; }
+        .card .value { font-size: 28px; font-weight: bold; color: #2c3e50; }
+        .card .label { font-size: 12px; color: #7f8c8d; text-transform: uppercase; }
+        .card.success { background: #d4edda; }
+        .card.warning { background: #fff3cd; }
+        .card.error { background: #f8d7da; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #3498db; color: white; }
+        tr:hover { background: #f1f1f1; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .badge-success { background: #28a745; color: white; }
+        .badge-warning { background: #ffc107; color: black; }
+        .badge-error { background: #dc3545; color: white; }
+        .footer { margin-top: 40px; text-align: center; color: #95a5a6; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MEKB Import Validation Report</h1>
+        <p><strong>Batch ID:</strong> batch-20260703-052817-6944c5</p>
+        <p><strong>Generated:</strong> 2026-07-03 05:28:21 UTC</p>
+        <p><strong>Status:</strong> <span class="badge badge-success">SUCCESS</span></p>
+
+        <h2>Summary</h2>
+        <div class="summary">
+            <div class="card"><div class="value">14</div><div class="label">Files Processed</div></div>
+            <div class="card success"><div class="value">2825</div><div class="label">Records Imported</div></div>
+            <div class="card"><div class="value">0</div><div class="label">Records Updated</div></div>
+            <div class="card warning"><div class="value">780</div><div class="label">Duplicates Found</div></div>
+            <div class="card error"><div class="value">15</div><div class="label">Errors</div></div>
+            <div class="card warning"><div class="value">2</div><div class="label">Warnings</div></div>
+        </div>
+
+        <h2>Per-File Results</h2>
+        <table>
+            <thead><tr><th>File</th><th>Parser</th><th>Imported</th><th>Updated</th><th>Duplicates</th><th>Errors</th><th>Warnings</th></tr></thead>
+            <tbody>
+            
+            <tr>
+                <td>029_Blow Molds Cycle Times.xlsx</td>
+                <td>cycle_times</td>
+                <td>49</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+            
+            <tr>
+                <td>Blow Molds Data for Internal Study.xlsx</td>
+                <td>blow_mold_internal_study</td>
+                <td>252</td>
+                <td>0</td>
+                <td>252</td>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+            
+            <tr>
+                <td>Blow Molds Data for Internal Study_RevA.xlsx</td>
+                <td>blow_mold_internal_study</td>
+                <td>504</td>
+                <td>0</td>
+                <td>504</td>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+            
+            <tr>
+                <td>BM-454 INDEX SHEET(1).xlsx</td>
+                <td>index_sheet</td>
+                <td>57</td>
+                <td>0</td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+            
+            <tr>
+                <td>BM-454 INDEX SHEET.xlsx</td>
+                <td>index_sheet</td>
+                <td>114</td>
+                <td>0</td>
+                <td>2</td>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+            
+            <tr>
+                <td>BM-474 INDEX SHEET.xlsx</td>
+                <td>index_sheet</td>
+                <td>143</td>
+                <td>0</td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+            
+            <tr>
+                <td>BM377 Process planning sheet.xlsx</td>
+                <td>process_planning</td>
+                <td>52</td>
+                <td>0</td>
+                <td>1</td>
+                <td>1</td>
+                <td>0</td>
+            </tr>
+            
+            <tr>
+                <td>BM454 Veedol 600ml M01 08Cavity Mold SEB101 FN_Partlist_RevA(1).xlsx</td>
+                <td>part_list</td>
+                <td>115</td>
+                <td>0</td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+            
+            <tr>
+                <td>BM454 Veedol 600ml M01 08Cavity Mold SEB101 FN_Partlist_RevA.xlsx</td>
+                <td>part_list</td>
+                <td>230</td>
+                <td>0</td>
+                <td>2</td>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+            
+            <tr>
+                <td>BM454_Process planning sheet(1).xlsx</td>
+                <td>process_planning</td>
+                <td>112</td>
+                <td>0</td>
+                <td>2</td>
+                <td>2</td>
+                <td>0</td>
+            </tr>
+            
+            <tr>
+                <td>BM454_Process planning sheet.xlsx</td>
+                <td>process_planning</td>
+                <td>172</td>
+                <td>0</td>
+                <td>3</td>
+                <td>3</td>
+                <td>0</td>
+            </tr>
+            
+            <tr>
+                <td>BM471_Process planning sheet.xlsx</td>
+                <td>process_planning</td>
+                <td>222</td>
+                <td>0</td>
+                <td>4</td>
+                <td>4</td>
+                <td>1</td>
+            </tr>
+            
+            <tr>
+                <td>BM476_Process planning sheet.xlsx</td>
+                <td>process_planning</td>
+                <td>287</td>
+                <td>0</td>
+                <td>5</td>
+                <td>5</td>
+                <td>1</td>
+            </tr>
+            
+            <tr>
+                <td>component Details.xlsx</td>
+                <td>component_details</td>
+                <td>516</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+            
+            </tbody>
+        </table>
+
+        
+
+        <div class="footer">
+            Mitra Engineering Knowledge Base (MEKB) v1.0.0 &mdash; Independent from MITRA
+        </div>
+    </div>
+</body>
+</html>

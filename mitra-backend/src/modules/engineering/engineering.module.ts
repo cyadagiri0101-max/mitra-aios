@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkflowModule } from '../workflow/workflow.module';
 import { AuditModule } from '../audit/audit.module';
@@ -7,6 +7,7 @@ import { ManufacturingModule } from '../manufacturing/manufacturing.module';
 import { QualityModule } from '../quality/quality.module';
 import { ProjectModule } from '../project/project.module';
 import { EcrEcoModule } from '../ecr-eco/ecr-eco.module';
+import { EkosModule } from '../ekos/ekos.module';
 import { EngineeringChangeRequest } from '../ecr-eco/entities/engineeringchangerequest.entity';
 import { EngineeringChangeOrder } from '../ecr-eco/entities/engineeringchangeorder.entity';
 import { EngineeringChangeNotice } from '../ecr-eco/entities/engineering-change-notice.entity';
@@ -32,6 +33,11 @@ import { EngineeringRoutingRevision } from './entities/engineering-routing-revis
 import { EngineeringReviewAssignment } from './entities/engineering-review-assignment.entity';
 import { EngineeringUomConversion } from './entities/engineering-uom-conversion.entity';
 import { EngineeringTraceEdge } from './entities/engineering-trace-edge.entity';
+import { GeometricFeature } from './entities/geometric-feature.entity';
+import { DfmFinding } from './entities/dfm-finding.entity';
+import { HistoricalDefectCorrelation } from './entities/historical-defect-correlation.entity';
+import { EngineeringReasoningResult } from './entities/engineering-reasoning-result.entity';
+import { EngineeringCostConfiguration } from './entities/engineering-cost-configuration.entity';
 import { EngineeringEventBus } from './services/engineering-event-bus.service';
 import { EngineeringAiHooksService } from './services/engineering-ai-hooks.service';
 import { EngineeringChangeService } from '../ecr-eco/services/engineering-change.service';
@@ -49,6 +55,11 @@ import { EngineeringWorkflowService } from './services/engineering-workflow.serv
 import { EngineeringUomConversionService } from './services/engineering-uom-conversion.service';
 import { EngineeringOutboxRelayService } from './services/engineering-outbox-relay.service';
 import { EngineeringOutboxRelayScheduler } from './services/engineering-outbox-relay-scheduler.service';
+import { GeometricFeatureService } from './services/geometric-feature.service';
+import { DfmRuleEngineService } from './services/dfm-rule-engine.service';
+import { HistoricalDefectCorrelationService } from './services/historical-defect-correlation.service';
+import { EngineeringCostSynthesisService } from './services/engineering-cost-synthesis.service';
+import { EngineeringReasoningEngineService } from './services/engineering-reasoning-engine.service';
 import { EngineeringDrawingController } from './controllers/engineering-drawing.controller';
 import { EngineeringBomController } from './controllers/engineering-bom.controller';
 import { EngineeringProcessPlanningController } from './controllers/engineering-process-planning.controller';
@@ -64,6 +75,8 @@ import { EngineeringUomController } from './controllers/engineering-uom.controll
 import { EngineeringOutboxController } from './controllers/engineering-outbox.controller';
 import { EngineeringReleaseService } from './services/engineering-release.service';
 import { EngineeringReleaseController } from './controllers/engineering-release.controller';
+import { GeometryDfmController } from './controllers/geometry-dfm.controller';
+import { EngineeringReasoningController } from './controllers/engineering-reasoning.controller';
 
 @Module({
   imports: [
@@ -93,6 +106,11 @@ import { EngineeringReleaseController } from './controllers/engineering-release.
       EngineeringChangeOrder,
       EngineeringChangeNotice,
       EngineeringChangeImpact,
+      GeometricFeature,
+      DfmFinding,
+      HistoricalDefectCorrelation,
+      EngineeringReasoningResult,
+      EngineeringCostConfiguration,
     ]),
     WorkflowModule,
     AuditModule,
@@ -101,6 +119,7 @@ import { EngineeringReleaseController } from './controllers/engineering-release.
     QualityModule,
     ProjectModule,
     EcrEcoModule,
+    forwardRef(() => EkosModule),
   ],
   controllers: [
     EngineeringDrawingController,
@@ -118,6 +137,8 @@ import { EngineeringReleaseController } from './controllers/engineering-release.
     EngineeringUomController,
     EngineeringOutboxController,
     EngineeringReleaseController,
+    GeometryDfmController,
+    EngineeringReasoningController,
   ],
   providers: [
     EngineeringEventBus,
@@ -137,6 +158,11 @@ import { EngineeringReleaseController } from './controllers/engineering-release.
     EngineeringOutboxRelayService,
     EngineeringOutboxRelayScheduler,
     EngineeringReleaseService,
+    GeometricFeatureService,
+    DfmRuleEngineService,
+    HistoricalDefectCorrelationService,
+    EngineeringCostSynthesisService,
+    EngineeringReasoningEngineService,
   ],
   exports: [
     EngineeringEventBus,
@@ -154,6 +180,11 @@ import { EngineeringReleaseController } from './controllers/engineering-release.
     EngineeringUomConversionService,
     EngineeringOutboxRelayService,
     EngineeringReleaseService,
+    GeometricFeatureService,
+    DfmRuleEngineService,
+    HistoricalDefectCorrelationService,
+    EngineeringCostSynthesisService,
+    EngineeringReasoningEngineService,
   ],
 })
 export class EngineeringModule {}

@@ -21,3 +21,36 @@ export { EngineeringRoutingRevision } from './engineering-routing-revision.entit
 export { EngineeringReviewAssignment, AssignmentRole, AssignmentStatus } from './engineering-review-assignment.entity';
 export { EngineeringUomConversion, UomConversionType } from './engineering-uom-conversion.entity';
 export { EngineeringTraceEdge } from './engineering-trace-edge.entity';
+export { GeometricFeature, GeometricFeatureType, ExtractionStatus } from './geometric-feature.entity';
+export { DfmFinding, DfmSeverity, DfmFindingStatus } from './dfm-finding.entity';
+export {
+  HistoricalDefectCorrelation,
+  DefectTaxonomyType,
+  CorrelationStrength,
+} from './historical-defect-correlation.entity';
+export {
+  EngineeringReasoningResult,
+  ReasoningStatus,
+  EvidenceType,
+  ContradictionState,
+  AssumptionStatus,
+  ImpactCertainty,
+  CostStatus,
+  RecommendationType,
+  type ReasoningStep,
+  type EvidenceItem,
+  type Assumption,
+  type EngineeringConstraint,
+  type Contradiction,
+  type EngineeringImpact,
+  type CostComponent,
+  type CostSummary,
+  type ConfidenceFactors,
+  type Recommendation,
+} from './engineering-reasoning-result.entity';
+export {
+  EngineeringCostConfiguration,
+  CostRateType,
+  CostConfigurationStatus,
+  type CostRateLookupResult,
+} from './engineering-cost-configuration.entity';
