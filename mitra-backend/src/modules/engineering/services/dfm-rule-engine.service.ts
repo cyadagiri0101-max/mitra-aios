@@ -181,6 +181,89 @@ export class DfmRuleEngineService {
           );
         }
       }
+
+      // Rule 5: Injection Gating Location & Flow Length (DFM-GATE-001)
+      if (feat.featureType === GeometricFeatureType.GATE_LOCATION) {
+        const flowLengthToWall = Number(feat.measurements?.flowLengthRatio || 0);
+        const maxFlowLengthRatio = 150.0;
+
+        if (flowLengthToWall > maxFlowLengthRatio) {
+          findingsToCreate.push(
+            this.findingRepo.create({
+              tenantId,
+              projectId: dto.projectId,
+              drawingId: dto.drawingId,
+              drawingRevision: revision,
+              featureId: feat.id,
+              ruleId: 'DFM-GATE-001',
+              ruleVersion: '1.0',
+              severity: DfmSeverity.WARNING,
+              status: DfmFindingStatus.OPEN,
+              observedValue: flowLengthToWall,
+              expectedThreshold: maxFlowLengthRatio,
+              unit: 'L/t',
+              explanation: `Flow length to thickness ratio (${flowLengthToWall.toFixed(1)}) exceeds limit (${maxFlowLengthRatio}), risking hesitation and high injection pressure.`,
+              evidenceContext: { material, featureRef: feat.geometryReference, ruleName: 'INJECTION_GATING_FLOW_RISK' },
+            }),
+          );
+        }
+      }
+
+      // Rule 6: CNC Machining Internal Corner & Tool Reach (DFM-CNC-ACCESS-001)
+      if (feat.featureType === GeometricFeatureType.CNC_INTERNAL_CORNER) {
+        const cornerRadius = Number(feat.measurements?.cornerRadius || 0);
+        const minToolRadius = 1.0; // mm
+
+        if (cornerRadius > 0 && cornerRadius < minToolRadius) {
+          findingsToCreate.push(
+            this.findingRepo.create({
+              tenantId,
+              projectId: dto.projectId,
+              drawingId: dto.drawingId,
+              drawingRevision: revision,
+              featureId: feat.id,
+              ruleId: 'DFM-CNC-ACCESS-001',
+              ruleVersion: '1.0',
+              severity: DfmSeverity.WARNING,
+              status: DfmFindingStatus.OPEN,
+              observedValue: cornerRadius,
+              expectedThreshold: minToolRadius,
+              unit: 'mm',
+              explanation: `Internal corner radius (${cornerRadius} mm) is smaller than standard end-mill minimum (${minToolRadius} mm), requiring micro-tooling or EDM electrode sparking.`,
+              evidenceContext: { material, featureRef: feat.geometryReference, ruleName: 'CNC_CORNER_RADIUS_CONSTRAINT' },
+            }),
+          );
+        }
+      }
+
+      // Rule 7: Sheet Metal Minimum Bend Radius (DFM-SM-BEND-001)
+      if (feat.featureType === GeometricFeatureType.SHEET_METAL_BEND) {
+        const bendRadius = Number(feat.measurements?.bendRadius || 0);
+        const sheetThickness = Number(feat.measurements?.sheetThickness || 1.0);
+        const minBendRatio = 1.0; // 1x sheet thickness
+        const observedBendRatio = sheetThickness > 0 ? bendRadius / sheetThickness : 0;
+
+        if (observedBendRatio < minBendRatio) {
+          findingsToCreate.push(
+            this.findingRepo.create({
+              tenantId,
+              projectId: dto.projectId,
+              drawingId: dto.drawingId,
+              drawingRevision: revision,
+              featureId: feat.id,
+              ruleId: 'DFM-SM-BEND-001',
+              ruleVersion: '1.0',
+              severity: DfmSeverity.WARNING,
+              status: DfmFindingStatus.OPEN,
+              observedValue: observedBendRatio,
+              expectedThreshold: minBendRatio,
+              unit: 'ratio',
+              explanation: `Bend radius to sheet thickness ratio (${observedBendRatio.toFixed(2)}) is below minimum (${minBendRatio}), causing outer fiber cracking during forming.`,
+              evidenceContext: { material, featureRef: feat.geometryReference, ruleName: 'SHEET_METAL_BEND_CRACK_RISK' },
+            }),
+          );
+        }
+      }
     }
 
     const saved = await this.findingRepo.save(findingsToCreate);

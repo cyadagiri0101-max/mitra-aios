@@ -38,6 +38,42 @@ import { DfmFinding } from './entities/dfm-finding.entity';
 import { HistoricalDefectCorrelation } from './entities/historical-defect-correlation.entity';
 import { EngineeringReasoningResult } from './entities/engineering-reasoning-result.entity';
 import { EngineeringCostConfiguration } from './entities/engineering-cost-configuration.entity';
+import { DesignWorkPackage } from './entities/design-work-package.entity';
+import { DesignWorkloadTemplate } from './entities/design-workload-template.entity';
+import { DesignEngineerProfile } from './entities/design-team-capacity.entity';
+import { ToolProvingCycle } from './entities/tool-proving-cycle.entity';
+import { ToolModificationWorkload } from './entities/tool-modification-workload.entity';
+import { DesignProjectComplexity } from './entities/design-project-complexity.entity';
+import { DesignChecklist } from './entities/design-checklist.entity';
+import { DesignChecklistItem } from './entities/design-checklist-item.entity';
+import { DesignDependency } from './entities/design-dependency.entity';
+import { DesignBlocker } from './entities/design-blocker.entity';
+import { DesignHistoricalWorkload } from './entities/design-historical-workload.entity';
+import { DesignReplanRequest } from './entities/design-replan-request.entity';
+import { DesignComponent } from './entities/design-component.entity';
+import { DesignComponentRevision } from './entities/design-component-revision.entity';
+import { DesignComponentDeliverable } from './entities/design-component-deliverable.entity';
+import { TrackingSheet } from './entities/tracking-sheet.entity';
+import { TrackingSheetRevision } from './entities/tracking-sheet-revision.entity';
+import { TrackingSheetRow } from './entities/tracking-sheet-row.entity';
+import { TrackingSheetReconciliation } from './entities/tracking-sheet-reconciliation.entity';
+import { EngineeringTradeoffStudy } from './entities/engineering-tradeoff-study.entity';
+import { DigitalThreadGeometryAsset } from './entities/digital-thread-geometry-asset.entity';
+import { DesignLifecycleService } from './services/design-lifecycle.service';
+import { DesignCapacityService } from './services/design-capacity.service';
+import { ToolProvingService } from './services/tool-proving.service';
+import { DesignPlanningDeliveryService } from './services/design-planning-delivery.service';
+import { DesignComponentOperationsService } from './services/design-component-operations.service';
+import { TrackingSheetCopilotService } from './services/tracking-sheet-copilot.service';
+import { EngineeringTradeoffSynthesisService } from './services/engineering-tradeoff-synthesis.service';
+import { DigitalThreadGeometryService } from './services/digital-thread-geometry.service';
+import { DesignLifecycleController } from './controllers/design-lifecycle.controller';
+import { ToolProvingController } from './controllers/tool-proving.controller';
+import { DesignPlanningDeliveryController } from './controllers/design-planning-delivery.controller';
+import { DesignComponentOperationsController } from './controllers/design-component-operations.controller';
+import { TrackingSheetCopilotController } from './controllers/tracking-sheet-copilot.controller';
+import { EngineeringTradeoffController } from './controllers/engineering-tradeoff.controller';
+import { DigitalThreadGeometryController } from './controllers/digital-thread-geometry.controller';
 import { EngineeringEventBus } from './services/engineering-event-bus.service';
 import { EngineeringAiHooksService } from './services/engineering-ai-hooks.service';
 import { EngineeringChangeService } from '../ecr-eco/services/engineering-change.service';
@@ -111,6 +147,27 @@ import { EngineeringReasoningController } from './controllers/engineering-reason
       HistoricalDefectCorrelation,
       EngineeringReasoningResult,
       EngineeringCostConfiguration,
+      DesignWorkPackage,
+      DesignWorkloadTemplate,
+      DesignEngineerProfile,
+      ToolProvingCycle,
+      ToolModificationWorkload,
+      DesignProjectComplexity,
+      DesignChecklist,
+      DesignChecklistItem,
+      DesignDependency,
+      DesignBlocker,
+      DesignHistoricalWorkload,
+      DesignReplanRequest,
+      DesignComponent,
+      DesignComponentRevision,
+      DesignComponentDeliverable,
+      TrackingSheet,
+      TrackingSheetRevision,
+      TrackingSheetRow,
+      TrackingSheetReconciliation,
+      EngineeringTradeoffStudy,
+      DigitalThreadGeometryAsset,
     ]),
     WorkflowModule,
     AuditModule,
@@ -139,6 +196,13 @@ import { EngineeringReasoningController } from './controllers/engineering-reason
     EngineeringReleaseController,
     GeometryDfmController,
     EngineeringReasoningController,
+    DesignLifecycleController,
+    ToolProvingController,
+    DesignPlanningDeliveryController,
+    DesignComponentOperationsController,
+    TrackingSheetCopilotController,
+    EngineeringTradeoffController,
+    DigitalThreadGeometryController,
   ],
   providers: [
     EngineeringEventBus,
@@ -161,8 +225,16 @@ import { EngineeringReasoningController } from './controllers/engineering-reason
     GeometricFeatureService,
     DfmRuleEngineService,
     HistoricalDefectCorrelationService,
-    EngineeringCostSynthesisService,
     EngineeringReasoningEngineService,
+    EngineeringCostSynthesisService,
+    DesignLifecycleService,
+    DesignCapacityService,
+    ToolProvingService,
+    DesignPlanningDeliveryService,
+    DesignComponentOperationsService,
+    TrackingSheetCopilotService,
+    EngineeringTradeoffSynthesisService,
+    DigitalThreadGeometryService,
   ],
   exports: [
     EngineeringEventBus,
@@ -185,6 +257,14 @@ import { EngineeringReasoningController } from './controllers/engineering-reason
     HistoricalDefectCorrelationService,
     EngineeringCostSynthesisService,
     EngineeringReasoningEngineService,
+    DesignLifecycleService,
+    DesignCapacityService,
+    ToolProvingService,
+    DesignPlanningDeliveryService,
+    DesignComponentOperationsService,
+    TrackingSheetCopilotService,
+    EngineeringTradeoffSynthesisService,
+    DigitalThreadGeometryService,
   ],
 })
 export class EngineeringModule {}

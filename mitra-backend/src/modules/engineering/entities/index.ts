@@ -54,3 +54,43 @@ export {
   CostConfigurationStatus,
   type CostRateLookupResult,
 } from './engineering-cost-configuration.entity';
+export {
+  DesignWorkPackage,
+  DesignStageEnum,
+  DesignPackageStatus,
+  type DesignStageState,
+  type DesignDeliverableItem,
+} from './design-work-package.entity';
+export {
+  DesignWorkloadTemplate,
+  type StageDefinition,
+} from './design-workload-template.entity';
+export {
+  DesignEngineerProfile,
+  EngineerSkillType,
+  type EngineerSkillProficiency,
+  type ActiveProjectAssignment,
+} from './design-team-capacity.entity';
+export {
+  ToolProvingCycle,
+  ToolProvingStageEnum,
+} from './tool-proving-cycle.entity';
+export {
+  ToolModificationWorkload,
+  ModificationCategoryEnum,
+  ModificationRootCauseEnum,
+} from './tool-modification-workload.entity';
+export { DesignProjectComplexity } from './design-project-complexity.entity';
+export { DesignChecklist } from './design-checklist.entity';
+export { DesignChecklistItem } from './design-checklist-item.entity';
+export { DesignDependency } from './design-dependency.entity';
+export { DesignBlocker } from './design-blocker.entity';
+export { DesignHistoricalWorkload } from './design-historical-workload.entity';
+export { DesignReplanRequest } from './design-replan-request.entity';
+export { DesignComponent } from './design-component.entity';
+export { DesignComponentRevision } from './design-component-revision.entity';
+export { DesignComponentDeliverable } from './design-component-deliverable.entity';
+export { TrackingSheet } from './tracking-sheet.entity';
+export { TrackingSheetRevision } from './tracking-sheet-revision.entity';
+export { TrackingSheetRow } from './tracking-sheet-row.entity';
+export { TrackingSheetReconciliation, type ReconciliationDiscrepancyItem } from './tracking-sheet-reconciliation.entity';
