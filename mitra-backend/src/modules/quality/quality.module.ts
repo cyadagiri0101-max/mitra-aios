@@ -27,7 +27,9 @@ import { GaugeManagementService } from './services/gauge-management.service';
 import { MsaStudyService } from './services/msa-study.service';
 import { PpapApqpService } from './services/ppap-apqp.service';
 import { CustomerComplaintService } from './services/customer-complaint.service';
+import { QualityClosedLoopIntelligenceService } from './services/quality-closed-loop-intelligence.service';
 import { TrialObservationController } from './controllers/trialobservation.controller';
+
 import { CapaController } from './controllers/capa.controller';
 import { NcrController } from './controllers/ncr.controller';
 import { InspectionPlanController } from './controllers/inspection-plan.controller';
@@ -83,7 +85,9 @@ const qualityProviders = [
   MsaStudyService,
   PpapApqpService,
   CustomerComplaintService,
+  QualityClosedLoopIntelligenceService,
 ];
+
 
 @Module({
   imports: [TypeOrmModule.forFeature(qualityEntities), PlatformModule],
