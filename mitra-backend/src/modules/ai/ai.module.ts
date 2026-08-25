@@ -19,7 +19,9 @@ import { AiDomainCopilotService } from './services/ai-domain-copilot.service';
 import { AiCopilotMemoryService } from './services/ai-copilot-memory.service';
 import { AiCopilotOrchestratorService } from './services/ai-copilot-orchestrator.service';
 import { EnterpriseCopilotService } from './services/enterprise-copilot.service';
+import { EnterprisePredictiveIntelligenceService } from './services/enterprise-predictive-intelligence.service';
 import { AiController }        from './controllers/ai.controller';
+
 import { AiPlatformController } from './controllers/ai-platform.controller';
 import { AiCopilotsController } from './controllers/ai-copilots.controller';
 import { KnowledgeEmbedding }  from './entities/knowledge-embedding.entity';
@@ -75,6 +77,7 @@ import { AnalyticsModule }     from '@modules/analytics/analytics.module';
     AiCopilotMemoryService,
     AiCopilotOrchestratorService,
     EnterpriseCopilotService,
+    EnterprisePredictiveIntelligenceService,
   ],
   exports: [
     AiService,
@@ -84,6 +87,7 @@ import { AnalyticsModule }     from '@modules/analytics/analytics.module';
     PromptRegistryService,
     AiCopilotOrchestratorService,
     ModelRouterService,
+    EnterprisePredictiveIntelligenceService,
   ],
 })
 export class AiModule {}
