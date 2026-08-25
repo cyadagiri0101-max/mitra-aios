@@ -20,7 +20,9 @@ import { InspectionService } from './services/inspection.service';
 import { ProductionTrackingService } from './services/production-tracking.service';
 import { ManufacturingTelemetryService } from './services/manufacturing-telemetry.service';
 import { OperationalClosedLoopService } from './services/operational-closed-loop.service';
+import { ManufacturingEngineeringIntelligenceService } from './services/manufacturing-engineering-intelligence.service';
 import { WorkOrderController } from './controllers/workorder.controller';
+
 import { JobCardController } from './controllers/jobcard.controller';
 import { SchedulingController } from './controllers/scheduling.controller';
 import { MaterialManagementController } from './controllers/material-management.controller';
@@ -75,6 +77,7 @@ import { AuditModule } from '../audit/audit.module';
     ProductionTrackingService,
     ManufacturingTelemetryService,
     OperationalClosedLoopService,
+    ManufacturingEngineeringIntelligenceService,
   ],
   exports: [
     WorkOrderService,
@@ -86,6 +89,7 @@ import { AuditModule } from '../audit/audit.module';
     ProductionTrackingService,
     ManufacturingTelemetryService,
     OperationalClosedLoopService,
+    ManufacturingEngineeringIntelligenceService,
     TypeOrmModule,
   ],
 })
