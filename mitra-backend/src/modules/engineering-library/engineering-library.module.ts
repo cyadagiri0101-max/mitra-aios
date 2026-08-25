@@ -25,7 +25,9 @@ import { EngineeringPhi3GroundingService } from './grounding/engineering-phi3-gr
 import { CadFeatureKnowledgeService } from './services/cad-feature-knowledge.service';
 import { CrossProjectIntelligenceService } from './services/cross-project-intelligence.service';
 import { EngineeringAiObservabilityService } from './observability/engineering-ai-observability.service';
+import { EngineeringAiControlTowerService } from './services/engineering-ai-control-tower.service';
 import { EngineeringToleranceParserService } from './normalization/engineering-tolerance-parser.service';
+
 
 
 
@@ -63,6 +65,7 @@ import { AiModule } from '../ai/ai.module';
     CadFeatureKnowledgeService,
     CrossProjectIntelligenceService,
     EngineeringAiObservabilityService,
+    EngineeringAiControlTowerService,
     EngineeringToleranceParserService,
     KnowledgeIndexingBatchService,
     EngineeringQueryNormalizerService,
@@ -89,6 +92,7 @@ import { AiModule } from '../ai/ai.module';
     CadFeatureKnowledgeService,
     CrossProjectIntelligenceService,
     EngineeringAiObservabilityService,
+    EngineeringAiControlTowerService,
     EngineeringToleranceParserService,
     KnowledgeIndexingBatchService,
     EngineeringQueryNormalizerService,
