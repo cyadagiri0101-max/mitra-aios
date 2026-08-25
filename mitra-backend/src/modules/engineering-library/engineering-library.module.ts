@@ -22,6 +22,9 @@ import { EngineeringRetrievalService } from './retrieval/engineering-retrieval.s
 import { EngineeringContextBuilderService } from './grounding/engineering-context-builder.service';
 import { EngineeringCitationValidatorService } from './grounding/engineering-citation-validator.service';
 import { EngineeringPhi3GroundingService } from './grounding/engineering-phi3-grounding.service';
+import { CadFeatureKnowledgeService } from './services/cad-feature-knowledge.service';
+import { EngineeringToleranceParserService } from './normalization/engineering-tolerance-parser.service';
+
 import { KnowledgeSource } from './entities/knowledge-source.entity';
 import { KnowledgeIngestionBatch } from './entities/knowledge-ingestion-batch.entity';
 import { KnowledgeIngestionItem } from './entities/knowledge-ingestion-item.entity';
@@ -53,6 +56,8 @@ import { AiModule } from '../ai/ai.module';
     EngineeringNormalizerService,
     EngineeringChunkerService,
     EngineeringEmbeddingService,
+    CadFeatureKnowledgeService,
+    EngineeringToleranceParserService,
     KnowledgeIndexingBatchService,
     EngineeringQueryNormalizerService,
     EngineeringSynonymService,
@@ -75,6 +80,8 @@ import { AiModule } from '../ai/ai.module';
     EngineeringNormalizerService,
     EngineeringChunkerService,
     EngineeringEmbeddingService,
+    CadFeatureKnowledgeService,
+    EngineeringToleranceParserService,
     KnowledgeIndexingBatchService,
     EngineeringQueryNormalizerService,
     EngineeringSynonymService,

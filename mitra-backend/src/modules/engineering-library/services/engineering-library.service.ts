@@ -1,11 +1,15 @@
 import { Injectable, Logger, BadGatewayException, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import * as fs from 'fs';
+import * as path from 'path';
+import { DatabaseSync } from 'node:sqlite';
 
 @Injectable()
 export class EngineeringLibraryService {
   private readonly logger = new Logger(EngineeringLibraryService.name);
   private readonly client: AxiosInstance;
+  private readonly sqlitePath: string;
   private lastSyncStatus: { syncedAt: string; projectCount: number; documentCount: number; status: string } | null = null;
 
   constructor(private readonly configService: ConfigService) {
@@ -23,8 +27,18 @@ export class EngineeringLibraryService {
       });
     } else {
       this.client = axios.create({ baseURL: 'http://localhost:8001', timeout: 5000 });
-      this.logger.log('EngineeringLibraryService operating in standalone local mode (EKL_BASE_URL not configured)');
+      this.logger.log('EngineeringLibraryService operating with native MEKB priority (EKL_BASE_URL not configured)');
     }
+
+    const defaultLibPath = fs.existsSync(path.resolve(process.cwd(), 'MitraEngineeringLibrary'))
+      ? path.resolve(process.cwd(), 'MitraEngineeringLibrary')
+      : path.resolve(process.cwd(), '..', 'MitraEngineeringLibrary');
+    const libRoot =
+      this.configService.get<string>('MITRA_ENGINEERING_LIBRARY_PATH') ||
+      this.configService.get<string>('ENGINEERING_LIBRARY_PATH') ||
+      defaultLibPath;
+    this.sqlitePath = path.normalize(path.join(libRoot, 'database', 'mekb.sqlite'));
+
   }
 
   private getDefaultHeaders() {
@@ -52,38 +66,128 @@ export class EngineeringLibraryService {
     return [];
   }
 
-  private async request<T>(path: string, config: AxiosRequestConfig = {}): Promise<T> {
+  private hasNativeSqlite(): boolean {
+    return fs.existsSync(this.sqlitePath);
+  }
+
+  private openNativeDb(): DatabaseSync | null {
+    if (!this.hasNativeSqlite()) return null;
     try {
-      const response = await this.client.request<T>({ url: path, method: 'GET', headers: this.getDefaultHeaders(), ...config });
-      return response.data;
-    } catch (err) {
-      this.handleAxiosError(path, err);
+      return new DatabaseSync(this.sqlitePath, { readOnly: true });
+    } catch (err: any) {
+      this.logger.warn(`Failed to open native MEKB SQLite DB: ${err.message}`);
+      return null;
     }
   }
 
+  private async request<T>(path: string, config: AxiosRequestConfig = {}): Promise<T> {
+    const response = await this.client.request<T>({ url: path, method: 'GET', headers: this.getDefaultHeaders(), ...config });
+    return response.data;
+  }
+
+
   async search(query: string): Promise<any> {
     if (!query?.trim()) return { results: [] };
-    const result = await this.request<any>('/search', { params: { q: query } });
-    return result;
+    try {
+      return await this.request<any>('/search', { params: { q: query } });
+    } catch (err) {
+      const db = this.openNativeDb();
+      if (db) {
+        try {
+          const q = `%${query.trim()}%`;
+          const projectStmt = db.prepare('SELECT project_number as id, project_name as title, project_prefix, description FROM project_master WHERE project_number LIKE ? OR project_name LIKE ? OR description LIKE ? LIMIT 10;');
+          const projects = projectStmt.all(q, q, q) as any[];
+          const partStmt = db.prepare('SELECT id, description as title, material, grade, part_number FROM part_list WHERE description LIKE ? OR material LIKE ? OR part_number LIKE ? LIMIT 10;');
+          const parts = partStmt.all(q, q, q) as any[];
+          return {
+            results: [
+              ...projects.map((p) => ({ ...p, entityType: 'project', source: 'native_mekb' })),
+              ...parts.map((p) => ({ ...p, entityType: 'part', source: 'native_mekb' })),
+            ],
+            source: 'native_mekb_sqlite',
+          };
+        } finally {
+          db.close();
+        }
+      }
+      throw err;
+    }
   }
 
   async listProjects(): Promise<any[]> {
-    const result = await this.request<any>('/projects');
-    return this.normalizeArray(result);
+    try {
+      const result = await this.request<any>('/projects');
+      return this.normalizeArray(result);
+    } catch (err) {
+      const db = this.openNativeDb();
+      if (db) {
+        try {
+          const stmt = db.prepare('SELECT project_number as id, project_name as name, project_prefix, description, status, revision FROM project_master ORDER BY project_number;');
+          const rows = stmt.all() as any[];
+          return rows.map((r) => ({ ...r, source: 'native_mekb' }));
+        } finally {
+          db.close();
+        }
+      }
+      throw err;
+    }
   }
 
   async getProject(id: string): Promise<any> {
-    return this.request<any>(`/projects/${encodeURIComponent(id)}`);
+    try {
+      return await this.request<any>(`/projects/${encodeURIComponent(id)}`);
+    } catch (err) {
+      const db = this.openNativeDb();
+      if (db) {
+        try {
+          const stmt = db.prepare('SELECT * FROM project_master WHERE project_number = ? OR id = ? LIMIT 1;');
+          const row = stmt.get(id, id) as any;
+          if (row) return { ...row, source: 'native_mekb' };
+        } finally {
+          db.close();
+        }
+      }
+      throw err;
+    }
   }
 
   async listDocuments(): Promise<any[]> {
-    const result = await this.request<any>('/documents');
-    return this.normalizeArray(result);
+    try {
+      const result = await this.request<any>('/documents');
+      return this.normalizeArray(result);
+    } catch (err) {
+      const db = this.openNativeDb();
+      if (db) {
+        try {
+          const stmt = db.prepare('SELECT id, project_id, description as file_name, page_no, remarks, source_file FROM document_index ORDER BY id;');
+          const rows = stmt.all() as any[];
+          return rows.map((r) => ({ ...r, source: 'native_mekb' }));
+        } finally {
+          db.close();
+        }
+      }
+      throw err;
+    }
   }
 
   async getDocument(id: string): Promise<any> {
-    return this.request<any>(`/documents/${encodeURIComponent(id)}`);
+    try {
+      return await this.request<any>(`/documents/${encodeURIComponent(id)}`);
+    } catch (err) {
+      const db = this.openNativeDb();
+      if (db) {
+        try {
+          const stmt = db.prepare('SELECT id, project_id, description as file_name, page_no, remarks, source_file, source_sheet, source_row FROM document_index WHERE id = ? LIMIT 1;');
+          const row = stmt.get(id) as any;
+          if (row) return { ...row, source: 'native_mekb' };
+        } finally {
+          db.close();
+        }
+      }
+      throw err;
+    }
   }
+
 
   async getDashboardWidgets(): Promise<any> {
     try {
@@ -95,7 +199,7 @@ export class EngineeringLibraryService {
       return {
         totalProjects: projects.length,
         totalDocuments: documents.length,
-        status: 'fallback',
+        status: 'native_fallback',
       };
     }
   }

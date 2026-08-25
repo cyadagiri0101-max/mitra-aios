@@ -44,9 +44,22 @@ describe('EngineeringLibraryService', () => {
     expect(projects).toEqual([{ id: 'project1' }]);
   });
 
-  it('should throw BadGatewayException when EKL request fails', async () => {
+  it('should fallback to native MEKB SQLite when EKL request fails', async () => {
     mockClient.request.mockRejectedValue({ isAxiosError: true, response: { status: 502, data: { message: 'Service unavailable' } }, message: 'Bad gateway' });
-    await expect(service.listProjects()).rejects.toThrow(BadGatewayException);
+    const projects = await service.listProjects();
+    expect(Array.isArray(projects)).toBe(true);
+    // If SQLite exists, it returns records with source: 'native_mekb'
+    if (projects.length > 0) {
+      expect(projects[0].source).toBe('native_mekb');
+    }
+  });
+
+  it('should fallback to native search when EKL search fails', async () => {
+    mockClient.request.mockRejectedValue({ isAxiosError: true, response: { status: 502 }, message: 'Bad gateway' });
+    const searchRes = await service.search('BM');
+    expect(searchRes).toBeDefined();
+    expect(searchRes.source).toBe('native_mekb_sqlite');
+    expect(Array.isArray(searchRes.results)).toBe(true);
   });
 
   it('should synchronize and store last sync status', async () => {

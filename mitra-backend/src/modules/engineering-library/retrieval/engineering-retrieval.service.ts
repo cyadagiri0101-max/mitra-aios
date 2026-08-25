@@ -58,12 +58,13 @@ export class EngineeringRetrievalService {
     const vectorWeight = hasIdentifier ? 0.6 : extractedFilters.entityType ? 1.0 : 1.5;
 
     const fusionStartTime = Date.now();
-    const fusedCandidates = this.hybridFusion.fuseCandidates(lexicalCandidates, vectorResult.candidates, {
+    const fusedCandidates = this.hybridFusion.fuseCandidates(lexicalCandidates, vectorResult.candidates, [], {
       topK: topK * 2,
       lexicalWeight,
       vectorWeight,
     });
     const fusionLatencyMs = Date.now() - fusionStartTime;
+
 
     // 5. Engineering Feature Reranking
     const rerankStartTime = Date.now();
