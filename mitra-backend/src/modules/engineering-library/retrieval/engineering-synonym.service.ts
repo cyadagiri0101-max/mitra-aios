@@ -22,7 +22,18 @@ export class EngineeringSynonymService {
     ['edm', ['sparking', 'electric discharge machining', 'wirecut']],
     ['hardness', ['hrc', 'hb', 'heat treatment hardness']],
     ['tonnage', ['clamping force', 'clamp force', 'ton']],
+    ['p20', ['1.2311', '1.2738', 'aisi p20', 'din 1.2311', 'jis fld-1', 'p20 steel']],
+    ['1.2311', ['p20', 'din 1.2311', 'aisi p20']],
+    ['h13', ['1.2344', 'din 1.2344', 'skd61', 'aisi h13']],
+    ['1.2344', ['h13', 'din 1.2344', 'skd61']],
+    ['1.2083', ['420 ss', 'sus420j2', 'din 1.2083', 'aisi 420']],
+    ['en8', ['080m40', 'c45', '1.0503', 'aisi 1045']],
+    ['drawing', ['2d drawing', 'cad drawing', 'zeichnung', 'blueprint', 'dwg', 'dxf']],
+    ['tolerance', ['toleranz', 'limit', 'fit', 'clearance', 'allowance']],
+    ['draft angle', ['entformungsschraege', 'draft', 'taper']],
+    ['wall thickness', ['wandstaerke', 'thickness', 'wall']],
   ]);
+
 
   /**
    * Expand tokens in query with domain synonyms.
