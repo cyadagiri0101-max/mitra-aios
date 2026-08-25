@@ -41,6 +41,8 @@ export class EngineeringEventBus implements OnModuleDestroy {
       this.seenEvents.clear();
     }
 
+    this.emitter.emit('event', event);
+
     for (const subscriber of this.subscribers.values()) {
       queueMicrotask(async () => {
         try {
@@ -52,6 +54,12 @@ export class EngineeringEventBus implements OnModuleDestroy {
         }
       });
     }
+  }
+
+  /** Convert bus events into an RxJS Observable stream for real-time consumers. */
+  toObservable() {
+    const { fromEvent } = require('rxjs');
+    return fromEvent(this.emitter, 'event');
   }
 
   /** Subscriber count (used for diagnostics / tests). */

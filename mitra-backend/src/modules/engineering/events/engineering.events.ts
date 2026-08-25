@@ -103,6 +103,11 @@ export enum EngineeringDomainEventType {
   SERVICE_INSTALLATION_COMPLETED = 'service.installation.completed',
   SERVICE_WARRANTY_ACTIVATED = 'service.warranty.activated',
   SERVICE_WARRANTY_CLAIM_ADJUDICATED = 'service.warranty_claim.adjudicated',
+
+  // Enterprise Portfolio Orchestration events (M12.5 Sprint 3)
+  PORTFOLIO_ALLOCATION_CREATED = 'engineering.portfolio.allocation_created',
+  PORTFOLIO_ALLOCATION_STATUS_UPDATED = 'engineering.portfolio.allocation_status_updated',
+  PORTFOLIO_SNAPSHOT_CREATED = 'engineering.portfolio.snapshot_created',
 }
 
 /** Generic engineering payload — always carries the owning project id. */

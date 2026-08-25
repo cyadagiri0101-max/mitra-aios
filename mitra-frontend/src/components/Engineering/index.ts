@@ -26,3 +26,11 @@ export { TrackingReconciliationPanel, type ReconciliationResultData } from './Tr
 export { EngineeringTradeoffWorkspace, type CandidateOption } from './EngineeringTradeoffWorkspace';
 export { DigitalThreadCanvas3D, type DigitalThreadComponentMesh } from './DigitalThreadCanvas3D';
 export { DigitalThreadWorkspace } from './DigitalThreadWorkspace';
+export { PortfolioControlTowerWorkspace } from './PortfolioControlTowerWorkspace';
+export { PortfolioDemandPanel } from './PortfolioDemandPanel';
+export { GlobalCapacityPanel } from './GlobalCapacityPanel';
+export { BottleneckAnalysisPanel } from './BottleneckAnalysisPanel';
+export { RebalancingAdvisoryPanel } from './RebalancingAdvisoryPanel';
+export { CrossProjectAllocationPanel } from './CrossProjectAllocationPanel';
+export { PortfolioScenarioSimulatorModal } from './PortfolioScenarioSimulatorModal';
+export { PortfolioSnapshotModal } from './PortfolioSnapshotModal';

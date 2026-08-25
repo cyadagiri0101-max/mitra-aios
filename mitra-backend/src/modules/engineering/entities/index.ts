@@ -94,3 +94,7 @@ export { TrackingSheet } from './tracking-sheet.entity';
 export { TrackingSheetRevision } from './tracking-sheet-revision.entity';
 export { TrackingSheetRow } from './tracking-sheet-row.entity';
 export { TrackingSheetReconciliation, type ReconciliationDiscrepancyItem } from './tracking-sheet-reconciliation.entity';
+export { EngineeringTradeoffStudy } from './engineering-tradeoff-study.entity';
+export { DigitalThreadGeometryAsset } from './digital-thread-geometry-asset.entity';
+export { EnterprisePortfolioSnapshot } from './enterprise-portfolio-snapshot.entity';
+export { CrossProjectAllocation } from './cross-project-allocation.entity';

@@ -114,6 +114,15 @@ import { EngineeringReleaseController } from './controllers/engineering-release.
 import { GeometryDfmController } from './controllers/geometry-dfm.controller';
 import { EngineeringReasoningController } from './controllers/engineering-reasoning.controller';
 
+import { EnterprisePortfolioSnapshot } from './entities/enterprise-portfolio-snapshot.entity';
+import { CrossProjectAllocation } from './entities/cross-project-allocation.entity';
+import { PortfolioSnapshotService } from './services/portfolio-snapshot.service';
+import { PortfolioDemandService } from './services/portfolio-demand.service';
+import { PortfolioCapacityService } from './services/portfolio-capacity.service';
+import { PortfolioBalancingService } from './services/portfolio-balancing.service';
+import { PortfolioScenarioService } from './services/portfolio-scenario.service';
+import { PortfolioOrchestrationController } from './controllers/portfolio-orchestration.controller';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -168,6 +177,8 @@ import { EngineeringReasoningController } from './controllers/engineering-reason
       TrackingSheetReconciliation,
       EngineeringTradeoffStudy,
       DigitalThreadGeometryAsset,
+      EnterprisePortfolioSnapshot,
+      CrossProjectAllocation,
     ]),
     WorkflowModule,
     AuditModule,
@@ -203,6 +214,7 @@ import { EngineeringReasoningController } from './controllers/engineering-reason
     TrackingSheetCopilotController,
     EngineeringTradeoffController,
     DigitalThreadGeometryController,
+    PortfolioOrchestrationController,
   ],
   providers: [
     EngineeringEventBus,
@@ -235,6 +247,11 @@ import { EngineeringReasoningController } from './controllers/engineering-reason
     TrackingSheetCopilotService,
     EngineeringTradeoffSynthesisService,
     DigitalThreadGeometryService,
+    PortfolioSnapshotService,
+    PortfolioDemandService,
+    PortfolioCapacityService,
+    PortfolioBalancingService,
+    PortfolioScenarioService,
   ],
   exports: [
     EngineeringEventBus,
@@ -265,6 +282,11 @@ import { EngineeringReasoningController } from './controllers/engineering-reason
     TrackingSheetCopilotService,
     EngineeringTradeoffSynthesisService,
     DigitalThreadGeometryService,
+    PortfolioSnapshotService,
+    PortfolioDemandService,
+    PortfolioCapacityService,
+    PortfolioBalancingService,
+    PortfolioScenarioService,
   ],
 })
 export class EngineeringModule {}
