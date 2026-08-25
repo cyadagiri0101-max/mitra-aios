@@ -96,7 +96,9 @@ import { DfmRuleEngineService } from './services/dfm-rule-engine.service';
 import { HistoricalDefectCorrelationService } from './services/historical-defect-correlation.service';
 import { EngineeringCostSynthesisService } from './services/engineering-cost-synthesis.service';
 import { EngineeringReasoningEngineService } from './services/engineering-reasoning-engine.service';
+import { EngineeringWorkflowIntelligenceService } from './services/engineering-workflow-intelligence.service';
 import { EngineeringDrawingController } from './controllers/engineering-drawing.controller';
+
 import { EngineeringBomController } from './controllers/engineering-bom.controller';
 import { EngineeringProcessPlanningController } from './controllers/engineering-process-planning.controller';
 import { EngineeringMaterialController } from './controllers/engineering-material.controller';
@@ -252,6 +254,7 @@ import { PortfolioOrchestrationController } from './controllers/portfolio-orches
     PortfolioCapacityService,
     PortfolioBalancingService,
     PortfolioScenarioService,
+    EngineeringWorkflowIntelligenceService,
   ],
   exports: [
     EngineeringEventBus,
@@ -287,6 +290,7 @@ import { PortfolioOrchestrationController } from './controllers/portfolio-orches
     PortfolioCapacityService,
     PortfolioBalancingService,
     PortfolioScenarioService,
+    EngineeringWorkflowIntelligenceService,
   ],
 })
 export class EngineeringModule {}
